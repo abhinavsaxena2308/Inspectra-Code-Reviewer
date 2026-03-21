@@ -4,8 +4,11 @@ import { LandingPage } from './pages/LandingPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { AnalysisPage } from './pages/AnalysisPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 import { Sidebar } from './components/layout/Sidebar';
 import { Navbar } from './components/layout/Navbar';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { ToastContainer } from './components/ui/Toast';
 import { useToast } from './hooks/useToast';
 import { AnimatePresence, motion } from 'motion/react';
@@ -13,9 +16,10 @@ import { AuthProvider } from './hooks/useAuth';
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const isLandingPage = location.pathname === '/';
+  const authRoutes = ['/', '/login', '/register'];
+  const isPublicPage = authRoutes.includes(location.pathname);
 
-  if (isLandingPage) {
+  if (isPublicPage) {
     return <>{children}</>;
   }
 
@@ -51,12 +55,20 @@ export default function App() {
       <AuthProvider>
         <AppLayout>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<LandingPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/analysis/:id" element={<AnalysisPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/repos" element={<DashboardPage />} />
-            <Route path="/history" element={<DashboardPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+
+            {/* Protected routes — must be authenticated */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/analysis/:id" element={<AnalysisPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/repos" element={<DashboardPage />} />
+              <Route path="/history" element={<DashboardPage />} />
+            </Route>
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AppLayout>

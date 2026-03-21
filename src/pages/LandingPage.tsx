@@ -106,8 +106,8 @@ export const LandingPage = () => {
             </>
           ) : (
             <>
-              <Button variant="ghost" size="sm" isLoading={isAuthLoading} onClick={handleGitHubSignIn}>Sign in</Button>
-              <Button size="sm" isLoading={isAuthLoading} onClick={handleGitHubSignIn}>Get Started</Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>Sign in</Button>
+              <Button size="sm" onClick={() => navigate('/register')}>Get Started</Button>
             </>
           )}
         </div>
