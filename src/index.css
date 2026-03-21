@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  
+  /* GitHub Dark Colors */
+  --color-gh-bg: #0d1117;
+  --color-gh-border: #30363d;
+  --color-gh-header: #161b22;
+  --color-gh-text: #c9d1d9;
+  --color-gh-muted: #8b949e;
+  --color-gh-blue: #58a6ff;
+  --color-gh-green: #238636;
+  --color-gh-red: #da3633;
+  --color-gh-orange: #d29922;
+}
+
+@layer base {
+  body {
+    @apply bg-gh-bg text-gh-text antialiased;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gh-border rounded-full hover:bg-gh-muted/50 transition-colors;
+  }
+}
+
+.gh-box {
+  @apply border border-gh-border bg-gh-bg rounded-md overflow-hidden;
+}
+
+.gh-box-header {
+  @apply border-b border-gh-border bg-gh-header px-4 py-2 font-semibold text-sm;
+}
