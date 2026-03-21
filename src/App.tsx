@@ -9,6 +9,7 @@ import { Navbar } from './components/layout/Navbar';
 import { ToastContainer } from './components/ui/Toast';
 import { useToast } from './hooks/useToast';
 import { AnimatePresence, motion } from 'motion/react';
+import { AuthProvider } from './hooks/useAuth';
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
@@ -47,18 +48,20 @@ export default function App() {
 
   return (
     <Router>
-      <AppLayout>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/analysis/:id" element={<AnalysisPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/repos" element={<DashboardPage />} />
-          <Route path="/history" element={<DashboardPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AppLayout>
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <AuthProvider>
+        <AppLayout>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/analysis/:id" element={<AnalysisPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/repos" element={<DashboardPage />} />
+            <Route path="/history" element={<DashboardPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AppLayout>
+        <ToastContainer toasts={toasts} removeToast={removeToast} />
+      </AuthProvider>
     </Router>
   );
 }

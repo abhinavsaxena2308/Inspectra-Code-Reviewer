@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Github, Zap, Shield, Bug, BarChart3, Star, Users, CheckCircle2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
@@ -6,20 +6,41 @@ import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
+import { insforge } from '../lib/insforge';
+import { useAuth } from '../hooks/useAuth';
 
 export const LandingPage = () => {
   const [repoUrl, setRepoUrl] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  const handleAnalyze = (e: React.FormEvent) => {
+  const handleGitHubSignIn = async () => {
+    setIsAuthLoading(true);
+    try {
+      await insforge.auth.signInWithOAuth({
+        provider: 'github',
+        redirectTo: window.location.origin + '/dashboard',
+      });
+    } catch (error) {
+      console.error('Sign in error:', error);
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!repoUrl) return;
     
-    setIsLoading(true);
+    setIsAnalyzing(true);
+    
+    // Simulate real analysis using InsForge database record creation later
     setTimeout(() => {
+      setIsAnalyzing(false);
       navigate('/analysis/1');
-    }, 2000);
+    }, 2500);
   };
 
   const features = [
@@ -73,8 +94,22 @@ export const LandingPage = () => {
           <a href="#pricing" className="text-sm font-medium text-gh-muted hover:text-gh-blue transition-colors">Pricing</a>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>Sign in</Button>
-          <Button size="sm" onClick={() => navigate('/dashboard')}>Get Started</Button>
+          {user ? (
+            <>
+              <div className="flex items-center gap-3 px-3 py-1.5 rounded-full bg-gh-header-accent/50 border border-gh-border mr-2">
+                <div className="w-6 h-6 rounded-full overflow-hidden border border-gh-border bg-gh-bg flex items-center justify-center">
+                  <Users className="w-3 h-3 text-gh-muted" />
+                </div>
+                <span className="text-xs font-semibold text-gh-text">{user.name || user.email?.split('@')[0]}</span>
+              </div>
+              <Button size="sm" onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" isLoading={isAuthLoading} onClick={handleGitHubSignIn}>Sign in</Button>
+              <Button size="sm" isLoading={isAuthLoading} onClick={handleGitHubSignIn}>Get Started</Button>
+            </>
+          )}
         </div>
       </nav>
 
@@ -107,10 +142,10 @@ export const LandingPage = () => {
               type="submit" 
               size="lg" 
               className="h-12 px-8 text-base"
-              isLoading={isLoading}
+              isLoading={isAnalyzing}
             >
-              Analyze Repo
-            </Button>
+              {isAnalyzing ? 'Analyzing Repository...' : 'Analyze Repo'}
+           </Button>
           </form>
           
           <div className="mt-10 flex items-center justify-center gap-8 text-gh-muted text-sm font-medium">
