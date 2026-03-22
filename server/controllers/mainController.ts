@@ -42,22 +42,25 @@ export const analyzeRepository = async (req: Request, res: Response, next: NextF
     const analysisResults = await analyzeMultipleFiles(filesWithContent);
 
     // 4. Prepare and Store Results
-    const analysisId = crypto.randomUUID();
     const resultData = {
-        id: analysisId,
-        repo_url: repoUrl,
+        repoUrl,
         owner,
-        repo_name: repo,
-        analysis_data: analysisResults,
-        created_at: new Date().toISOString()
+        repoName: repo,
+        issues: analysisResults
     };
 
     // Try to save, but don't fail the whole request if DB fails (since we return results)
     let saved = false;
+    let analysisId = null;
+    let saveErrorMessage = null;
     try {
-        await saveAnalysis(resultData);
-        saved = true;
-    } catch (saveError) {
+        const result = await saveAnalysis(resultData);
+        if (result) {
+            analysisId = result.analysisId;
+            saved = true;
+        }
+    } catch (saveError: any) {
+        saveErrorMessage = saveError.stack || JSON.stringify(saveError) || String(saveError);
         console.error('[Main] Failed to save analysis:', saveError);
     }
 
@@ -68,6 +71,7 @@ export const analyzeRepository = async (req: Request, res: Response, next: NextF
           owner,
           repo,
           saved,
+          saveErrorMessage,
           results: analysisResults
       },
     });
