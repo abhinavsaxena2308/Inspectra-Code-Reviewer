@@ -1,18 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Github, Plus, Search, ExternalLink, Calendar, Code2, ArrowUpRight, CheckCircle2, Star, AlertTriangle, GitPullRequest, BookOpen } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
-import { MOCK_REPOS } from '../mock/data';
+import { Repository } from '../mock/data';
+import { fetchRepositories, fetchDashboardStats, fetchRecentActivity, DashboardStats, ActivityItem } from '../lib/dashboardService';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
+
+const STATS_ICONS: Record<string, any> = {
+  'Total Analyses': Code2,
+  'Average Score': Star,
+  'Issues Resolved': CheckCircle2,
+};
 
 export const DashboardPage = () => {
   const [repoUrl, setRepoUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+  const [stats, setStats] = useState<DashboardStats[]>([]);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [reposData, statsData, activityData] = await Promise.all([
+          fetchRepositories(),
+          fetchDashboardStats(),
+          fetchRecentActivity(),
+        ]);
+        setRepositories(reposData);
+        setStats(statsData);
+        setActivities(activityData);
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   const handleAnalyze = () => {
     if (!repoUrl) return;
@@ -22,13 +53,21 @@ export const DashboardPage = () => {
     }, 2000);
   };
 
+  if (isLoading) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gh-blue" />
+      </div>
+    );
+  }
+
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto">
       {/* Welcome Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gh-border pb-6">
         <div>
           <h1 className="text-2xl font-semibold text-gh-text mb-1">Repositories</h1>
-          <p className="text-gh-muted text-sm">You have 3 active repositories under analysis.</p>
+          <p className="text-gh-muted text-sm">You have {repositories.length} active repositories under analysis.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" size="sm" className="gap-2">
@@ -60,7 +99,7 @@ export const DashboardPage = () => {
           </div>
 
           <div className="space-y-0 border-t border-gh-border">
-            {MOCK_REPOS.map((repo) => (
+            {repositories.map((repo) => (
               <div 
                 key={repo.id}
                 className="py-6 border-b border-gh-border flex items-start justify-between group"
@@ -112,47 +151,47 @@ export const DashboardPage = () => {
           <div className="gh-box">
             <div className="gh-box-header">Analysis Stats</div>
             <div className="p-4 space-y-4">
-              {[
-                { label: 'Total Analyses', value: '24', icon: Code2, color: 'text-gh-blue' },
-                { label: 'Average Score', value: '84', icon: Star, color: 'text-gh-orange' },
-                { label: 'Issues Resolved', value: '142', icon: CheckCircle2, color: 'text-gh-green' },
-              ].map((stat) => (
-                <div key={stat.label} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <stat.icon className={cn("w-4 h-4", stat.color)} />
-                    <span className="text-sm text-gh-text">{stat.label}</span>
+              {stats.map((stat) => {
+                const Icon = STATS_ICONS[stat.label] || Code2;
+                return (
+                  <div key={stat.label} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Icon className={cn("w-4 h-4", stat.color)} />
+                      <span className="text-sm text-gh-text">{stat.label}</span>
+                    </div>
+                    <span className="text-sm font-bold text-gh-text">{stat.value}</span>
                   </div>
-                  <span className="text-sm font-bold text-gh-text">{stat.value}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
           <div className="gh-box">
             <div className="gh-box-header">Recent Activity</div>
             <div className="p-4 space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-gh-muted/20 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-gh-green" />
-                </div>
-                <div>
-                  <p className="text-xs text-gh-text">
-                    <span className="font-bold">Analysis completed</span> for facebook/react
-                  </p>
-                  <p className="text-[10px] text-gh-muted mt-0.5">2 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-gh-muted/20 flex items-center justify-center shrink-0">
-                  <AlertTriangle className="w-3.5 h-3.5 text-gh-orange" />
-                </div>
-                <div>
-                  <p className="text-xs text-gh-text">
-                    <span className="font-bold">2 new issues</span> found in vercel/next.js
-                  </p>
-                  <p className="text-[10px] text-gh-muted mt-0.5">1 day ago</p>
-                </div>
-              </div>
+              {activities.length === 0 ? (
+                <p className="text-xs text-gh-muted">No recent activity found.</p>
+              ) : (
+                activities.map((activity) => (
+                  <div key={activity.id} className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-gh-muted/20 flex items-center justify-center shrink-0">
+                      {activity.type === 'analysis-completed' ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-gh-green" />
+                      ) : (
+                        <AlertTriangle className="w-3.5 h-3.5 text-gh-orange" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs text-gh-text">
+                        <span className="font-bold">
+                          {activity.type === 'analysis-completed' ? 'Analysis completed' : activity.description}
+                        </span> for {activity.repoName}
+                      </p>
+                      <p className="text-[10px] text-gh-muted mt-0.5">{activity.timestamp}</p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
