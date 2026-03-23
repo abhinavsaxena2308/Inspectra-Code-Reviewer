@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Github, Zap, Shield, Bug, BarChart3, Star, Users, CheckCircle2 } from 'lucide-react';
+import { Github, Zap, Shield, Bug, BarChart3, Users, CheckCircle2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
@@ -8,11 +8,13 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { insforge } from '../lib/insforge';
 import { useAuth } from '../hooks/useAuth';
+import { analyzeRepository } from '../lib/api';
 
 export const LandingPage = () => {
   const [repoUrl, setRepoUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -35,12 +37,19 @@ export const LandingPage = () => {
     if (!repoUrl) return;
     
     setIsAnalyzing(true);
+    setError(null);
     
-    // Simulate real analysis using InsForge database record creation later
-    setTimeout(() => {
+    try {
+      const result = await analyzeRepository(repoUrl);
+      if (result.status === 'success') {
+        navigate(`/analysis/${result.data.id}`);
+      }
+    } catch (err: any) {
+      console.error('Analysis error:', err);
+      setError(err.response?.data?.message || 'Failed to start analysis. Please check the URL.');
+    } finally {
       setIsAnalyzing(false);
-      navigate('/analysis/1');
-    }, 2500);
+    }
   };
 
   const features = [
@@ -147,6 +156,16 @@ export const LandingPage = () => {
               {isAnalyzing ? 'Analyzing Repository...' : 'Analyze Repo'}
            </Button>
           </form>
+          
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 p-3 rounded-md bg-gh-red/10 border border-gh-red/20 text-gh-red text-sm font-medium max-w-2xl mx-auto"
+            >
+              {error}
+            </motion.div>
+          )}
           
           <div className="mt-10 flex items-center justify-center gap-8 text-gh-muted text-sm font-medium">
             <div className="flex items-center gap-2">

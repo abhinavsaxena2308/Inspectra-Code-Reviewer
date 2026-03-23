@@ -1,18 +1,30 @@
 import { Request, Response, NextFunction } from 'express';
+import { z } from 'zod';
 import { parseRepoUrl } from '../services/githubService';
 import { createPendingAnalysis, getAnalysis } from '../services/storageService';
 import { processRepositoryAnalysis } from '../workers/analysisWorker';
 
-export const analyzeRepository = async (req: Request, res: Response, next: NextFunction) => {
-  const { repoUrl } = req.body;
+const analyzeBodySchema = z.object({
+  repoUrl: z.string().url('Must provide a valid URL string'),
+});
 
-  if (!repoUrl) {
+const idParamSchema = z.object({
+  id: z.string().uuid('Invalid Analysis ID format'),
+});
+
+export const analyzeRepository = async (req: Request, res: Response, next: NextFunction) => {
+  const validation = analyzeBodySchema.safeParse(req.body);
+  
+  if (!validation.success) {
     return res.status(400).json({
       status: 'error',
       statusCode: 400,
-      message: 'GitHub repository URL is required',
+      message: 'Invalid request body',
+      errors: validation.error.format(),
     });
   }
+
+  const { repoUrl } = validation.data;
 
   const parsed = parseRepoUrl(repoUrl);
   if (!parsed) {
@@ -59,7 +71,18 @@ export const analyzeRepository = async (req: Request, res: Response, next: NextF
 };
 
 export const getAnalysisResult = async (req: Request, res: Response, next: NextFunction) => {
-  const { id } = req.params;
+  const validation = idParamSchema.safeParse(req.params);
+
+  if (!validation.success) {
+    return res.status(400).json({
+      status: 'error',
+      statusCode: 400,
+      message: 'Invalid Analysis ID',
+      errors: validation.error.format(),
+    });
+  }
+
+  const { id } = validation.data;
 
   try {
     const result = await getAnalysis(id);

@@ -10,19 +10,26 @@ export interface GitHubFile {
 }
 
 const GITHUB_API_BASE = 'https://api.github.com';
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const GITHUB_TOKEN = config.githubToken;
 
 const IGNORED_DIRS = ['.git', 'node_modules', 'dist', 'build', 'vendor', '.next', '.cache'];
 const SUPPORTED_EXTENSIONS = ['.ts', '.js', '.tsx', '.jsx', '.py', '.go', '.java', '.c', '.cpp', '.h', '.cs', '.rs', '.php', '.rb', '.sh', '.md', '.json', '.html', '.css'];
 
 export const parseRepoUrl = (url: string): { owner: string; repo: string } | null => {
-  const githubRegex = /github\.com\/([^/]+)\/([^/]+)/;
-  const match = url.match(githubRegex);
-  if (!match) return null;
-  return {
-    owner: match[1],
-    repo: match[2].replace(/\.git$/, ''),
-  };
+  try {
+    const parsedUrl = new URL(url);
+    if (parsedUrl.hostname !== 'github.com' && parsedUrl.hostname !== 'www.github.com') {
+      return null;
+    }
+    const parts = parsedUrl.pathname.split('/').filter(Boolean);
+    if (parts.length < 2) return null;
+    return {
+      owner: parts[0],
+      repo: parts[1].replace(/\.git$/, ''),
+    };
+  } catch (err) {
+    return null; // Invalid URL
+  }
 };
 
 export const getRepositoryContents = async (owner: string, repo: string, path: string = ''): Promise<GitHubFile[]> => {

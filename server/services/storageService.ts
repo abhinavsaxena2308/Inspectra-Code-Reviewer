@@ -1,13 +1,13 @@
 import { createClient } from '@insforge/sdk';
-import '../config';
+import { config } from '../config';
 
 let _client: ReturnType<typeof createClient> | null = null;
 
 function getClient(): ReturnType<typeof createClient> | null {
   if (_client) return _client;
 
-  const url = process.env.VITE_INSFORGE_URL;
-  const key = process.env.VITE_INSFORGE_ANON_KEY;
+  const url = config.insforgeUrl;
+  const key = config.insforgeAnonKey;
 
   if (!url || !key) {
     console.warn('[Storage] InsForge credentials missing. Data persistence will be disabled.');
@@ -73,8 +73,6 @@ export const updateAnalysisStatus = async (analysisId: string, status: 'processi
   }
 
   try {
-    // We update the status. We can also add an error_message update if we add that column.
-    // Assuming we use 'message' column or similar if we added it, but let's just update 'status' for now.
     const { error } = await client.database
       .from('analyses')
       .update({ status: status })

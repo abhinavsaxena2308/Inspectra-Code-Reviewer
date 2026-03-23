@@ -9,6 +9,7 @@ import { Repository } from '../mock/data';
 import { fetchRepositories, fetchDashboardStats, fetchRecentActivity, DashboardStats, ActivityItem } from '../lib/dashboardService';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
+import { analyzeRepository } from '../lib/api';
 
 const STATS_ICONS: Record<string, any> = {
   'Total Analyses': Code2,
@@ -19,6 +20,7 @@ const STATS_ICONS: Record<string, any> = {
 export const DashboardPage = () => {
   const [repoUrl, setRepoUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [stats, setStats] = useState<DashboardStats[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
@@ -45,12 +47,21 @@ export const DashboardPage = () => {
     loadData();
   }, []);
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!repoUrl) return;
     setIsAnalyzing(true);
-    setTimeout(() => {
-      navigate('/analysis/1');
-    }, 2000);
+    setError(null);
+    try {
+      const result = await analyzeRepository(repoUrl);
+      if (result.status === 'success') {
+        navigate(`/analysis/${result.data.id}`);
+      }
+    } catch (err: any) {
+      console.error('Analysis error:', err);
+      setError(err.response?.data?.message || 'Failed to start analysis. Check the URL.');
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   if (isLoading) {
@@ -84,7 +95,7 @@ export const DashboardPage = () => {
       <div className="grid grid-cols-12 gap-8">
         {/* Left: Repo List */}
         <div className="col-span-12 lg:col-span-8 space-y-4">
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-3 mb-2">
             <div className="flex-1">
               <Input 
                 placeholder="Find a repository..." 
@@ -97,6 +108,12 @@ export const DashboardPage = () => {
               Analyze
             </Button>
           </div>
+
+          {error && (
+            <div className="mb-6 p-2 rounded bg-gh-red/10 border border-gh-red/20 text-gh-red text-xs font-medium">
+              {error}
+            </div>
+          )}
 
           <div className="space-y-0 border-t border-gh-border">
             {repositories.map((repo) => (
