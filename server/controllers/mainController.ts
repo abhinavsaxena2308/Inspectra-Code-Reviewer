@@ -95,9 +95,48 @@ export const getAnalysisResult = async (req: Request, res: Response, next: NextF
       });
     }
 
+    // Group issues by file_name
+    const filesMap: Record<string, any[]> = {};
+    (result.issues || []).forEach((issue: any) => {
+      if (!filesMap[issue.file_name]) {
+        filesMap[issue.file_name] = [];
+      }
+      filesMap[issue.file_name].push({
+        type: issue.type || 'bug',
+        severity: issue.severity,
+        message: issue.message,
+        suggestion: issue.suggestion
+      });
+    });
+
+    const files = Object.entries(filesMap).map(([file_name, issues]) => ({
+      file_name,
+      issues
+    }));
+
+    // Calculate score if missing from DB
+    let score = result.score;
+    if (score === undefined || score === null) {
+      score = 100;
+      (result.issues || []).forEach((issue: any) => {
+        if (issue.type === 'bug') score -= 10;
+        else if (issue.type === 'security') score -= 20;
+        else if (issue.type === 'performance') score -= 5;
+        else if (issue.type === 'suggestion') score -= 2;
+      });
+      score = Math.max(0, score);
+    }
+
     res.status(200).json({
       status: 'success',
-      data: result,
+      data: {
+        id: result.id,
+        repo: `${result.repositories?.owner}/${result.repositories?.repo_name}`,
+        score: score,
+        status: result.status,
+        files: files,
+        created_at: result.created_at
+      },
     });
   } catch (error: any) {
     next(error);

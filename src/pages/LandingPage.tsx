@@ -9,9 +9,11 @@ import { cn } from '../lib/utils';
 import { insforge } from '../lib/insforge';
 import { useAuth } from '../hooks/useAuth';
 import { analyzeRepository } from '../lib/api';
+import { useDebounce } from '../hooks/useDebounce';
 
 export const LandingPage = () => {
   const [repoUrl, setRepoUrl] = useState('');
+  const debouncedRepoUrl = useDebounce(repoUrl, 500);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

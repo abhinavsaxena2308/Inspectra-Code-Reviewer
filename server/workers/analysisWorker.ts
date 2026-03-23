@@ -26,15 +26,26 @@ export const processRepositoryAnalysis = async (
     // 4. Run Analysis
     const analysisResults = await analyzeMultipleFiles(filesWithContent);
 
-    // 5. Save results to InsForge
-    await saveAnalysisIssues(analysisId, analysisResults);
+    // 5. Calculate Score
+    let score = 100;
+    analysisResults.forEach((file: any) => {
+      file.issues?.forEach((issue: any) => {
+        if (issue.type === 'bug') score -= 10;
+        else if (issue.type === 'security') score -= 20;
+        else if (issue.type === 'performance') score -= 5;
+        else if (issue.type === 'suggestion') score -= 2;
+      });
+    });
+    score = Math.max(0, score);
 
-    // 6. Mark as completed
+    // 6. Save results to InsForge
+    await saveAnalysisIssues(analysisId, analysisResults, score);
+
+    // 7. Mark as completed
     await updateAnalysisStatus(analysisId, 'completed');
 
   } catch (error: any) {
     console.error(`[Worker] Analysis failed for ${analysisId}:`, error);
-    // Mark as failed. (Ideally, we'd also save the error_message if the schema supported it)
     await updateAnalysisStatus(analysisId, 'failed', error.message || String(error));
   }
 };

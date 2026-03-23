@@ -84,7 +84,7 @@ export const updateAnalysisStatus = async (analysisId: string, status: 'processi
   }
 };
 
-export const saveAnalysisIssues = async (analysisId: string, issues: any[]): Promise<void> => {
+export const saveAnalysisIssues = async (analysisId: string, issues: any[], score: number): Promise<void> => {
   const client = getClient();
   if (!client) {
     console.warn('[Storage] Cannot save issues: InsForge client not initialized.');
@@ -92,6 +92,17 @@ export const saveAnalysisIssues = async (analysisId: string, issues: any[]): Pro
   }
 
   try {
+    // 1. Update Score in Analysis
+    const { error: scoreError } = await client.database
+      .from('analyses')
+      .update({ score: score })
+      .eq('id', analysisId);
+    
+    if (scoreError) {
+      console.warn(`[Storage] Failed to update score for ${analysisId}. It's possible the 'score' column is missing from the table 'analyses'. Error: ${scoreError.message}`);
+    }
+
+    // 2. Save Issues
     if (issues && issues.length > 0) {
       const issuesToInsert: any[] = [];
       

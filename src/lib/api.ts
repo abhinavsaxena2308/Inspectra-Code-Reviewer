@@ -1,25 +1,25 @@
 import axios from 'axios';
 
 export interface AnalysisIssue {
-  id: string;
-  file_name: string;
+  type: 'bug' | 'security' | 'performance' | 'suggestion';
   severity: 'low' | 'medium' | 'high' | 'critical';
   message: string;
   suggestion: string;
 }
 
+export interface FileAnalysis {
+  file_name: string;
+  issues: AnalysisIssue[];
+}
+
 export interface AnalysisResult {
   id: string;
+  repo: string;
+  score: number;
   status: 'pending' | 'processing' | 'completed' | 'failed';
-  repo_id: string;
+  files?: FileAnalysis[];
   created_at: string;
-  issues?: AnalysisIssue[];
   error_message?: string;
-  repository?: {
-    repo_url: string;
-    owner: string;
-    repo_name: string;
-  };
 }
 
 export interface AnalyzeResponse {

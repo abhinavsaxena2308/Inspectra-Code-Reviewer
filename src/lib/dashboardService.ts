@@ -1,4 +1,12 @@
-import { MOCK_REPOS, Repository } from '../mock/data';
+import { createClient } from '@insforge/sdk';
+
+export interface Repository {
+  id: string;
+  name: string;
+  language: string;
+  score: number;
+  lastAnalyzed: string;
+}
 
 export interface DashboardStats {
   label: string;
@@ -14,10 +22,38 @@ export interface ActivityItem {
   description?: string;
 }
 
+let _client: any = null;
+const getClient = () => {
+  if (_client) return _client;
+  const url = (import.meta as any).env.VITE_INSFORGE_URL;
+  const key = (import.meta as any).env.VITE_INSFORGE_ANON_KEY;
+  if (!url || !key) return null;
+  _client = createClient({ baseUrl: url, anonKey: key });
+  return _client;
+};
+
 export const fetchRepositories = async (): Promise<Repository[]> => {
-  // Simulating API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return MOCK_REPOS;
+  const client = getClient();
+  if (!client) return [];
+
+  const { data, error } = await client.database
+    .from('repositories')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Failed to fetch repositories:', error);
+    return [];
+  }
+
+  // Map backend names to match frontend Repository interface if needed
+  return (data || []).map((r: any) => ({
+    id: r.id,
+    name: `${r.owner}/${r.repo_name}`,
+    language: 'TypeScript', // Default or fetch from tags later
+    score: 0, // Will be updated by analysis
+    lastAnalyzed: new Date(r.created_at).toLocaleDateString()
+  }));
 };
 
 export const fetchDashboardStats = async (): Promise<DashboardStats[]> => {

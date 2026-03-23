@@ -10,6 +10,7 @@ import { fetchRepositories, fetchDashboardStats, fetchRecentActivity, DashboardS
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { analyzeRepository } from '../lib/api';
+import { useDebounce } from '../hooks/useDebounce';
 
 const STATS_ICONS: Record<string, any> = {
   'Total Analyses': Code2,
@@ -19,6 +20,7 @@ const STATS_ICONS: Record<string, any> = {
 
 export const DashboardPage = () => {
   const [repoUrl, setRepoUrl] = useState('');
+  const debouncedFilter = useDebounce(repoUrl, 300);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [repositories, setRepositories] = useState<Repository[]>([]);
@@ -116,19 +118,21 @@ export const DashboardPage = () => {
           )}
 
           <div className="space-y-0 border-t border-gh-border">
-            {repositories.map((repo) => (
-              <div 
-                key={repo.id}
-                className="py-6 border-b border-gh-border flex items-start justify-between group"
-              >
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <h3 
-                      className="text-xl font-semibold text-gh-blue hover:underline cursor-pointer"
-                      onClick={() => navigate(`/analysis/${repo.id}`)}
-                    >
-                      {repo.name}
-                    </h3>
+            {repositories
+              .filter(repo => repo.name.toLowerCase().includes(debouncedFilter.toLowerCase()))
+              .map((repo) => (
+                <div 
+                  key={repo.id}
+                  className="py-6 border-b border-gh-border flex items-start justify-between group"
+                >
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <h3 
+                        className="text-xl font-semibold text-gh-blue hover:underline cursor-pointer"
+                        onClick={() => navigate(`/analysis/${repo.id}`)}
+                      >
+                        {repo.name}
+                      </h3>
                     <Badge variant="neutral" className="lowercase text-[10px] px-1.5 py-0">Public</Badge>
                   </div>
                   <p className="text-sm text-gh-muted max-w-xl">
