@@ -5,6 +5,7 @@ const router = Router();
 
 router.post('/analyze', analyzeRepository);
 router.get('/analysis/:id', getAnalysisResult);
+router.get('/status/:id', getAnalysisResult);
 
 router.get('/debug-env', (req, res) => {
     res.json({

@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { parseRepoUrl, getRepositoryContents, fetchFileContent } from '../services/githubService';
-import { analyzeMultipleFiles } from '../services/analysisService';
-import { saveAnalysis, getAnalysis } from '../services/storageService';
-import crypto from 'crypto';
+import { parseRepoUrl } from '../services/githubService';
+import { createPendingAnalysis, getAnalysis } from '../services/storageService';
+import { processRepositoryAnalysis } from '../workers/analysisWorker';
 
 export const analyzeRepository = async (req: Request, res: Response, next: NextFunction) => {
   const { repoUrl } = req.body;
@@ -27,52 +26,31 @@ export const analyzeRepository = async (req: Request, res: Response, next: NextF
   try {
     const { owner, repo } = parsed;
 
-    // 1. Fetch all file metadata
-    const fileMetadata = await getRepositoryContents(owner, repo);
-    
-    // 2. Fetch content for each file
-    const filesWithContent = await Promise.all(
-        fileMetadata.map(async (file) => ({
-            name: file.name,
-            content: await fetchFileContent(file.download_url!)
-        }))
-    );
+    // 1. Create a pending job in the DB
+    const analysisId = await createPendingAnalysis(repoUrl, owner, repo);
 
-    // 3. Run Analysis
-    const analysisResults = await analyzeMultipleFiles(filesWithContent);
-
-    // 4. Prepare and Store Results
-    const resultData = {
-        repoUrl,
-        owner,
-        repoName: repo,
-        issues: analysisResults
-    };
-
-    // Try to save, but don't fail the whole request if DB fails (since we return results)
-    let saved = false;
-    let analysisId = null;
-    let saveErrorMessage = null;
-    try {
-        const result = await saveAnalysis(resultData);
-        if (result) {
-            analysisId = result.analysisId;
-            saved = true;
-        }
-    } catch (saveError: any) {
-        saveErrorMessage = saveError.stack || JSON.stringify(saveError) || String(saveError);
-        console.error('[Main] Failed to save analysis:', saveError);
+    if (!analysisId) {
+       return res.status(500).json({
+         status: 'error',
+         message: 'Failed to initialize analysis job. Storage might be offline.'
+       });
     }
 
-    res.status(200).json({
+    // 2. Fire and Forget the worker
+    // Notice we do NOT await this statement, it runs in the background.
+    processRepositoryAnalysis(analysisId, repoUrl, owner, repo).catch(err => {
+        console.error(`[Main] Background worker crashed for ${analysisId}:`, err);
+    });
+
+    // 3. Return immediately
+    res.status(202).json({
       status: 'success',
       data: {
           id: analysisId,
           owner,
           repo,
-          saved,
-          saveErrorMessage,
-          results: analysisResults
+          jobStatus: 'pending',
+          message: 'Analysis job started in the background. Poll the status endpoint with this ID.'
       },
     });
   } catch (error: any) {

@@ -19,15 +19,10 @@ function getClient(): ReturnType<typeof createClient> | null {
   return _client;
 }
 
-export const saveAnalysis = async (data: {
-    repoUrl: string;
-    owner: string;
-    repoName: string;
-    issues: any[];
-}) => {
+export const createPendingAnalysis = async (repoUrl: string, owner: string, repoName: string): Promise<string | null> => {
   const client = getClient();
   if (!client) {
-    console.warn('[Storage] Cannot save analysis: InsForge client not initialized.');
+    console.warn('[Storage] Cannot create pending analysis: InsForge client not initialized.');
     return null;
   }
 
@@ -36,19 +31,14 @@ export const saveAnalysis = async (data: {
     const { data: repo, error: repoError } = await client.database
       .from('repositories')
       .select('id')
-      .eq('repo_url', data.repoUrl)
+      .eq('repo_url', repoUrl)
       .single();
 
     let repoId;
     if (repoError && repoError.code === 'PGRST116') {
-      // Not found, insert new
       const { data: newRepo, error: insertError } = await client.database
         .from('repositories')
-        .insert([{
-          repo_url: data.repoUrl,
-          owner: data.owner,
-          repo_name: data.repoName
-        }])
+        .insert([{ repo_url: repoUrl, owner, repo_name: repoName }])
         .select()
         .single();
       
@@ -60,24 +50,54 @@ export const saveAnalysis = async (data: {
       repoId = repo.id;
     }
 
-    // 2. Insert Analysis
+    // 2. Insert Pending Analysis
     const { data: analysis, error: analysisError } = await client.database
       .from('analyses')
-      .insert([{
-        repo_id: repoId,
-        status: 'completed'
-      }])
+      .insert([{ repo_id: repoId, status: 'pending' }])
       .select()
       .single();
     
     if (analysisError) throw analysisError;
-    const analysisId = analysis.id;
+    return analysis.id;
+  } catch (error: any) {
+    console.error('[Storage] Error creating pending analysis:', JSON.stringify(error, null, 2));
+    throw new Error(`Failed to create pending analysis: ${error.message ?? String(error)}`);
+  }
+};
 
-    // 3. Insert Issues
-    if (data.issues && data.issues.length > 0) {
+export const updateAnalysisStatus = async (analysisId: string, status: 'processing' | 'completed' | 'failed', errorMessage?: string): Promise<void> => {
+  const client = getClient();
+  if (!client) {
+    console.warn('[Storage] Cannot update analysis status: InsForge client not initialized.');
+    return;
+  }
+
+  try {
+    // We update the status. We can also add an error_message update if we add that column.
+    // Assuming we use 'message' column or similar if we added it, but let's just update 'status' for now.
+    const { error } = await client.database
+      .from('analyses')
+      .update({ status: status })
+      .eq('id', analysisId);
+
+    if (error) throw error;
+  } catch (error: any) {
+    console.error(`[Storage] Failed to update analysis ${analysisId} status to ${status}:`, error);
+  }
+};
+
+export const saveAnalysisIssues = async (analysisId: string, issues: any[]): Promise<void> => {
+  const client = getClient();
+  if (!client) {
+    console.warn('[Storage] Cannot save issues: InsForge client not initialized.');
+    return;
+  }
+
+  try {
+    if (issues && issues.length > 0) {
       const issuesToInsert: any[] = [];
       
-      for (const fileAnalysis of data.issues) {
+      for (const fileAnalysis of issues) {
         if (fileAnalysis.issues && Array.isArray(fileAnalysis.issues)) {
           for (const issue of fileAnalysis.issues) {
             issuesToInsert.push({
@@ -99,14 +119,11 @@ export const saveAnalysis = async (data: {
         if (issuesError) throw issuesError;
       }
     }
-
-    return { analysisId, repoId };
   } catch (error: any) {
-    console.error('[Storage] Save error details:', JSON.stringify(error, null, 2));
-    throw new Error(`Failed to save analysis to InsForge: ${error.message ?? String(error)}`);
+    console.error('[Storage] Error saving analysis issues:', JSON.stringify(error, null, 2));
+    throw new Error(`Failed to save analysis issues: ${error.message ?? String(error)}`);
   }
 };
-
 export const getAnalysis = async (id: string) => {
   const client = getClient();
   if (!client) {
