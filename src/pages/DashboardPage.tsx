@@ -7,8 +7,10 @@ import { fetchRepositories, fetchDashboardStats, fetchRecentActivity, DashboardS
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { analyzeRepository } from '../lib/api';
+import { useToast } from '../hooks/useToast';
 
 export const DashboardPage = () => {
+  const { addToast } = useToast();
   const [repoUrl, setRepoUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,11 +47,14 @@ export const DashboardPage = () => {
     try {
       const result = await analyzeRepository(repoUrl);
       if (result.status === 'success') {
+        addToast('Intelligence sequence triggered. Syncing...', 'success');
         navigate(`/analysis/${result.data.id}`);
       }
     } catch (err: any) {
       console.error('Analysis error:', err);
-      setError(err.response?.data?.message || 'Failed to start analysis. Check the URL.');
+      const msg = err.response?.data?.message || 'Failed to start analysis. Check the URL.';
+      setError(msg);
+      addToast(msg, 'error');
     } finally {
       setIsAnalyzing(false);
     }

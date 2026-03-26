@@ -11,9 +11,19 @@ import { Sidebar } from './components/layout/Sidebar';
 import { Navbar } from './components/layout/Navbar';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { ToastContainer } from './components/ui/Toast';
-import { useToast } from './hooks/useToast';
-import { AnimatePresence, motion } from 'motion/react';
 import { AuthProvider } from './hooks/useAuth';
+import { ToastProvider, useToast } from './hooks/useToast';
+import { AnimatePresence, motion } from 'motion/react';
+
+const AppContent = ({ children }: { children: React.ReactNode }) => {
+  const { toasts, removeToast } = useToast();
+  return (
+    <>
+      {children}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+    </>
+  );
+};
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
@@ -49,32 +59,33 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default function App() {
-  const { toasts, removeToast } = useToast();
-
   return (
     <Router>
-      <AuthProvider>
-        <AppLayout>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+      <ToastProvider>
+        <AuthProvider>
+          <AppContent>
+            <AppLayout>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
 
-            {/* Protected routes — must be authenticated */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/analysis/:id" element={<AnalysisPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/repos" element={<RepositoriesPage />} />
-              <Route path="/history" element={<DashboardPage />} />
-            </Route>
+                {/* Protected routes — must be authenticated */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/analysis/:id" element={<AnalysisPage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/repos" element={<RepositoriesPage />} />
+                  <Route path="/history" element={<DashboardPage />} />
+                </Route>
 
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </AppLayout>
-        <ToastContainer toasts={toasts} removeToast={removeToast} />
-      </AuthProvider>
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </AppLayout>
+          </AppContent>
+        </AuthProvider>
+      </ToastProvider>
     </Router>
   );
 }

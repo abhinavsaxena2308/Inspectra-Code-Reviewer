@@ -4,7 +4,7 @@ import {
   ChevronRight, LogOut, AlertTriangle, Loader2, Save,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { useToast } from '../hooks/useToast';
+import { useToast } from '../hooks/useToast'; // Force re-resolution
 
 export const SettingsPage = () => {
   const { user, signOut, updateProfile } = useAuth();
@@ -19,16 +19,18 @@ export const SettingsPage = () => {
 
   useEffect(() => {
     if (user) {
-      setName(user.full_name || user.email?.split('@')[0] || 'User');
+      setName(user.profile?.name || user.email?.split('@')[0] || 'User');
       setEmail(user.email || '');
-      setGithubToken(user.user_metadata?.github_token || '');
+      // Try profile first, then metadata as fallback
+      setGithubToken(user.profile?.github_token || user.metadata?.github_token || '');
     }
   }, [user]);
 
   const handleUpdateProfile = async () => {
     try {
       setIsUpdating(true);
-      await updateProfile({ full_name: name });
+      // 'name' is the standard field in InsForge profile schema
+      await updateProfile({ name: name });
       addToast('Profile updated successfully', 'success');
     } catch (err: any) {
       addToast(err.message || 'Failed to update profile', 'error');
@@ -174,8 +176,8 @@ export const SettingsPage = () => {
                 <div>
                   <h4 className="text-sm font-bold text-on-surface">GitHub Integration</h4>
                   <p className="text-xs text-on-surface-variant font-mono">
-                    Status: <span className={user?.user_metadata?.github_token ? "text-secondary" : "text-error"}>
-                      {user?.user_metadata?.github_token ? "Connected" : "Disconnected"}
+                    Status: <span className={user?.profile?.github_token || user?.metadata?.github_token ? "text-secondary" : "text-error"}>
+                      {user?.profile?.github_token || user?.metadata?.github_token ? "Connected" : "Disconnected"}
                     </span>
                   </p>
                 </div>

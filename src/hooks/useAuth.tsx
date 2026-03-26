@@ -18,7 +18,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const checkUser = async () => {
       try {
         const { data } = await insforge.auth.getCurrentUser();
-        setUser(data);
+        if (data?.user) {
+          setUser(data.user);
+        }
       } catch (error) {
         console.error('Error fetching user:', error);
       } finally {
