@@ -2,9 +2,16 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Satoshi", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Cabinet Grotesk", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-cursive: "Caveat", cursive;
+  
+  /* Inspectra Design System (Ethereal) */
+  --color-void: #000000;
+  --color-cyan: #00E5FF;
+  --color-magenta: #FF00FF;
+  --color-indigo: #0A0A2E;
   
   /* Semantic Architect Surface Tokens */
   --color-background: #10141a;
@@ -100,4 +107,33 @@
 /* Stitch severity-monolith: 4px absolute left accent bar */
 .severity-monolith {
   @apply absolute left-0 top-0 bottom-0 w-1;
+}
+
+/* Inspectra Design System Components */
+.glass-nav {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ethereal-btn {
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(82, 39, 255, 0.15) 100%);
+  border: 1px solid rgba(0, 229, 255, 0.5);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.1);
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.ethereal-btn:hover {
+  border-color: #00E5FF;
+  box-shadow: 0 0 30px rgba(0, 209, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.glow-text {
+  text-shadow: 0 0 35px rgba(0, 229, 255, 0.7);
+}
+
+.shadow-overlay {
+  background: radial-gradient(circle at center, transparent 0%, #000000 90%);
+  pointer-events: none;
 }
