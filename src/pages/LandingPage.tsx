@@ -41,12 +41,12 @@ export function LandingPage() {
   };
 
   return (
-    <div className="bg-[#000000] text-[#FFFFFF] font-sans selection:bg-[#00E5FF]/30 min-h-screen relative overflow-hidden">
+    <div className="bg-void text-white font-sans selection:bg-cyan/30 min-h-screen relative overflow-hidden">
       {/* Shadow Overlay */}
       <div className="shadow-overlay absolute inset-0 z-10"></div>
       
       {/* WebGL Gradient Blinds Background */}
-      <div className="absolute top-0 left-0 right-0 h-[100vh] max-h-[900px] z-0 [mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)]">
+      <div className="absolute top-0 left-0 right-0 h-screen max-h-[900px] z-0 mask-[linear-gradient(to_bottom,black_60%,transparent_100%)]">
         <GradientBlinds
           gradientColors={['#FF9FFC', '#5227FF']}
           angle={-15}
@@ -68,10 +68,10 @@ export function LandingPage() {
       <header className="fixed top-0 left-0 right-0 z-50 glass-nav h-20 px-8">
         <nav className="max-w-7xl mx-auto h-full flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full border border-[#00E5FF]/50 flex items-center justify-center p-1">
-              <div className="w-full h-full rounded-full bg-[#00E5FF] animate-pulse"></div>
+            <div className="w-8 h-8 rounded-full border border-cyan/50 flex items-center justify-center p-1 shadow-[0_0_15px_rgba(82,39,255,0.3)]">
+              <div className="w-full h-full rounded-full bg-cyan animate-pulse shadow-[0_0_20px_var(--color-cyan)]"></div>
             </div>
-            <span className="text-xl font-heading font-bold tracking-tighter uppercase tracking-[0.2em] glow-text text-white">Inspectra</span>
+            <span className="text-xl font-extrabold uppercase tracking-[0.2em] glow-text text-white" style={{ fontFamily: '"Cabinet Grotesk", sans-serif' }}>Inspectra</span>
           </div>
           <div className="hidden md:flex items-center gap-10 z-50">
             <button className="text-[10px] text-white uppercase tracking-[0.3em] font-bold opacity-40 hover:opacity-100 transition-opacity">Infrastructure</button>
@@ -82,7 +82,7 @@ export function LandingPage() {
             {user ? (
                <>
                  <span 
-                   className="text-[10px] text-white uppercase tracking-[0.3em] font-bold opacity-60 hover:text-[#00E5FF] hover:opacity-100 transition-all cursor-pointer" 
+                   className="text-[10px] text-white uppercase tracking-[0.3em] font-bold opacity-60 hover:text-cyan hover:opacity-100 transition-all cursor-pointer" 
                    onClick={() => navigate('/settings')}
                  >
                    {user.name || user.email?.split('@')[0]}
@@ -98,7 +98,7 @@ export function LandingPage() {
                <>
                  <button 
                    onClick={() => navigate('/login')} 
-                   className="text-[10px] uppercase text-white tracking-[0.3em] font-bold opacity-60 hover:text-[#00E5FF] hover:opacity-100 transition-all z-50"
+                   className="text-[10px] uppercase text-white tracking-[0.3em] font-bold opacity-60 hover:text-cyan hover:opacity-100 transition-all z-50"
                  >
                    Sign In
                  </button>
@@ -118,8 +118,8 @@ export function LandingPage() {
       <main className="relative z-20 pt-32 pb-20 px-6 md:px-10 max-w-5xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-160px)] text-center">
         {/* Status Badge */}
         <div className="inline-flex items-center gap-3 px-4 py-1.5 border border-white/5 bg-white/5 rounded-full mb-6">
-          <span className="font-mono text-[9px] text-[#00E5FF] font-bold uppercase tracking-widest">System Status: Optimal</span>
-          <div className="w-1 h-1 rounded-full bg-[#00E5FF] shadow-[0_0_8px_#00E5FF]"></div>
+          <span className="font-mono text-[9px] text-cyan font-bold uppercase tracking-widest">System Status: Optimal</span>
+          <div className="w-1 h-1 rounded-full bg-cyan shadow-[0_0_8px_var(--color-cyan)]"></div>
         </div>
 
         {/* Hero Headline */}
@@ -135,9 +135,9 @@ export function LandingPage() {
         {/* Input & CTA */}
         <div className="w-full max-w-2xl mx-auto flex flex-col items-center gap-6 mt-4">
            <div className="relative w-full group">
-             <Terminal className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-[#00E5FF] transition-colors" />
+             <Terminal className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-cyan transition-colors" />
              <input
-               className="w-full bg-black/40 border border-white/10 rounded-full pl-16 pr-8 py-5 text-sm font-mono focus:ring-1 focus:ring-[#00E5FF]/50 focus:border-[#00E5FF] outline-none transition-all placeholder:text-white/20 text-white backdrop-blur-md relative z-30"
+               className="w-full bg-black/40 border border-white/10 rounded-full pl-16 pr-8 py-5 text-sm font-mono focus:ring-1 focus:ring-cyan/50 focus:border-cyan outline-none transition-all placeholder:text-white/20 text-white backdrop-blur-md relative z-30"
                placeholder="https://github.com/username/repository"
                value={repoUrl}
                onChange={(e) => setRepoUrl(e.target.value)}
@@ -151,7 +151,7 @@ export function LandingPage() {
              <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-3 rounded-md bg-[#93000a]/40 border border-[#ffb4ab]/20 text-[#ffb4ab] text-sm font-medium w-full backdrop-blur-md"
+                className="p-3 rounded-md bg-error-container/40 border border-error/20 text-error text-sm font-medium w-full backdrop-blur-md"
               >
                {error}
              </motion.div>
@@ -183,7 +183,7 @@ export function LandingPage() {
             <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">Vulns Caught</div>
             </div>
             <div className="space-y-2">
-            <div className="text-4xl font-heading font-bold tracking-tighter text-[#00E5FF] glow-text">99.9%</div>
+            <div className="text-4xl font-heading font-bold tracking-tighter text-cyan glow-text">99.9%</div>
             <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">Uptime</div>
             </div>
             <div className="space-y-2">
