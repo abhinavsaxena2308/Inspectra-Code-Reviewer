@@ -34,8 +34,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
+  const updateProfile = async (profile: Record<string, any>) => {
+    const { data: updatedProfile, error } = await insforge.auth.setProfile(profile);
+    if (error) throw error;
+    // After updating profile, we should refresh the user session
+    const { data: userData } = await insforge.auth.getCurrentUser();
+    setUser(userData.user);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signOut, setUser }}>
+    <AuthContext.Provider value={{ user, loading, signOut, setUser, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

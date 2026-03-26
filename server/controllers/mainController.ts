@@ -133,12 +133,16 @@ export const getAnalysisResult = async (req: Request, res: Response, next: NextF
       if (!filesMap[issue.file_name]) {
         filesMap[issue.file_name] = [];
       }
-      filesMap[issue.file_name].push({
-        type: issue.type || 'bug',
-        severity: issue.severity,
-        message: issue.message,
-        suggestion: issue.suggestion || ''
-      });
+      
+      // Only add to issues list if it's not a marker
+      if (issue.type !== 'file-meta') {
+        filesMap[issue.file_name].push({
+          type: issue.type || 'bug',
+          severity: issue.severity,
+          message: issue.message,
+          suggestion: issue.suggestion || ''
+        });
+      }
     });
 
     const files = Object.entries(filesMap).map(([file_name, issues]) => ({

@@ -102,11 +102,21 @@ export const saveAnalysisIssues = async (analysisId: string, issues: any[], scor
       console.warn(`[Storage] Failed to update score for ${analysisId}. It's possible the 'score' column is missing from the table 'analyses'. Error: ${scoreError.message}`);
     }
 
-    // 2. Save Issues
+    // 2. Save Issues (and file metadata)
+    const issuesToInsert: any[] = [];
+    
     if (issues && issues.length > 0) {
-      const issuesToInsert: any[] = [];
-      
       for (const fileAnalysis of issues) {
+        // Add a 'file-meta' issue to track that this file was analyzed (even if it has no real issues)
+        issuesToInsert.push({
+          analysis_id: analysisId,
+          file_name: fileAnalysis.file || 'unknown',
+          severity: 'info',
+          type: 'file-meta',
+          message: 'File analyzed',
+          suggestion: ''
+        });
+
         if (fileAnalysis.issues && Array.isArray(fileAnalysis.issues)) {
           for (const issue of fileAnalysis.issues) {
             issuesToInsert.push({
@@ -127,9 +137,9 @@ export const saveAnalysisIssues = async (analysisId: string, issues: any[], scor
           .insert(issuesToInsert);
         
         if (issuesError) {
-          console.warn(`[Storage] Failed to insert issues for ${analysisId}. It is possible the 'type' column is missing from the 'issues' table. Error: ${issuesError.message}`);
+          console.warn(`[Storage] Failed to insert issues for ${analysisId}. Error: ${issuesError.message}`);
           // Fallback: try inserting without 'type' if it failed due to missing column
-          if (issuesError.message.includes('column "type" of relation "issues" does not exist')) {
+          if (issuesError.message.includes('column "type" does not exist')) {
             const fallbackIssues = issuesToInsert.map(({ type, ...rest }) => rest);
             const { error: fallbackError } = await client.database
               .from('issues')

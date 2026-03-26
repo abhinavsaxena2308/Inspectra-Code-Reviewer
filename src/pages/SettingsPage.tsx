@@ -1,28 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import {
   User, Palette, Key, Shield, Moon, Monitor, Eye, EyeOff,
-  ChevronRight, LogOut, AlertTriangle,
+  ChevronRight, LogOut, AlertTriangle, Loader2, Save,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../hooks/useToast';
 
 export const SettingsPage = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, updateProfile } = useAuth();
+  const { addToast } = useToast();
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isHighContrast, setIsHighContrast] = useState(false);
   const [showToken, setShowToken] = useState(false);
   const [githubToken, setGithubToken] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (user) {
       setName(user.full_name || user.email?.split('@')[0] || 'User');
       setEmail(user.email || '');
+      setGithubToken(user.user_metadata?.github_token || '');
     }
   }, [user]);
 
+  const handleUpdateProfile = async () => {
+    try {
+      setIsUpdating(true);
+      await updateProfile({ full_name: name });
+      addToast('Profile updated successfully', 'success');
+    } catch (err: any) {
+      addToast(err.message || 'Failed to update profile', 'error');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleSaveToken = async () => {
+    try {
+      setIsUpdating(true);
+      await updateProfile({ github_token: githubToken });
+      addToast('GitHub token saved securely', 'success');
+    } catch (err: any) {
+      addToast(err.message || 'Failed to save token', 'error');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
-    <div className="p-6 md:p-12 lg:p-16 max-w-7xl mx-auto min-h-full">
+    <div className="p-6 md:p-12 lg:p-16 max-w-7xl mx-auto min-h-full font-sans">
 
       {/* Header */}
       <header className="mb-12">
@@ -68,7 +96,12 @@ export const SettingsPage = () => {
               </div>
             </div>
             <div className="mt-8 flex justify-end">
-              <button className="px-6 py-2.5 bg-surface-container-high hover:bg-surface-bright text-primary text-xs font-bold uppercase tracking-widest rounded transition-colors duration-200">
+              <button 
+                onClick={handleUpdateProfile}
+                disabled={isUpdating}
+                className="px-6 py-2.5 bg-surface-container-high hover:bg-surface-bright text-primary text-xs font-bold uppercase tracking-widest rounded transition-colors duration-200 flex items-center gap-2 disabled:opacity-50"
+              >
+                {isUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
                 Update Profile
               </button>
             </div>
@@ -140,7 +173,11 @@ export const SettingsPage = () => {
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-on-surface">GitHub Integration</h4>
-                  <p className="text-xs text-on-surface-variant font-mono">Status: Disconnected</p>
+                  <p className="text-xs text-on-surface-variant font-mono">
+                    Status: <span className={user?.user_metadata?.github_token ? "text-secondary" : "text-error"}>
+                      {user?.user_metadata?.github_token ? "Connected" : "Disconnected"}
+                    </span>
+                  </p>
                 </div>
               </div>
               {/* Token input */}
@@ -168,7 +205,12 @@ export const SettingsPage = () => {
                 <p className="text-[11px] text-on-surface-variant italic">
                   Required for automated repo scanning and PR auditing capabilities.
                 </p>
-                <button className="px-5 py-2.5 bg-tertiary/10 hover:bg-tertiary/20 text-tertiary text-xs font-bold uppercase tracking-widest rounded transition-colors duration-200">
+                <button 
+                  onClick={handleSaveToken}
+                  disabled={isUpdating}
+                  className="px-5 py-2.5 bg-tertiary/10 hover:bg-tertiary/20 text-tertiary text-xs font-bold uppercase tracking-widest rounded transition-colors duration-200 flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3 text-tertiary" />}
                   Connect GitHub
                 </button>
               </div>
