@@ -23,6 +23,24 @@ export interface ActivityItem {
   description?: string;
 }
 
+export interface HistoryStat {
+  label: string;
+  value: string;
+  subtext: string;
+  trend: 'up' | 'down' | 'neutral';
+  colorClass: string;
+}
+
+export interface HistoryListRow {
+  id: string;
+  repoName: string;
+  commitHash: string;
+  date: string;
+  time: string;
+  status: 'completed' | 'failed' | 'running';
+  score: number | null;
+}
+
 let _client: any = null;
 const getClient = () => {
   if (_client) return _client;
@@ -165,3 +183,103 @@ function formatRelativeTime(date: Date): string {
   if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
   return date.toLocaleDateString();
 }
+
+export const fetchHistoryStats = async (): Promise<HistoryStat[]> => {
+  const client = getClient();
+  if (!client) return [];
+  try {
+    const { data: analysesResult, error } = await client.database.from('analyses').select('status, score').catch(() => ({ data: [], error: { message: 'fallback' } }));
+    
+    let analyses = Array.isArray(analysesResult) ? analysesResult : [];
+    if (error && error.message.includes('column "score" does not exist')) {
+       const { data } = await client.database.from('analyses').select('status');
+       analyses = (data || []).map(a => ({ ...a, score: 0 }));
+    }
+
+    const totalRuns = analyses.length;
+    let completedRuns = 0;
+    let totalScore = 0;
+    let scoredRuns = 0;
+
+    analyses.forEach((a: any) => {
+      if (a.status === 'completed') completedRuns++;
+      if (typeof a.score === 'number' && a.status === 'completed') {
+        totalScore += a.score;
+        scoredRuns++;
+      }
+    });
+
+    const successRate = totalRuns > 0 ? ((completedRuns / totalRuns) * 100).toFixed(1) : '0.0';
+    const avgScore = scoredRuns > 0 ? Math.round(totalScore / scoredRuns) : 0;
+
+    return [
+      {
+        label: 'Total Runs',
+        value: totalRuns.toLocaleString(),
+        subtext: 'Current workspace',
+        trend: 'neutral',
+        colorClass: 'bg-primary'
+      },
+      {
+        label: 'Success Rate',
+        value: `${successRate}%`,
+        subtext: 'Optimal Performance',
+        trend: 'up',
+        colorClass: 'bg-secondary'
+      },
+      {
+        label: 'Avg Health Score',
+        value: avgScore.toString(),
+        subtext: avgScore < 70 ? 'Warning: Low' : 'Stable',
+        trend: avgScore < 70 ? 'down' : 'neutral',
+        colorClass: 'bg-tertiary'
+      }
+    ];
+
+  } catch (err) {
+    console.error('Failed to fetch history stats:', err);
+    return [];
+  }
+};
+
+export const fetchHistoryList = async (): Promise<HistoryListRow[]> => {
+  const client = getClient();
+  if (!client) return [];
+  try {
+    const { data: analyses, error } = await client.database
+      .from('analyses')
+      .select('id, status, created_at, score, repositories(repo_name, owner)')
+      .order('created_at', { ascending: false });
+    
+    let finalAnalyses = analyses;
+    if (error && error.message.includes('column "score" does not exist')) {
+        const { data: fallbackAnalyses } = await client.database
+            .from('analyses')
+            .select('id, status, created_at, repositories(repo_name, owner)')
+            .order('created_at', { ascending: false });
+        finalAnalyses = fallbackAnalyses?.map(a => ({ ...a, score: 0 }));
+    } else if (error) {
+        throw error;
+    }
+
+    return (finalAnalyses || []).map((a: any) => {
+      const dateObj = new Date(a.created_at);
+      const repoNameStr = a.repositories ? `${a.repositories.repo_name}` : 'Unknown';
+      // Generate a deterministic pseudo-commit hash based on ID
+      const shortHex = a.id ? a.id.replace(/-/g, '').substring(0, 7) : '0000000';
+      return {
+        id: a.id,
+        repoName: repoNameStr,
+        commitHash: shortHex,
+        date: dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        time: dateObj.toLocaleTimeString('en-US', { hour12: false, timeZoneName: 'short' }),
+        status: a.status === 'completed' ? 'completed' : a.status === 'failed' ? 'failed' : 'running',
+        score: a.score ?? null
+      };
+    });
+
+  } catch (err) {
+    console.error('Failed to fetch history list:', err);
+    return [];
+  }
+};

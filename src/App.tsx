@@ -4,6 +4,7 @@ import { LandingPage } from './pages/LandingPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { AnalysisPage } from './pages/AnalysisPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { HistoryPage } from './pages/HistoryPage';
 import { RepositoriesPage } from './pages/RepositoriesPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -77,7 +78,7 @@ export default function App() {
                   <Route path="/analysis/:id" element={<AnalysisPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/repos" element={<RepositoriesPage />} />
-                  <Route path="/history" element={<DashboardPage />} />
+                  <Route path="/history" element={<HistoryPage />} />
                 </Route>
 
                 <Route path="*" element={<Navigate to="/" replace />} />
