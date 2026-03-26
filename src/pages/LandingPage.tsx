@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Github, Sparkles, Link as LinkIcon, Zap, Brain, Bug, Shield, Gauge,
-  ClipboardPaste, LineChart, CheckSquare, Terminal, Code2, Users
+  ClipboardPaste, LineChart, CheckSquare, Terminal, Code2, Users,
+  Menu, X, LogOut, LayoutDashboard, Settings
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
@@ -13,7 +14,8 @@ export function LandingPage() {
   const [repoUrl, setRepoUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState('');
-  const { user } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   const handleAnalyze = async () => {
     if (!repoUrl) {
@@ -71,27 +73,42 @@ export function LandingPage() {
             <div className="w-8 h-8 rounded-full border border-cyan/50 flex items-center justify-center p-1 shadow-[0_0_15px_rgba(82,39,255,0.3)]">
               <div className="w-full h-full rounded-full bg-cyan animate-pulse shadow-[0_0_20px_var(--color-cyan)]"></div>
             </div>
-            <span className="text-xl font-extrabold uppercase tracking-[0.2em] glow-text text-white" style={{ fontFamily: '"Cabinet Grotesk", sans-serif' }}>Inspectra</span>
+            <span className="text-xl font-bold tracking-tighter uppercase tracking-[0.2em] glow-text text-white" style={{ fontFamily: '"Cabinet Grotesk", sans-serif' }}>Inspectra</span>
           </div>
+
+          {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center gap-10 z-50">
             <button className="text-[10px] text-white uppercase tracking-[0.3em] font-bold opacity-40 hover:opacity-100 transition-opacity">Infrastructure</button>
             <button className="text-[10px] text-white uppercase tracking-[0.3em] font-bold opacity-40 hover:opacity-100 transition-opacity">Observability</button>
             <button className="text-[10px] text-white uppercase tracking-[0.3em] font-bold opacity-40 hover:opacity-100 transition-opacity">Security</button>
           </div>
+
+          {/* Desktop Auth & Mobile Hamburger Toggle */}
           <div className="flex items-center gap-6 z-50 relative">
             {user ? (
                <>
-                 <span 
-                   className="text-[10px] text-white uppercase tracking-[0.3em] font-bold opacity-60 hover:text-cyan hover:opacity-100 transition-all cursor-pointer" 
-                   onClick={() => navigate('/settings')}
-                 >
-                   {user.name || user.email?.split('@')[0]}
-                 </span>
+                 {/* Desktop Only */}
+                 <div className="hidden md:flex items-center gap-6">
+                   <span 
+                     className="text-[10px] text-white uppercase tracking-[0.3em] font-bold opacity-60 hover:text-cyan hover:opacity-100 transition-all cursor-pointer" 
+                     onClick={() => navigate('/settings')}
+                   >
+                     {user.name || user.email?.split('@')[0]}
+                   </span>
+                   <button 
+                     onClick={() => navigate('/dashboard')} 
+                     className="px-6 py-2 border border-white/10 text-white rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-white hover:text-black transition-all"
+                   >
+                     Access_Core
+                   </button>
+                 </div>
+
+                 {/* Mobile Hamburger Toggle */}
                  <button 
-                   onClick={() => navigate('/dashboard')} 
-                   className="px-6 py-2 border border-white/10 text-white rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-white hover:text-black transition-all"
+                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                   className="md:hidden text-white p-2 hover:bg-white/5 rounded-full transition-colors"
                  >
-                   Access_Core
+                   {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                  </button>
                </>
             ) : (
@@ -102,9 +119,10 @@ export function LandingPage() {
                  >
                    Sign In
                  </button>
+                 {/* Desktop Only Deploy Now */}
                  <button 
                    onClick={() => navigate('/register')} 
-                   className="px-6 py-2 border border-white/10 text-white rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-white hover:text-black transition-all z-50"
+                   className="hidden md:block px-6 py-2 border border-white/10 text-white rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-white hover:text-black transition-all z-50"
                  >
                    Deploy Now
                  </button>
@@ -112,6 +130,44 @@ export function LandingPage() {
             )}
           </div>
         </nav>
+
+        {/* Mobile Menu Overlay */}
+        {isMobileMenuOpen && user && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="md:hidden absolute top-20 left-0 right-0 bg-black/95 backdrop-blur-2xl border-b border-white/5 py-10 px-8 flex flex-col gap-8 shadow-2xl z-40"
+          >
+            <button 
+              onClick={() => { navigate('/dashboard'); setIsMobileMenuOpen(false); }}
+              className="flex items-center gap-4 text-sm font-bold uppercase tracking-[0.3em] text-white opacity-60 hover:opacity-100 transition-all"
+            >
+              <LayoutDashboard className="w-5 h-5 text-cyan" />
+              Dashboard
+            </button>
+            <button 
+              onClick={() => { navigate('/register'); setIsMobileMenuOpen(false); }}
+              className="flex items-center gap-4 text-sm font-bold uppercase tracking-[0.3em] text-white opacity-60 hover:opacity-100 transition-all"
+            >
+              <Zap className="w-5 h-5 text-cyan" />
+              Deploy Now
+            </button>
+             <button 
+              onClick={() => { navigate('/settings'); setIsMobileMenuOpen(false); }}
+              className="flex items-center gap-4 text-sm font-bold uppercase tracking-[0.3em] text-white opacity-60 hover:opacity-100 transition-all"
+            >
+              <Settings className="w-5 h-5 text-cyan" />
+              Settings
+            </button>
+            <button 
+              onClick={() => { signOut(); setIsMobileMenuOpen(false); }}
+              className="flex items-center gap-4 text-sm font-bold uppercase tracking-[0.3em] text-red-500/80 hover:text-red-500 transition-all mt-4 pt-8 border-t border-white/5"
+            >
+              <LogOut className="w-5 h-5" />
+              Sign Out
+            </button>
+          </motion.div>
+        )}
       </header>
 
       {/* Main Content */}
