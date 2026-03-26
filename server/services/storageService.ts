@@ -3,7 +3,7 @@ import { config } from '../config';
 
 let _client: ReturnType<typeof createClient> | null = null;
 
-function getClient(): ReturnType<typeof createClient> | null {
+export function getClient(): ReturnType<typeof createClient> | null {
   if (_client) return _client;
 
   const url = config.insforgeUrl;
