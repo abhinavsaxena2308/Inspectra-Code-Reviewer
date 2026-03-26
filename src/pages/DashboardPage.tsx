@@ -69,7 +69,7 @@ export const DashboardPage = () => {
   if (isLoading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gh-blue" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
   }
@@ -77,10 +77,10 @@ export const DashboardPage = () => {
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto">
       {/* Welcome Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gh-border pb-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-none pb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gh-text mb-1">Repositories</h1>
-          <p className="text-gh-muted text-sm">You have {repositories.length} active repositories under analysis.</p>
+          <h1 className="text-2xl font-semibold text-on-surface mb-1">Repositories</h1>
+          <p className="text-on-surface-variant text-sm">You have {repositories.length} active repositories under analysis.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" size="sm" className="gap-2">
@@ -103,7 +103,7 @@ export const DashboardPage = () => {
                 placeholder="Find a repository..." 
                 value={repoUrl}
                 onChange={(e) => setRepoUrl(e.target.value)}
-                className="bg-gh-bg border-gh-border h-8 text-sm"
+                className="bg-surface border-none h-8 text-sm"
               />
             </div>
             <Button size="sm" onClick={handleAnalyze} isLoading={isAnalyzing}>
@@ -112,35 +112,35 @@ export const DashboardPage = () => {
           </div>
 
           {error && (
-            <div className="mb-6 p-2 rounded bg-gh-red/10 border border-gh-red/20 text-gh-red text-xs font-medium">
+            <div className="mb-6 p-2 rounded bg-error/10 border border-error/20 text-error text-xs font-medium">
               {error}
             </div>
           )}
 
-          <div className="space-y-0 border-t border-gh-border">
+          <div className="space-y-0 border-t border-none">
             {repositories
               .filter(repo => repo.name.toLowerCase().includes(debouncedFilter.toLowerCase()))
               .map((repo) => (
                 <div 
                   key={repo.id}
-                  className="py-6 border-b border-gh-border flex items-start justify-between group"
+                  className="py-6 border-b border-none flex items-start justify-between group"
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
                       <h3 
-                        className="text-xl font-semibold text-gh-blue hover:underline cursor-pointer"
+                        className="text-xl font-semibold text-primary hover:underline cursor-pointer"
                         onClick={() => navigate(`/analysis/${repo.id}`)}
                       >
                         {repo.name}
                       </h3>
                     <Badge variant="neutral" className="lowercase text-[10px] px-1.5 py-0">Public</Badge>
                   </div>
-                  <p className="text-sm text-gh-muted max-w-xl">
+                  <p className="text-sm text-on-surface-variant max-w-xl">
                     AI-powered analysis of {repo.name.split('/')[1]} codebase for bugs, security, and quality.
                   </p>
-                  <div className="flex items-center gap-4 text-xs text-gh-muted pt-2">
+                  <div className="flex items-center gap-4 text-xs text-on-surface-variant pt-2">
                     <div className="flex items-center gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-gh-blue" />
+                      <div className="w-3 h-3 rounded-full bg-primary" />
                       {repo.language}
                     </div>
                     <div className="flex items-center gap-1">
@@ -157,8 +157,8 @@ export const DashboardPage = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="secondary" size="sm" className="h-7 px-3 text-xs font-semibold bg-gh-header hover:bg-gh-bg">
-                    <Star className="w-3.5 h-3.5 mr-1.5 text-gh-muted" />
+                  <Button variant="secondary" size="sm" className="h-7 px-3 text-xs font-semibold bg-surface-container hover:bg-surface">
+                    <Star className="w-3.5 h-3.5 mr-1.5 text-on-surface-variant" />
                     Star
                   </Button>
                 </div>
@@ -178,9 +178,9 @@ export const DashboardPage = () => {
                   <div key={stat.label} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Icon className={cn("w-4 h-4", stat.color)} />
-                      <span className="text-sm text-gh-text">{stat.label}</span>
+                      <span className="text-sm text-on-surface">{stat.label}</span>
                     </div>
-                    <span className="text-sm font-bold text-gh-text">{stat.value}</span>
+                    <span className="text-sm font-bold text-on-surface">{stat.value}</span>
                   </div>
                 );
               })}
@@ -191,24 +191,24 @@ export const DashboardPage = () => {
             <div className="gh-box-header">Recent Activity</div>
             <div className="p-4 space-y-4">
               {activities.length === 0 ? (
-                <p className="text-xs text-gh-muted">No recent activity found.</p>
+                <p className="text-xs text-on-surface-variant">No recent activity found.</p>
               ) : (
                 activities.map((activity) => (
                   <div key={activity.id} className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-gh-muted/20 flex items-center justify-center shrink-0">
+                    <div className="w-6 h-6 rounded-full bg-on-surface-variant/20 flex items-center justify-center shrink-0">
                       {activity.type === 'analysis-completed' ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-gh-green" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-secondary" />
                       ) : (
-                        <AlertTriangle className="w-3.5 h-3.5 text-gh-orange" />
+                        <AlertTriangle className="w-3.5 h-3.5 text-tertiary" />
                       )}
                     </div>
                     <div>
-                      <p className="text-xs text-gh-text">
+                      <p className="text-xs text-on-surface">
                         <span className="font-bold">
                           {activity.type === 'analysis-completed' ? 'Analysis completed' : activity.description}
                         </span> for {activity.repoName}
                       </p>
-                      <p className="text-[10px] text-gh-muted mt-0.5">{activity.timestamp}</p>
+                      <p className="text-[10px] text-on-surface-variant mt-0.5">{activity.timestamp}</p>
                     </div>
                   </div>
                 ))

@@ -83,11 +83,13 @@ export const getAnalysisResult = async (req: Request, res: Response, next: NextF
   }
 
   const { id } = validation.data;
+  console.log(`[Main] Fetching status for job: ${id}`);
 
   try {
     const result = await getAnalysis(id);
 
     if (!result) {
+      console.warn(`[Main] Job ${id} was not found in database.`);
       return res.status(404).json({
         status: 'error',
         statusCode: 404,
@@ -95,9 +97,39 @@ export const getAnalysisResult = async (req: Request, res: Response, next: NextF
       });
     }
 
+    console.log(`[Main] Founding job ${id} with status: ${result.status}`);
+    console.log(`[Main] Found job ${id} with status: ${result.status}`);
+
+    // Fetch repository and issues if not in result
+    let repository = result.repositories;
+    let issues = result.issues;
+
+    if (!repository && result.repo_id) {
+       const client = (await import('../services/storageService')).getClient();
+       if (client) {
+         const { data: repoData } = await client.database
+           .from('repositories')
+           .select('repo_url, owner, repo_name')
+           .eq('id', result.repo_id)
+           .single();
+         repository = repoData;
+       }
+    }
+
+    if (!issues) {
+       const client = (await import('../services/storageService')).getClient();
+       if (client) {
+         const { data: issuesData } = await client.database
+           .from('issues')
+           .select('*')
+           .eq('analysis_id', id);
+         issues = issuesData || [];
+       }
+    }
+
     // Group issues by file_name
     const filesMap: Record<string, any[]> = {};
-    (result.issues || []).forEach((issue: any) => {
+    (issues || []).forEach((issue: any) => {
       if (!filesMap[issue.file_name]) {
         filesMap[issue.file_name] = [];
       }
@@ -105,7 +137,7 @@ export const getAnalysisResult = async (req: Request, res: Response, next: NextF
         type: issue.type || 'bug',
         severity: issue.severity,
         message: issue.message,
-        suggestion: issue.suggestion
+        suggestion: issue.suggestion || ''
       });
     });
 
@@ -114,15 +146,15 @@ export const getAnalysisResult = async (req: Request, res: Response, next: NextF
       issues
     }));
 
-    // Calculate score if missing from DB
+    // Calculate score
     let score = result.score;
     if (score === undefined || score === null) {
       score = 100;
-      (result.issues || []).forEach((issue: any) => {
+      (issues || []).forEach((issue: any) => {
         if (issue.type === 'bug') score -= 10;
-        else if (issue.type === 'security') score -= 20;
-        else if (issue.type === 'performance') score -= 5;
-        else if (issue.type === 'suggestion') score -= 2;
+        else if (issue.severity === 'high' || issue.severity === 'critical') score -= 15;
+        else if (issue.severity === 'medium') score -= 5;
+        else score -= 2;
       });
       score = Math.max(0, score);
     }
@@ -131,7 +163,7 @@ export const getAnalysisResult = async (req: Request, res: Response, next: NextF
       status: 'success',
       data: {
         id: result.id,
-        repo: `${result.repositories?.owner}/${result.repositories?.repo_name}`,
+        repo: repository ? `${repository.owner}/${repository.repo_name}` : 'Unknown Repository',
         score: score,
         status: result.status,
         files: files,
@@ -139,6 +171,7 @@ export const getAnalysisResult = async (req: Request, res: Response, next: NextF
       },
     });
   } catch (error: any) {
+    console.error(`[Main] Error in getAnalysisResult for ${req.params.id}:`, error);
     next(error);
   }
 };

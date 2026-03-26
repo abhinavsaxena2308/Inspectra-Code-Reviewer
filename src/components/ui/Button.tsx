@@ -10,11 +10,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', isLoading, children, ...props }, ref) => {
     const variants = {
-      primary: 'bg-gh-green text-white hover:bg-[#2ea043] border border-[#347d39] shadow-sm',
-      secondary: 'bg-gh-header text-gh-text hover:bg-gh-bg border border-gh-border shadow-sm',
-      ghost: 'bg-transparent hover:bg-gh-muted/10 text-gh-muted hover:text-gh-text',
-      outline: 'bg-transparent border border-gh-border hover:bg-gh-muted/10 text-gh-text',
-      danger: 'bg-transparent border border-gh-border text-gh-red hover:bg-gh-red hover:text-white',
+      primary: 'btn-primary-gradient uppercase tracking-wide border-none',
+      secondary: 'bg-transparent text-primary border border-transparent hover:ring-1 hover:ring-inset hover:ring-outline-variant/50',
+      ghost: 'bg-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high',
+      outline: 'bg-transparent ghost-border text-on-surface hover:bg-surface-container-high',
+      danger: 'bg-transparent text-error border border-transparent hover:border-error/20 hover:bg-error-container/20',
     };
 
     const sizes = {
@@ -28,7 +28,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(
-          'inline-flex items-center justify-center rounded-md font-semibold transition-all duration-100 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none',
+          'inline-flex items-center justify-center rounded-md font-semibold transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none',
           variants[variant],
           sizes[size],
           className
@@ -37,10 +37,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading ? (
-          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
         ) : null}
         {children}
       </button>
     );
   }
 );
+

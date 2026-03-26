@@ -142,16 +142,16 @@ export const getAnalysis = async (id: string) => {
 
   const { data: result, error } = await client.database
     .from('analyses')
-    .select(`
-      *,
-      repositories (repo_url, owner, repo_name),
-      issues (*)
-    `)
+    .select('*')
     .eq('id', id)
     .single();
 
   if (error) {
-    if (error.code === 'PGRST116') return null; // Not found
+    if (error.code === 'PGRST116') {
+        console.warn(`[Storage] Analysis ${id} not found in database.`);
+        return null;
+    }
+    console.error(`[Storage] Database error fetching ${id}:`, error);
     throw new Error(`Failed to fetch analysis from InsForge: ${error.message}`);
   }
 

@@ -6,10 +6,10 @@ import mainRoutes from './main';
 
 const router = Router();
 
-// Aggregate all routes
-router.use('/', healthRoutes);
-router.use('/', mainRoutes);
-router.use('/github', githubRoutes);
-router.use('/analysis', analysisRoutes);
+// API Routing Table
+router.use('/', healthRoutes);     // /api/health
+router.use('/github', githubRoutes); // /api/github
+router.use('/analysis', analysisRoutes); // /api/analysis
+router.use('/', mainRoutes);       // /api/analyze, /api/status/:id, etc.
 
 export default router;
