@@ -53,9 +53,9 @@ export function LandingPage() {
           noise={0.12}
           blindCount={18}
           blindMinWidth={40}
-          spotlightRadius={0.7}
-          spotlightSoftness={2.0}
-          spotlightOpacity={0.9}
+          spotlightRadius={0.55}
+          spotlightSoftness={1.5}
+          spotlightOpacity={1.0}
           mouseDampening={0.05}
           distortAmount={1}
           mixBlendMode="lighten"

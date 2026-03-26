@@ -278,9 +278,9 @@ void main() {
     const ro = new ResizeObserver(resize);
     ro.observe(container);
 
-    // Create GSAP quickTo pipelines for ultra-smooth transition mechanics
-    const xTo = gsap.quickTo(uniforms.iMouse.value, "0", { duration: 1.2, ease: "power3.out" });
-    const yTo = gsap.quickTo(uniforms.iMouse.value, "1", { duration: 1.2, ease: "power3.out" });
+    // Create GSAP quickTo pipelines for ultra-smooth instantaneous transition mechanics
+    const xTo = gsap.quickTo(uniforms.iMouse.value, "0", { duration: 0.15, ease: "power2.out" });
+    const yTo = gsap.quickTo(uniforms.iMouse.value, "1", { duration: 0.15, ease: "power2.out" });
 
     const onPointerMove = (e: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
