@@ -1,16 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   User, Palette, Key, Shield, Moon, Monitor, Eye, EyeOff,
   ChevronRight, LogOut, AlertTriangle,
 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 export const SettingsPage = () => {
+  const { user, signOut } = useAuth();
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isHighContrast, setIsHighContrast] = useState(false);
   const [showToken, setShowToken] = useState(false);
   const [githubToken, setGithubToken] = useState('');
-  const [name, setName] = useState('Abhinav Saxena');
-  const [email, setEmail] = useState('abhinav@example.com');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      setName(user.full_name || user.email?.split('@')[0] || 'User');
+      setEmail(user.email || '');
+    }
+  }, [user]);
 
   return (
     <div className="p-6 md:p-12 lg:p-16 max-w-7xl mx-auto min-h-full">
@@ -197,7 +206,10 @@ export const SettingsPage = () => {
             </div>
             {/* Logout */}
             <div className="mt-auto">
-              <button className="w-full flex items-center justify-center gap-2 py-3 border border-outline-variant/30 rounded-lg text-sm font-bold uppercase tracking-widest text-on-surface-variant hover:bg-error/10 hover:text-error hover:border-error/30 transition-all duration-300">
+              <button 
+                onClick={signOut}
+                className="w-full flex items-center justify-center gap-2 py-3 border border-outline-variant/30 rounded-lg text-sm font-bold uppercase tracking-widest text-on-surface-variant hover:bg-error/10 hover:text-error hover:border-error/30 transition-all duration-300"
+              >
                 <LogOut className="w-4 h-4" />
                 Logout Session
               </button>

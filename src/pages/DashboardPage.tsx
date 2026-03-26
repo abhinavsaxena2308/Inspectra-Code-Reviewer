@@ -3,8 +3,7 @@ import {
   Github, Loader2, Rocket, CheckCircle2, TrendingUp, 
   ShieldAlert, Cpu, BrainCircuit, ArrowUpRight 
 } from 'lucide-react';
-import { Repository } from '../mock/data';
-import { fetchRepositories, fetchDashboardStats, fetchRecentActivity, DashboardStats, ActivityItem } from '../lib/dashboardService';
+import { fetchRepositories, fetchDashboardStats, fetchRecentActivity, DashboardStats, ActivityItem, Repository } from '../lib/dashboardService';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { analyzeRepository } from '../lib/api';
@@ -62,12 +61,12 @@ export const DashboardPage = () => {
 
   const bentoStats = [
     {
-      label: 'Critical Issues',
-      value: stats.find(s => s.label === 'Issues Resolved')?.value ?? '—',
+      label: 'Issues Detected',
+      value: stats.find(s => s.label === 'Issues Detected')?.value ?? '—',
       icon: ShieldAlert,
       color: 'border-error',
       iconColor: 'text-error',
-      desc: 'Vulnerabilities detected in current active branches.',
+      desc: 'Total vulnerabilities and bugs identified across all repos.',
     },
     {
       label: 'Total Analyses',
@@ -87,7 +86,7 @@ export const DashboardPage = () => {
     },
     {
       label: 'Active Jobs',
-      value: activities.filter(a => a.type !== 'analysis-completed').length || '0',
+      value: activities.filter(a => a.type !== 'analysis-completed').length.toString() || '0',
       icon: Loader2,
       color: 'border-tertiary',
       iconColor: 'text-tertiary',

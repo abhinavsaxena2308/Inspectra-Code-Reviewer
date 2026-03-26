@@ -113,6 +113,7 @@ export const saveAnalysisIssues = async (analysisId: string, issues: any[], scor
               analysis_id: analysisId,
               file_name: fileAnalysis.file || 'unknown',
               severity: issue.severity || 'info',
+              type: issue.type || 'bug',
               message: issue.message || 'No description',
               suggestion: issue.suggestion || ''
             });
@@ -125,7 +126,19 @@ export const saveAnalysisIssues = async (analysisId: string, issues: any[], scor
           .from('issues')
           .insert(issuesToInsert);
         
-        if (issuesError) throw issuesError;
+        if (issuesError) {
+          console.warn(`[Storage] Failed to insert issues for ${analysisId}. It is possible the 'type' column is missing from the 'issues' table. Error: ${issuesError.message}`);
+          // Fallback: try inserting without 'type' if it failed due to missing column
+          if (issuesError.message.includes('column "type" of relation "issues" does not exist')) {
+            const fallbackIssues = issuesToInsert.map(({ type, ...rest }) => rest);
+            const { error: fallbackError } = await client.database
+              .from('issues')
+              .insert(fallbackIssues);
+            if (fallbackError) throw fallbackError;
+          } else {
+            throw issuesError;
+          }
+        }
       }
     }
   } catch (error: any) {

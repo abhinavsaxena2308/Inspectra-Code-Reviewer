@@ -3,8 +3,7 @@ import {
   Plus, Filter, ChevronRight, ChevronLeft, RefreshCw, Trash2, 
   Settings, Terminal, Database, Loader2, Rocket, CheckCircle2, Github, Folder
 } from 'lucide-react';
-import { Repository } from '../mock/data';
-import { fetchRepositories } from '../lib/dashboardService';
+import { fetchRepositories, Repository } from '../lib/dashboardService';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { useDebounce } from '../hooks/useDebounce';
