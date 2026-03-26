@@ -64,10 +64,10 @@ export const SettingsPage = () => {
               <div className="space-y-4">
                 <p className="font-bold text-on-surface">Personal Access Tokens</p>
                 <div className="flex gap-3">
-                  <Input 
-                    type="password" 
-                    value="sk_test_51Mz9X2S..." 
-                    readOnly 
+                  <Input
+                    type="password"
+                    value="sk_test_51Mz9X2S..."
+                    readOnly
                     className="font-mono text-xs bg-surface-container border-none"
                     icon={<Key className="w-4 h-4" />}
                   />
