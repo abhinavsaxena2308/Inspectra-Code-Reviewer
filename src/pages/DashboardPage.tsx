@@ -1,21 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { Github, Plus, Search, ExternalLink, Calendar, Code2, ArrowUpRight, CheckCircle2, Star, AlertTriangle, GitPullRequest, BookOpen, Clock, Activity, FolderOpen } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Badge } from '../components/ui/Badge';
+import { Github, Plus, Search, Code2, ArrowUpRight, CheckCircle2, Star, AlertTriangle, Filter, Download, ChevronLeft, ChevronRight, Folder, Rocket, TrendingUp, ShieldAlert, Cpu, BrainCircuit, Loader2, MoreVertical } from 'lucide-react';
 import { Repository } from '../mock/data';
 import { fetchRepositories, fetchDashboardStats, fetchRecentActivity, DashboardStats, ActivityItem } from '../lib/dashboardService';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { analyzeRepository } from '../lib/api';
 import { useDebounce } from '../hooks/useDebounce';
-
-const STATS_ICONS: Record<string, any> = {
-  'Total Analyses': Code2,
-  'Average Score': Star,
-  'Issues Resolved': CheckCircle2,
-};
 
 export const DashboardPage = () => {
   const [repoUrl, setRepoUrl] = useState('');
@@ -26,7 +16,6 @@ export const DashboardPage = () => {
   const [stats, setStats] = useState<DashboardStats[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('Overview');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,7 +39,7 @@ export const DashboardPage = () => {
   }, []);
 
   const handleAnalyze = async () => {
-    if (!repoUrl) return;
+    if (!repoUrl.trim()) return;
     setIsAnalyzing(true);
     setError(null);
     try {
@@ -66,6 +55,56 @@ export const DashboardPage = () => {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleAnalyze();
+  };
+
+  const filteredRepos = repositories.filter(repo =>
+    repo.name.toLowerCase().includes(debouncedFilter.toLowerCase())
+  );
+
+  const getScoreColor = (score?: number) => {
+    if (!score) return 'text-outline';
+    if (score >= 80) return 'text-primary';
+    if (score >= 60) return 'text-tertiary';
+    return 'text-error';
+  };
+
+  const bentoStats = [
+    {
+      label: 'Critical Issues',
+      value: stats.find(s => s.label === 'Issues Resolved')?.value ?? '—',
+      icon: ShieldAlert,
+      color: 'border-error',
+      iconColor: 'text-error',
+      desc: 'Vulnerabilities detected in current active branches.',
+    },
+    {
+      label: 'Total Analyses',
+      value: stats.find(s => s.label === 'Total Analyses')?.value ?? '—',
+      icon: Cpu,
+      color: 'border-secondary',
+      iconColor: 'text-secondary',
+      desc: 'Deep-scan sequences completed by the AI engine.',
+    },
+    {
+      label: 'Avg Health Score',
+      value: stats.find(s => s.label === 'Average Score')?.value ?? '—',
+      icon: BrainCircuit,
+      color: 'border-primary',
+      iconColor: 'text-primary',
+      desc: 'Mean AI confidence across all analyzed repositories.',
+    },
+    {
+      label: 'Active Jobs',
+      value: activities.filter(a => a.type !== 'analysis-completed').length || '0',
+      icon: Loader2,
+      color: 'border-tertiary',
+      iconColor: 'text-tertiary',
+      desc: 'Workers currently executing deep-scan sequences.',
+    },
+  ];
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
@@ -75,226 +114,205 @@ export const DashboardPage = () => {
   }
 
   return (
-    <div className="flex h-full overflow-hidden bg-background text-on-surface font-body selection:bg-primary-container/30">
-      {/* Left Panel: Explorer / Repositories */}
-      <aside className="w-80 bg-surface-container-low flex flex-col border-r border-outline-variant/10">
-        <div className="p-4 flex items-center justify-between border-b border-outline-variant/10">
-          <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Repositories</span>
-          <FolderOpen className="w-4 h-4 text-on-surface-variant/40" />
+    <div className="p-8 space-y-8 max-w-7xl mx-auto w-full">
+
+      {/* Hero / Repo Input Section */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-3xl font-bold tracking-tight text-on-surface">Semantic Code Intelligence</h2>
+            <p className="text-outline max-w-xl leading-relaxed">
+              Input your repository URL below to trigger a deep structural analysis of your codebase using Inspectra's AI engine.
+            </p>
+          </div>
+
+          {/* Repo Input Card */}
+          <div className="bg-surface-container border-none rounded-xl p-6 shadow-2xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl transition-opacity group-hover:opacity-100 opacity-0" />
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-grow relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
+                  <Github className="w-4 h-4" />
+                </span>
+                <input
+                  className="w-full bg-surface-container-lowest border-none rounded-lg py-4 pl-12 pr-4 text-sm font-mono focus:ring-2 focus:ring-primary/50 transition-all text-on-surface placeholder:text-outline/30 outline-none"
+                  placeholder="https://github.com/username/repository"
+                  type="text"
+                  value={repoUrl}
+                  onChange={e => setRepoUrl(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
+              </div>
+              <button
+                onClick={handleAnalyze}
+                disabled={isAnalyzing || !repoUrl.trim()}
+                className="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isAnalyzing ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Rocket className="w-5 h-5" />
+                )}
+                {isAnalyzing ? 'Analyzing...' : 'Analyze'}
+              </button>
+            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-4 text-[10px] text-outline uppercase tracking-tighter">
+              <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Private Repos Supported</span>
+              <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> SOC2 Compliant</span>
+              <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Multi-Language Support</span>
+            </div>
+            {error && (
+              <div className="mt-4 p-3 rounded-lg bg-error/10 border border-error/20 text-error text-xs font-medium">
+                {error}
+              </div>
+            )}
+          </div>
         </div>
-        
-        <div className="p-4 border-b border-outline-variant/10 block bg-surface-container-lowest">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="flex-1 relative">
-              <Input 
-                placeholder="Repository URL / name..." 
-                value={repoUrl}
-                onChange={(e) => setRepoUrl(e.target.value)}
-                className="bg-surface border-outline-variant/20 h-8 text-xs font-mono pl-8"
+
+        {/* Global Health Score Bento */}
+        <div className="bg-surface-container-low rounded-xl p-6 flex flex-col justify-between border-l-4 border-primary shadow-sm">
+          <div className="space-y-4">
+            <div className="flex justify-between items-start">
+              <span className="text-xs font-bold text-outline uppercase tracking-widest">Global Health Score</span>
+              <TrendingUp className="w-5 h-5 text-secondary" />
+            </div>
+            <div className="text-5xl font-bold text-primary tracking-tighter font-mono">
+              {stats.find(s => s.label === 'Average Score')?.value ?? '—'}
+              <span className="text-xl text-outline ml-1">/100</span>
+            </div>
+            <p className="text-xs text-outline leading-tight">
+              Your codebase maintainability score based on the last {repositories.length} analyzed repositories.
+            </p>
+          </div>
+          <div className="mt-6 pt-6 border-t border-outline-variant/10">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-[10px] font-medium text-outline">Repositories Scanned</span>
+              <span className="text-[10px] font-mono text-primary">{repositories.length} repos</span>
+            </div>
+            <div className="w-full h-1.5 bg-surface-container-lowest rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-primary to-primary-container transition-all duration-700"
+                style={{ width: `${Math.min((repositories.length / 20) * 100, 100)}%` }}
               />
-              <Search className="w-3.5 h-3.5 text-on-surface-variant/50 absolute left-2.5 top-1/2 -translate-y-1/2" />
-            </div>
-            <Button size="sm" onClick={handleAnalyze} isLoading={isAnalyzing} className="h-8 px-3 text-xs font-bold bg-primary hover:bg-primary-container text-on-primary rounded transition-all">
-              Analyze
-            </Button>
-          </div>
-          {error && (
-            <div className="p-2 rounded bg-error/10 border border-error/20 text-error text-[10px] font-medium leading-tight mt-2">
-              {error}
-            </div>
-          )}
-        </div>
-
-        <div className="flex-1 overflow-y-auto py-2">
-          {repositories
-            .filter(repo => repo.name.toLowerCase().includes(debouncedFilter.toLowerCase()))
-            .map((repo) => (
-              <div 
-                key={repo.id}
-                onClick={() => navigate(`/analysis/${repo.id}`)}
-                className="flex flex-col gap-1.5 px-6 py-3 cursor-pointer group hover:bg-surface-container-high transition-colors border-l-2 border-transparent hover:border-primary"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-on-surface/90 text-sm font-semibold group-hover:text-primary transition-colors">
-                    <Github className="w-4 h-4 text-on-surface-variant/60 group-hover:text-primary/80" />
-                    <span>{repo.name}</span>
-                  </div>
-                  {repo.score && (
-                    <span className={cn(
-                      "text-[10px] font-mono px-1.5 py-0.5 rounded font-bold",
-                      repo.score >= 80 ? "bg-secondary-container/20 text-secondary" : 
-                      repo.score >= 60 ? "bg-tertiary-container/20 text-tertiary-container" : "bg-error/20 text-error"
-                    )}>
-                      {repo.score}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 text-[10px] text-on-surface-variant/60 font-mono">
-                  <div className="flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary/70" />
-                    {repo.language}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {repo.lastAnalyzed}
-                  </div>
-                </div>
-              </div>
-          ))}
-          {repositories.length === 0 && (
-            <div className="px-6 py-8 text-center text-xs text-on-surface-variant/50">
-              No repositories found.
-            </div>
-          )}
-        </div>
-      </aside>
-
-      {/* Right Panel: Analysis Overview / Dashboard */}
-      <section className="flex-1 flex flex-col overflow-hidden">
-        {/* Tabs Area */}
-        <div className="bg-surface px-8 flex items-center border-b border-outline-variant/10">
-          <nav className="flex gap-8">
-            {['Overview', 'Performance', 'Security'].map(tab => (
-              <button 
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={cn(
-                  "py-4 text-sm font-medium transition-colors border-b-2 relative",
-                  activeTab === tab 
-                    ? "text-primary border-primary" 
-                    : "text-on-surface-variant/60 hover:text-on-surface border-transparent"
-                )}
-              >
-                {tab}
-                {tab === 'Overview' && (
-                  <span className="ml-2 px-1.5 py-0.5 rounded-full bg-primary/10 text-[10px] font-mono text-primary">
-                    {activities.length}
-                  </span>
-                )}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto bg-surface-container-lowest p-8 flex flex-col xl:flex-row gap-8">
-          
-          {/* Main Dashboard Info */}
-          <div className="flex-1 flex flex-col gap-8">
-            {/* Header */}
-            <div>
-              <h1 className="text-2xl font-bold tracking-tighter text-on-surface mb-2">Workspace Overview</h1>
-              <p className="text-sm text-on-surface-variant/80 max-w-2xl leading-relaxed">
-                Monitor the health and security of your connected repositories. Inspectra's AI engine is actively analyzing {repositories.length} codebases for vulnerabilities, bugs, and performance bottlenecks.
-              </p>
-            </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {stats.map((stat, idx) => {
-                const Icon = STATS_ICONS[stat.label] || Activity;
-                return (
-                  <div key={idx} className="bg-surface border border-outline-variant/10 p-5 rounded shadow-lg group hover:bg-surface-container transition-colors">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary">
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">{stat.label}</span>
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-bold tracking-tighter text-on-surface font-mono">{stat.value}</span>
-                      {stat.trend && (
-                        <span className="text-xs font-bold text-secondary flex items-center">
-                          <ArrowUpRight className="w-3 h-3 mr-0.5" />
-                          {stat.trend}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Placeholder for Graphic or Map */}
-            <div className="bg-surface border border-outline-variant/10 rounded overflow-hidden flex-1 shadow-lg relative min-h-[300px]">
-              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
-              <div className="p-6 h-full flex flex-col">
-                <h3 className="text-sm font-bold uppercase tracking-widest text-on-surface-variant/60 mb-6 relative z-10">Analysis Heatmap</h3>
-                <div className="flex-1 border border-outline-variant/10 bg-surface-container-low/50 rounded flex items-center justify-center relative z-10">
-                   <div className="text-center space-y-3">
-                     <Activity className="w-8 h-8 text-primary/40 mx-auto" />
-                     <p className="text-xs font-mono text-on-surface-variant/50">Collecting real-time metrics...</p>
-                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Sidebar: Activity Feed */}
-          <div className="w-full xl:w-96 flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-on-surface-variant/60">Recent Feed</h2>
-              <button className="text-[10px] font-bold text-on-surface-variant/80 hover:text-on-surface transition-colors flex items-center gap-1 bg-surface-container px-2 py-1 rounded">
-                <Calendar className="w-3 h-3" />
-                This Week
-              </button>
-            </div>
-            
-            <div className="bg-surface border border-outline-variant/10 rounded shadow-lg p-5 space-y-6 flex-1 overflow-y-auto">
-              {activities.length === 0 ? (
-                <div className="text-center py-8">
-                  <span className="text-xs text-on-surface-variant/50">No recent activity found.</span>
-                </div>
-              ) : (
-                activities.map((activity, idx) => (
-                  <div key={activity.id} className="relative pl-6">
-                    {/* Time line connecting dots */}
-                    {idx !== activities.length - 1 && (
-                      <div className="absolute left-2.5 top-6 bottom-[-1.5rem] w-px bg-outline-variant/20" />
-                    )}
-                    
-                    {/* Event Dot */}
-                    <div className={cn(
-                      "absolute left-0 top-1 w-5 h-5 rounded-full flex items-center justify-center border-2 border-surface bg-surface shadow-sm",
-                      activity.type === 'analysis-completed' ? "text-secondary" : "text-tertiary-container"
-                    )}>
-                      {activity.type === 'analysis-completed' ? (
-                        <CheckCircle2 className="w-2.5 h-2.5" />
-                      ) : (
-                        <AlertTriangle className="w-2.5 h-2.5" />
-                      )}
-                    </div>
-                    
-                    {/* Event Content */}
-                    <div className="space-y-1 group">
-                      <p className="text-xs leading-relaxed text-on-surface-variant/90 group-hover:text-on-surface transition-colors">
-                        <strong className="text-on-surface font-semibold">
-                          {activity.type === 'analysis-completed' ? 'Analysis finished' : activity.description}
-                        </strong> 
-                        {' '}for{' '}
-                        <span className="text-primary cursor-pointer hover:underline font-mono px-1 bg-primary/10 rounded">
-                          {activity.repoName}
-                        </span>
-                      </p>
-                      <p className="text-[10px] text-on-surface-variant/50 font-mono">
-                        {activity.timestamp}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Floating FAB for New Codebase */}
-      <div className="fixed bottom-8 right-8 z-50">
-        <button className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-primary to-primary-container text-background rounded-full font-bold shadow-2xl hover:scale-105 active:scale-95 transition-all outline-none focus:ring-2 focus:ring-primary/50">
-          <Plus className="w-4 h-4" />
-          <span className="text-sm">New Analysis</span>
-        </button>
-      </div>
+      {/* Recent Analyses Table */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold text-on-surface">Recent Analyses</h3>
+          <div className="flex gap-2">
+            <button className="bg-surface-container-high px-3 py-1.5 rounded text-xs font-medium text-outline hover:text-on-surface transition-colors flex items-center gap-1">
+              <Filter className="w-3.5 h-3.5" />
+              Filter
+            </button>
+            <button className="bg-surface-container-high px-3 py-1.5 rounded text-xs font-medium text-outline hover:text-on-surface transition-colors flex items-center gap-1">
+              <Download className="w-3.5 h-3.5" />
+              Export
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-surface-container-low rounded-xl overflow-hidden border border-outline-variant/5">
+          <table className="w-full text-left text-sm border-collapse">
+            <thead>
+              <tr className="bg-surface-container-lowest border-b border-outline-variant/10 text-outline text-[11px] uppercase tracking-wider font-bold">
+                <th className="px-6 py-4">Repo Name</th>
+                <th className="px-6 py-4">Last Analyzed</th>
+                <th className="px-6 py-4 text-center">Status</th>
+                <th className="px-6 py-4 text-right">Health Score</th>
+                <th className="px-6 py-4" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-outline-variant/5">
+              {filteredRepos.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-sm text-outline">
+                    No repositories found. Analyze a repo to get started.
+                  </td>
+                </tr>
+              ) : (
+                filteredRepos.map((repo, idx) => (
+                  <tr
+                    key={repo.id}
+                    className={cn(
+                      "hover:bg-surface-container-high/50 transition-colors group cursor-pointer",
+                      idx % 2 !== 0 && "bg-surface-container-highest/5"
+                    )}
+                    onClick={() => navigate(`/analysis/${repo.id}`)}
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <Folder className="w-5 h-5 text-outline group-hover:text-primary transition-colors" />
+                        <span className="font-semibold text-on-surface">{repo.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 font-mono text-xs text-outline">{repo.lastAnalyzed}</td>
+                    <td className="px-6 py-4 text-center">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary/10 text-secondary text-[10px] font-bold uppercase tracking-wider">
+                        <span className="w-1 h-1 rounded-full bg-secondary" />
+                        Completed
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <span className={cn("font-mono font-bold", getScoreColor(repo.score))}>
+                        {repo.score ?? '—'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right" onClick={e => e.stopPropagation()}>
+                      <button className="text-outline hover:text-primary transition-colors p-1 rounded hover:bg-surface-container">
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+
+          <div className="bg-surface-container-lowest p-4 flex justify-between items-center border-t border-outline-variant/5">
+            <span className="text-[10px] text-outline uppercase font-bold tracking-widest">
+              Showing {filteredRepos.length} of {repositories.length} Repositories
+            </span>
+            <div className="flex gap-2">
+              <button className="p-1 rounded hover:bg-surface-container text-outline disabled:opacity-30 transition-colors" disabled>
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button className="p-1 rounded hover:bg-surface-container text-outline transition-colors">
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Bottom Bento Stats Grid */}
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {bentoStats.map(stat => {
+          const Icon = stat.icon;
+          return (
+            <div key={stat.label} className={cn("bg-surface-container-low p-5 rounded-xl border-l-4", stat.color)}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold text-outline uppercase tracking-widest">{stat.label}</span>
+                <Icon className={cn("w-5 h-5", stat.iconColor)} />
+              </div>
+              <div className="text-3xl font-mono font-bold text-on-surface">{stat.value}</div>
+              <p className="text-[10px] text-outline mt-2 leading-tight">{stat.desc}</p>
+            </div>
+          );
+        })}
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-outline-variant/10 py-6 text-center">
+        <div className="inline-flex items-center gap-2 text-[10px] text-outline uppercase tracking-[0.2em] font-medium">
+          <span className="w-8 h-px bg-outline-variant/30" />
+          Engineered for structural clarity
+          <span className="w-8 h-px bg-outline-variant/30" />
+        </div>
+      </footer>
     </div>
   );
 };
