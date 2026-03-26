@@ -46,7 +46,7 @@ export function LandingPage() {
       <div className="shadow-overlay absolute inset-0 z-10"></div>
       
       {/* WebGL Gradient Blinds Background */}
-      <div className="absolute top-0 left-0 right-0 h-screen max-h-[900px] z-0 mask-[linear-gradient(to_bottom,black_60%,transparent_100%)]">
+      <div className="absolute top-0 left-0 right-0 h-[80vh] md:h-screen max-h-[900px] z-0 mask-[linear-gradient(to_bottom,black_85%,transparent_100%)] touch-none pointer-events-none">
         <GradientBlinds
           gradientColors={['#FF9FFC', '#5227FF']}
           angle={-15}
