@@ -18,6 +18,7 @@ export const Sidebar = () => {
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { name: 'Repositories', icon: Github, path: '/repos' },
+    // { name: 'Analyze', icon: Zap, path: '/analyze:id' },
     { name: 'History', icon: History, path: '/history' },
     { name: 'Settings', icon: Settings, path: '/settings' },
   ];

@@ -1,14 +1,6 @@
-/**
- * GradientBlinds Component
- * 
- * A high-performance background effect using OGL for WebGL rendering.
- * Features a "blinds" or "stripe" effect overlaying a dynamic gradient.
- * Reactive to mouse movement with spotlight effects and noise textures.
- */
 
 import React, { useEffect, useRef } from 'react';
 import { Renderer, Program, Mesh, Triangle } from 'ogl';
-import gsap from 'gsap';
 
 export interface GradientBlindsProps {
   className?: string;
@@ -278,40 +270,37 @@ void main() {
     const ro = new ResizeObserver(resize);
     ro.observe(container);
 
-    // Create GSAP quickTo pipelines for ultra-smooth instantaneous transition mechanics
-    const xTo = gsap.quickTo(uniforms.iMouse.value, "0", { duration: 0.15, ease: "power2.out" });
-    const yTo = gsap.quickTo(uniforms.iMouse.value, "1", { duration: 0.15, ease: "power2.out" });
-
     const onPointerMove = (e: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
       const scale = (renderer as any).dpr || 1;
       const x = (e.clientX - rect.left) * scale;
       const y = (rect.height - (e.clientY - rect.top)) * scale;
       mouseTargetRef.current = [x, y];
-      
       if (mouseDampening <= 0) {
         uniforms.iMouse.value = [x, y];
-      } else {
-        // Dispatch to GSAP pipeline
-        xTo(x);
-        yTo(y);
       }
     };
 
     canvas.addEventListener('pointermove', onPointerMove);
 
-    // Background base rotation transition (continuous smooth sweep)
-    gsap.to(uniforms.uAngle, {
-      value: uniforms.uAngle.value + 0.1,
-      duration: 20,
-      repeat: -1,
-      yoyo: true,
-      ease: "sine.inOut"
-    });
-
     const loop = (t: number) => {
       rafRef.current = requestAnimationFrame(loop);
       uniforms.iTime.value = t * 0.001;
+
+      if (mouseDampening > 0) {
+        if (!lastTimeRef.current) lastTimeRef.current = t;
+        const dt = (t - lastTimeRef.current) / 1000;
+        lastTimeRef.current = t;
+        const tau = Math.max(1e-4, mouseDampening);
+        let factor = 1 - Math.exp(-dt / tau);
+        if (factor > 1) factor = 1;
+        const target = mouseTargetRef.current;
+        const cur = uniforms.iMouse.value;
+        cur[0] += (target[0] - cur[0]) * factor;
+        cur[1] += (target[1] - cur[1]) * factor;
+      } else {
+        lastTimeRef.current = t;
+      }
 
       if (!paused && programRef.current && meshRef.current) {
         try {
@@ -341,6 +330,7 @@ void main() {
       callIfFn(programRef.current, 'remove');
       callIfFn(geometryRef.current, 'remove');
       callIfFn(meshRef.current, 'remove');
+      // renderer.destroy() is not always standard in all versions of OGL
       programRef.current = null;
       geometryRef.current = null;
       meshRef.current = null;
@@ -366,7 +356,7 @@ void main() {
   return (
     <div
       ref={containerRef}
-      className={`w-full h-full overflow-hidden relative ${className || ''}`}
+      className={`w-full h-full overflow-hidden relative ${className}`}
       style={{
         ...(mixBlendMode && {
           mixBlendMode: mixBlendMode as React.CSSProperties['mixBlendMode']

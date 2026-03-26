@@ -46,18 +46,19 @@ export function LandingPage() {
       <div className="shadow-overlay absolute inset-0 z-10"></div>
       
       {/* WebGL Gradient Blinds Background */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute top-0 left-0 right-0 h-[100vh] max-h-[900px] z-0 [mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)]">
         <GradientBlinds
-          gradientColors={['#292929', '#00D1FF', '#FF00FF']}
+          gradientColors={['#FF9FFC', '#5227FF']}
           angle={-15}
-          noise={0.12}
-          blindCount={18}
+          noise={0.2}
+          blindCount={20}
           blindMinWidth={40}
-          spotlightRadius={0.55}
-          spotlightSoftness={1.5}
-          spotlightOpacity={1.0}
-          mouseDampening={0.05}
-          distortAmount={1}
+          spotlightRadius={0.6}
+          spotlightSoftness={0.8}
+          spotlightOpacity={0.9}
+          mouseDampening={0.12}
+          distortAmount={2}
+          shineDirection="left"
           mixBlendMode="lighten"
         />
       </div>
@@ -122,7 +123,7 @@ export function LandingPage() {
         </div>
 
         {/* Hero Headline */}
-        <h1 className="font-heading text-6xl md:text-8xl font-extrabold tracking-tighter mb-8 glow-text text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.8)] leading-[1.1]">
+        <h1 className="font-heading text-6xl md:text-8xl font-extrabold tracking-tighter mb-8 text-white leading-[1.1]">
           Precision Analytics & <br/> Observability
         </h1>
 
