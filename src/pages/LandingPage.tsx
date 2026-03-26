@@ -122,7 +122,7 @@ export function LandingPage() {
         </div>
 
         {/* Hero Headline */}
-        <h1 className="font-heading text-6xl md:text-8xl font-extrabold tracking-tighter mb-8 glow-text text-transparent bg-clip-text bg-gradient-to-r from-[#00E5FF] to-[#FF00FF] leading-[1.1]">
+        <h1 className="font-heading text-6xl md:text-8xl font-extrabold tracking-tighter mb-8 glow-text text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.8)] leading-[1.1]">
           Precision Analytics & <br/> Observability
         </h1>
 
