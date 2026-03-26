@@ -96,3 +96,8 @@
 .gh-box-header {
   @apply bg-surface-container-low px-4 py-2 font-semibold text-sm;
 }
+
+/* Stitch severity-monolith: 4px absolute left accent bar */
+.severity-monolith {
+  @apply absolute left-0 top-0 bottom-0 w-1;
+}
