@@ -24,7 +24,7 @@ export const processRepositoryAnalysis = async (
     );
 
     // 4. Run Analysis
-    const analysisResults = await analyzeMultipleFiles(filesWithContent);
+    const analysisResults = await analyzeMultipleFiles(filesWithContent, `${owner}/${repo}`);
 
     // 5. Calculate Score
     let score = 100;

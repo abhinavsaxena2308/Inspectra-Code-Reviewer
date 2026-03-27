@@ -1,102 +1,72 @@
-export interface AnalysisIssue {
-  type: 'bug' | 'security' | 'quality' | 'suggestion' | 'performance';
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  message: string;
-  suggestion: string;
-  line?: number;
-}
+import { analyzeCodeWithGemini, AnalysisIssue } from './geminiService';
+
+export type { AnalysisIssue };
 
 export interface FileAnalysis {
   file: string;
   issues: AnalysisIssue[];
 }
 
-export const analyzeFile = async (filename: string, content: string): Promise<FileAnalysis> => {
-  const issues: AnalysisIssue[] = [];
-  const lines = content.split('\n');
-
-  // Rule-based Static Analysis
-  lines.forEach((line, index) => {
-    const lineNum = index + 1;
-
-    // 1. Bug: Non-strict equality
-    if (line.includes(' == ') && !line.includes(' != ')) {
-      issues.push({
-        type: 'bug',
-        severity: 'medium',
-        message: 'Use of non-strict equality (==).',
-        suggestion: 'Use strict equality (===) instead.',
-        line: lineNum,
-      });
-    }
-
-    // 2. Bug: Empty catch block
-    if (line.match(/catch\s*\([^)]*\)\s*{\s*}/)) {
-      issues.push({
-        type: 'bug',
-        severity: 'high',
-        message: 'Empty catch block found.',
-        suggestion: 'Add error handling or logging to the catch block.',
-        line: lineNum,
-      });
-    }
-
-    // 3. Quality: Use of var
-    if (line.match(/\bvar\b/)) {
-      issues.push({
-        type: 'quality',
-        severity: 'low',
-        message: 'Use of "var" keyword.',
-        suggestion: 'Use "const" or "let" instead.',
-        line: lineNum,
-      });
-    }
-
-    // 4. Quality: leftover console.log
-    if (line.includes('console.log(')) {
-      issues.push({
-        type: 'quality',
-        severity: 'low',
-        message: 'Leftover console.log statement.',
-        suggestion: 'Remove console.log or use a proper logging library.',
-        line: lineNum,
-      });
-    }
-
-    // 5. Security: Potential Hardcoded Secrets
-    const secretKeywords = ['API_KEY', 'TOKEN', 'SECRET', 'PASSWORD', 'CREDENTIALS'];
-    for (const keyword of secretKeywords) {
-      if (line.includes(keyword) && (line.includes('=') || line.includes(':')) && !line.includes('process.env')) {
-        issues.push({
-          type: 'security',
-          severity: 'high',
-          message: `Potential hardcoded secret found: ${keyword}.`,
-          suggestion: 'Store secrets in environment variables or a secure vault.',
-          line: lineNum,
-        });
-      }
-    }
-  });
-
-  // 6. Performance: File Size Check
-  if (content.length > 50000) {
-    issues.push({
-      type: 'performance',
-      severity: 'medium',
-      message: 'File size is quite large.',
-      suggestion: 'Consider modularizing the code into smaller files.',
-    });
+const getLanguageFromExtension = (filename: string): string => {
+  const ext = filename.split('.').pop()?.toLowerCase();
+  switch (ext) {
+    case 'js':
+    case 'jsx': return 'JavaScript';
+    case 'ts':
+    case 'tsx': return 'TypeScript';
+    case 'py': return 'Python';
+    case 'go': return 'Go';
+    case 'java': return 'Java';
+    case 'cpp':
+    case 'cc':
+    case 'h': return 'C++';
+    case 'c': return 'C';
+    case 'cs': return 'C#';
+    case 'rb': return 'Ruby';
+    case 'php': return 'PHP';
+    case 'rs': return 'Rust';
+    default: return 'Unknown';
   }
-
-  // Simulate async processing (and future AI integration delay)
-  await new Promise(resolve => setTimeout(resolve, 200));
-
-  return {
-    file: filename,
-    issues,
-  };
 };
 
-export const analyzeMultipleFiles = async (files: { name: string; content: string }[]): Promise<FileAnalysis[]> => {
-  return Promise.all(files.map(file => analyzeFile(file.name, file.content)));
+export const analyzeFile = async (
+  filename: string, 
+  content: string, 
+  repoName: string = 'Unknown Repository'
+): Promise<FileAnalysis> => {
+  const language = getLanguageFromExtension(filename);
+  
+  try {
+    const issues = await analyzeCodeWithGemini(repoName, filename, language, content);
+    
+    return {
+      file: filename,
+      issues,
+    };
+  } catch (error) {
+    console.error(`[AnalysisService] Error analyzing ${filename}:`, error);
+    return {
+      file: filename,
+      issues: [{
+        type: 'quality',
+        severity: 'low',
+        message: 'Analysis failed for this file.',
+        suggestion: 'The AI service might be temporarily unavailable or the file content too complex.'
+      }],
+    };
+  }
+};
+
+export const analyzeMultipleFiles = async (
+  files: { name: string; content: string }[],
+  repoName: string = 'Unknown Repository'
+): Promise<FileAnalysis[]> => {
+  // Use sequential processing or limited concurrency to avoid Gemini rate limits
+  const results: FileAnalysis[] = [];
+  for (const file of files) {
+    results.push(await analyzeFile(file.name, file.content, repoName));
+    // Small delay between files to be safe
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  return results;
 };
