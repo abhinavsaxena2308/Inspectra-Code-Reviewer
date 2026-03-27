@@ -190,42 +190,36 @@ export function LandingPage() {
 
         {/* Input & CTA */}
         <div className="w-full max-w-2xl mx-auto flex flex-col items-center gap-6 mt-4">
-           <div className="relative w-full group">
-             <Terminal className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-cyan transition-colors" />
-             <input
-               className="w-full bg-black/40 border border-white/10 rounded-full pl-16 pr-8 py-5 text-sm font-mono focus:ring-1 focus:ring-cyan/50 focus:border-cyan outline-none transition-all placeholder:text-white/20 text-white backdrop-blur-md relative z-30"
-               placeholder="https://github.com/username/repository"
-               value={repoUrl}
-               onChange={(e) => setRepoUrl(e.target.value)}
-               type="text"
-               disabled={isAnalyzing}
-               onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
-             />
-           </div>
+          <div className="relative w-full group">
+            <Terminal className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-cyan transition-colors z-40" />
+            <input
+              className="w-full bg-black/40 border border-white/10 rounded-full pl-16 pr-52 py-5 text-sm font-mono focus:ring-1 focus:ring-cyan/50 focus:border-cyan outline-none transition-all placeholder:text-white/20 text-white backdrop-blur-md relative z-30"
+              placeholder="https://github.com/username/repository"
+              value={repoUrl}
+              onChange={(e) => setRepoUrl(e.target.value)}
+              type="text"
+              disabled={isAnalyzing}
+              onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
+            />
+            <button 
+              onClick={handleAnalyze} 
+              disabled={isAnalyzing} 
+              className="absolute right-2 top-1/2 -translate-y-1/2 ethereal-btn px-8 py-3.5 rounded-full text-[10px] uppercase tracking-[0.2em] font-bold text-white flex items-center justify-center gap-2 group z-40 h-[calc(100%-16px)]"
+            >
+              {isAnalyzing ? 'Initializing...' : 'Start Inspecting'}
+              {!isAnalyzing && <Zap className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />}
+            </button>
+          </div>
 
-           {error && (
-             <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-3 rounded-md bg-error-container/40 border border-error/20 text-error text-sm font-medium w-full backdrop-blur-md"
-              >
-               {error}
-             </motion.div>
-           )}
-
-           <div className="flex flex-col sm:flex-row gap-6 mt-4 relative z-30">
-             <button 
-               onClick={handleAnalyze} 
-               disabled={isAnalyzing} 
-               className="ethereal-btn px-12 py-5 rounded-full text-[11px] uppercase tracking-[0.3em] font-bold text-white flex items-center justify-center gap-3 group"
-             >
-               {isAnalyzing ? 'Initializing Core...' : 'Start Inspecting'}
-               {!isAnalyzing && <Zap className="w-4 h-4 group-hover:rotate-45 transition-transform" />}
-             </button>
-             <button className="px-12 py-5 border border-white/5 rounded-full text-[11px] uppercase tracking-[0.3em] font-bold text-white/40 hover:text-white hover:bg-white/5 transition-all">
-               Read Manifesto
-             </button>
-           </div>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-3 rounded-md bg-error-container/40 border border-error/20 text-error text-sm font-medium w-full backdrop-blur-md mt-4"
+            >
+              {error}
+            </motion.div>
+          )}
         </div>
 
         {/* Global Stats Footer Array */}
