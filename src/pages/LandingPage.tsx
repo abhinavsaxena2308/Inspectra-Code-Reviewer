@@ -14,6 +14,7 @@ import HowItWorks from '../components/sections/HowItWorks';
 import Features from '../components/sections/Features';
 import UseCases from '../components/sections/UseCases';
 import FinalCTA from '../components/sections/FinalCTA';
+import Footer from '../components/layout/Footer';
 import FloatingNavbar from '../components/layout/FloatingNavbar'
 
 export function LandingPage() {
@@ -171,6 +172,8 @@ export function LandingPage() {
               </div>
           </div>
         </div>
+
+        <Footer />
       </main>
     </div>
   );
