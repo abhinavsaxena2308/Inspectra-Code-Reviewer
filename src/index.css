@@ -1,11 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Faster+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Satoshi", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
   --font-heading: "Cabinet Grotesk", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --font-cursive: "Caveat", cursive;
+  --font-cursive: "Edu NSW ACT Cursive", cursive;
   
   /* Inspectra Design System (Ethereal) - Synchronized with Background */
   --color-void: #000000;
