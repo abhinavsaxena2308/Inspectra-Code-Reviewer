@@ -9,6 +9,7 @@ import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
 import { GradientBlinds } from '../components/ui/GradientBlinds';
 import Marquee from '../components/ui/Marquee';
+import FloatingNavbar from '../components/layout/FloatingNavbar'
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -71,110 +72,7 @@ export function LandingPage() {
         />
       </div>
 
-
-      {/* Navigation Bar */}
-      <header className="fixed top-0 left-0 right-0 z-50 glass-nav h-20 px-8">
-        <nav className="max-w-7xl mx-auto h-full flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full border border-cyan/50 flex items-center justify-center p-1 shadow-[0_0_15px_rgba(82,39,255,0.3)]">
-              <div className="w-full h-full rounded-full bg-cyan animate-pulse shadow-[0_0_20px_var(--color-cyan)]"></div>
-            </div>
-            <span className="text-xl font-bold tracking-tighter uppercase tracking-[0.2em] glow-text text-white" style={{ fontFamily: '"Cabinet Grotesk", sans-serif' }}>Inspectra</span>
-          </div>
-
-          {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-10 z-50">
-            <button className="text-[10px] text-white uppercase tracking-[0.3em] font-bold opacity-40 hover:opacity-100 transition-opacity">Infrastructure</button>
-            <button className="text-[10px] text-white uppercase tracking-[0.3em] font-bold opacity-40 hover:opacity-100 transition-opacity">Observability</button>
-            <button className="text-[10px] text-white uppercase tracking-[0.3em] font-bold opacity-40 hover:opacity-100 transition-opacity">Security</button>
-          </div>
-
-          {/* Desktop Auth & Mobile Hamburger Toggle */}
-          <div className="flex items-center gap-6 z-50 relative">
-            {user ? (
-               <>
-                 {/* Desktop Only */}
-                 <div className="hidden md:flex items-center gap-6">
-                   <span 
-                     className="text-[10px] text-white uppercase tracking-[0.3em] font-bold opacity-60 hover:text-cyan hover:opacity-100 transition-all cursor-pointer" 
-                     onClick={() => navigate('/settings')}
-                   >
-                     {user.name || user.email?.split('@')[0]}
-                   </span>
-                   <button 
-                     onClick={() => navigate('/dashboard')} 
-                     className="px-6 py-2 border border-white/10 text-white rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-white hover:text-black transition-all"
-                   >
-                     Access_Core
-                   </button>
-                 </div>
-
-                 {/* Mobile Hamburger Toggle */}
-                 <button 
-                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                   className="md:hidden text-white p-2 hover:bg-white/5 rounded-full transition-colors"
-                 >
-                   {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                 </button>
-               </>
-            ) : (
-               <>
-                 <button 
-                   onClick={() => navigate('/login')} 
-                   className="text-[10px] uppercase text-white tracking-[0.3em] font-bold opacity-60 hover:text-cyan hover:opacity-100 transition-all z-50"
-                 >
-                   Sign In
-                 </button>
-                 {/* Desktop Only Deploy Now */}
-                 <button 
-                   onClick={() => navigate('/register')} 
-                   className="hidden md:block px-6 py-2 border border-white/10 text-white rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-white hover:text-black transition-all z-50"
-                 >
-                   Deploy Now
-                 </button>
-               </>
-            )}
-          </div>
-        </nav>
-
-        {/* Mobile Menu Overlay */}
-        {isMobileMenuOpen && user && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="md:hidden absolute top-20 left-0 right-0 bg-black/95 backdrop-blur-2xl border-b border-white/5 py-10 px-8 flex flex-col gap-8 shadow-2xl z-40"
-          >
-            <button 
-              onClick={() => { navigate('/dashboard'); setIsMobileMenuOpen(false); }}
-              className="flex items-center gap-4 text-sm font-bold uppercase tracking-[0.3em] text-white opacity-60 hover:opacity-100 transition-all"
-            >
-              <LayoutDashboard className="w-5 h-5 text-cyan" />
-              Dashboard
-            </button>
-            <button 
-              onClick={() => { navigate('/register'); setIsMobileMenuOpen(false); }}
-              className="flex items-center gap-4 text-sm font-bold uppercase tracking-[0.3em] text-white opacity-60 hover:opacity-100 transition-all"
-            >
-              <Zap className="w-5 h-5 text-cyan" />
-              Deploy Now
-            </button>
-             <button 
-              onClick={() => { navigate('/settings'); setIsMobileMenuOpen(false); }}
-              className="flex items-center gap-4 text-sm font-bold uppercase tracking-[0.3em] text-white opacity-60 hover:opacity-100 transition-all"
-            >
-              <Settings className="w-5 h-5 text-cyan" />
-              Settings
-            </button>
-            <button 
-              onClick={() => { signOut(); setIsMobileMenuOpen(false); }}
-              className="flex items-center gap-4 text-sm font-bold uppercase tracking-[0.3em] text-red-500/80 hover:text-red-500 transition-all mt-4 pt-8 border-t border-white/5"
-            >
-              <LogOut className="w-5 h-5" />
-              Sign Out
-            </button>
-          </motion.div>
-        )}
-      </header>
+      <FloatingNavbar />
 
       {/* Main Content */}
       <main className="relative z-20 pt-32 pb-20 w-full flex flex-col items-center min-h-[calc(100vh-160px)]">

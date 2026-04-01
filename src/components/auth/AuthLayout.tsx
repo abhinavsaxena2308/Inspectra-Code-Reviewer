@@ -69,11 +69,14 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
           transition={{ duration: 0.5, delay: 0.1 }}
         >
           {/* Mobile logo */}
-          <div className="flex md:hidden items-center gap-2 mb-8">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center">
-              <Github className="w-4 h-4 text-white" />
+          <div className="flex md:hidden items-center gap-2 mb-8 group">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-violet-600/20 border border-white/10 flex items-center justify-center p-1.5 group-hover:border-blue-500/50 transition-all">
+              <svg viewBox="0 0 24 24" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L3.5 7V17L12 22L20.5 17V7L12 2Z" className="stroke-white" strokeWidth="2" strokeLinejoin="round"/>
+                <circle cx="12" cy="12" r="3" className="fill-blue-500 animate-pulse"/>
+              </svg>
             </div>
-            <span className="text-lg font-bold text-white">Inspectra</span>
+            <span className="text-lg font-bold text-white tracking-tight">Inspectra</span>
           </div>
 
           <div className="mb-8">
