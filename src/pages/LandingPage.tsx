@@ -84,7 +84,7 @@ export function LandingPage() {
         <FloatingNavbar />
 
         {/* Hero Main Content */}
-        <main className="relative z-20 pt-32 pb-20 w-full flex flex-col items-center min-h-[calc(100vh-160px)]">
+        <main className="relative z-20 pt-28 md:pt-32 pb-20 w-full flex flex-col items-center min-h-[calc(100vh-160px)]">
           {/* Hero Section Container */}
           <div className="px-6 md:px-10 max-w-5xl mx-auto flex flex-col items-center justify-center text-center">
             {/* Status Badge */}
@@ -94,32 +94,34 @@ export function LandingPage() {
             </div>
 
             {/* Hero Headline */}
-            <h1 className="font-heading text-6xl md:text-8xl font-extrabold tracking-tighter mb-8 text-white leading-[1.1]">
-              Precision Analytics & <br/> Observability
+            <h1 className="font-heading text-5xl md:text-8xl font-extrabold tracking-tighter mb-6 md:mb-8 text-white leading-tight md:leading-[1.1]">
+              Precision Analytics & <br className="hidden md:block"/> Observability
             </h1>
 
             {/* Subheading */}
-            <p className="text-lg md:text-xl font-medium text-white/40 mb-12 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base md:text-xl font-medium text-white/40 mb-10 md:mb-12 max-w-md md:max-w-2xl mx-auto leading-relaxed">
               Inspect code, detect issues, and improve quality instantly. Our high-performance LLMs analyze every line for vulnerabilities and patterns.
             </p>
 
             {/* Input & CTA */}
-            <div className="w-full max-w-2xl mx-auto flex flex-col items-center gap-6 mt-4">
-              <div className="relative w-full group">
-                <Terminal className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-cyan transition-colors z-40" />
-                <input
-                  className="w-full bg-black/40 border border-white/10 rounded-full pl-16 pr-52 py-5 text-sm font-mono focus:ring-1 focus:ring-cyan/50 focus:border-cyan outline-none transition-all placeholder:text-white/20 text-white backdrop-blur-md relative z-30"
-                  placeholder="https://github.com/username/repository"
-                  value={repoUrl}
-                  onChange={(e) => setRepoUrl(e.target.value)}
-                  type="text"
-                  disabled={isAnalyzing}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
-                />
+            <div className="w-full max-w-2xl mx-auto flex flex-col items-center gap-4 md:gap-6 mt-4">
+              <div className="relative w-full group flex flex-col sm:flex-row gap-4 sm:gap-0">
+                <div className="relative flex-grow">
+                  <Terminal className="absolute left-5 sm:left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-cyan transition-colors z-40" />
+                  <input
+                    className="w-full bg-black/40 border border-white/10 rounded-full sm:rounded-l-full sm:rounded-r-none pl-14 sm:pl-16 pr-4 sm:pr-52 py-4 sm:py-5 text-sm font-mono focus:ring-1 focus:ring-cyan/50 focus:border-cyan outline-none transition-all placeholder:text-white/20 text-white backdrop-blur-md relative z-30"
+                    placeholder="https://github.com/username/repo"
+                    value={repoUrl}
+                    onChange={(e) => setRepoUrl(e.target.value)}
+                    type="text"
+                    disabled={isAnalyzing}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
+                  />
+                </div>
                 <button 
                   onClick={handleAnalyze} 
                   disabled={isAnalyzing} 
-                  className="absolute right-2 top-1/2 -translate-y-1/2 ethereal-btn px-8 py-3.5 rounded-full text-[10px] uppercase tracking-[0.2em] font-bold text-white flex items-center justify-center gap-2 group z-40 h-[calc(100%-16px)]"
+                  className="w-full sm:w-auto sm:absolute sm:right-2 sm:top-1/2 sm:-translate-y-1/2 ethereal-btn px-8 py-4 sm:py-3.5 rounded-full text-xs sm:text-[10px] uppercase tracking-[0.2em] font-bold text-white flex items-center justify-center gap-2 group z-40 sm:h-[calc(100%-16px)]"
                 >
                   {isAnalyzing ? 'Initializing...' : 'Start Inspecting'}
                   {!isAnalyzing && <Zap className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />}

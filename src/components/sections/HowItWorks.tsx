@@ -31,58 +31,56 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section className="px-6 md:px-10 max-w-5xl mx-auto mt-24 md:mt-32 relative z-20">
+    <section className="px-6 md:px-10 max-w-7xl mx-auto mt-24 md:mt-32 relative z-20">
       {/* Section Header */}
       <div className="text-center mb-16 px-4">
-        <h2 className="font-heading text-4xl md:text-5xl font-extrabold tracking-tighter text-white mb-4">
-          How It <span className="font-cursive text-cyan inline-block -rotate-3 px-1">Works</span>
+        <h2 className="font-sans text-4xl md:text-5xl font-bold tracking-tight text-on-surface mb-4">
+          How It Works
         </h2>
-        <p className="text-white/40 max-w-2xl mx-auto font-medium">
+        <p className="text-on-surface-variant max-w-2xl mx-auto text-lg">
           Four simple steps to transform your development workflow from chaos to clarity.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 relative">
         {/* Flow Connectors (Desktop Only) */}
-        <div className="hidden md:block absolute top-[68px] left-[15%] right-[15%] h-px bg-linear-to-r from-transparent via-cyan/20 to-transparent z-0"></div>
+        <div className="hidden lg:block absolute top-1/2 -translate-y-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent z-0"></div>
 
         {steps.map((step, i) => (
           <motion.div
             key={i}
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ delay: i * 0.15, duration: 0.6, ease: "easeOut" }}
-            className="flex flex-col items-center md:items-start group relative z-10"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ delay: i * 0.1, duration: 0.5, ease: "easeOut" }}
+            className="flex flex-col items-center group relative z-10"
           >
-            {/* Glass Card */}
-            <div className="w-full p-6 rounded-2xl bg-white/2 border border-white/5 backdrop-blur-md group-hover:bg-white/4 group-hover:border-white/10 transition-all duration-500 flex flex-col items-center md:items-start text-center md:text-left h-full">
+            <div className="w-full p-6 rounded-2xl bg-surface-container border border-outline-variant/20 hover:border-primary/30 transition-all duration-300 flex flex-col items-center text-center h-full hover:bg-surface-container-high">
               
-              {/* Step Icon & Number */}
-              <div className="flex items-center justify-between w-full mb-6 relative">
-                <div className="p-3 rounded-xl bg-cyan/10 text-cyan group-hover:scale-110 transition-transform duration-500">
-                  <step.icon className="w-6 h-6" />
-                </div>
-                <span className="font-mono text-[10px] uppercase tracking-widest text-white/20 font-bold">
-                  Step {step.number}
-                </span>
-                
-                {/* Desktop Flow Arrow */}
-                {i < steps.length - 1 && (
-                  <div className="hidden lg:flex absolute -right-6 top-1/2 -translate-y-1/2 text-white/10 group-hover:text-cyan/40 transition-colors">
-                    <ChevronRight className="w-4 h-4" />
+              <div className="relative mb-6">
+                <div className="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center border border-outline-variant/10 group-hover:border-primary/20 transition-colors">
+                  <div className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary">
+                    <step.icon className="w-6 h-6" />
                   </div>
-                )}
+                </div>
+                <span className="absolute -top-2 -right-2 w-8 h-8 flex items-center justify-center rounded-full bg-primary text-on-primary font-bold text-xs border-4 border-surface-container">
+                  {step.number}
+                </span>
               </div>
 
-              {/* Title & Description */}
-              <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan transition-colors">
+              <h3 className="text-xl font-semibold text-on-surface mb-2">
                 {step.title}
               </h3>
-              <p className="text-xs leading-relaxed text-white/40 group-hover:text-white/60 transition-colors">
+              <p className="text-sm leading-relaxed text-on-surface-variant">
                 {step.description}
               </p>
             </div>
+            
+            {i < steps.length - 1 && (
+              <div className="hidden lg:flex absolute -right-4 top-1/2 -translate-y-1/2 text-outline-variant group-hover:text-primary transition-colors">
+                <ChevronRight className="w-5 h-5" />
+              </div>
+            )}
           </motion.div>
         ))}
       </div>

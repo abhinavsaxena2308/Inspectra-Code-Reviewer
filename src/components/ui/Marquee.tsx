@@ -53,25 +53,25 @@ export default function Marquee() {
                       <TechLogo name={tech.name} color={tech.color} />
                     </div>
                   </div>
-                  <span className="text-xl md:text-2xl font-bold tracking-tight text-white/60 group-hover:text-white transition-all duration-700 whitespace-nowrap" style={{ fontFamily: '"Cabinet Grotesk", sans-serif' }}>
+                  <span className="text-lg md:text-2xl font-bold tracking-tight text-white/60 group-hover:text-white transition-all duration-700 whitespace-nowrap" style={{ fontFamily: '"Cabinet Grotesk", sans-serif' }}>
                     {tech.name}
                   </span>
-                  <div className="ml-10 w-1.5 h-1.5 rounded-full bg-white/5 group-hover:bg-cyan/40 transition-colors duration-700 shadow-[0_0_8px_rgba(255,255,255,0.05)] group-hover:shadow-[0_0_12px_var(--color-cyan)]"></div>
+                  <div className="ml-4 md:ml-10 w-1.5 h-1.5 rounded-full bg-white/5 group-hover:bg-cyan/40 transition-colors duration-700 shadow-[0_0_8px_rgba(255,255,255,0.05)] group-hover:shadow-[0_0_12px_var(--color-cyan)]"></div>
                 </div>
               ))}
               
               {features.map((feature) => (
                 <div 
                   key={`${feature.name}-${i}`} 
-                  className="flex items-center gap-4 mx-10 opacity-30 hover:opacity-100 group transition-all duration-700 cursor-default"
+                  className="flex items-center gap-3 md:gap-4 mx-6 md:mx-10 opacity-30 hover:opacity-100 group transition-all duration-700 cursor-default"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center group-hover:border-cyan/30 group-hover:bg-cyan/10 transition-all duration-700">
-                    <feature.Icon className="w-4 h-4 text-white/40 group-hover:text-cyan transition-colors duration-700" />
+                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center group-hover:border-cyan/30 group-hover:bg-cyan/10 transition-all duration-700">
+                    <feature.Icon className="w-3.5 h-3.5 md:w-4 md:h-4 text-white/40 group-hover:text-cyan transition-colors duration-700" />
                   </div>
-                  <span className="text-lg md:text-xl font-medium tracking-tight text-white/40 group-hover:text-white transition-all duration-700 whitespace-nowrap">
+                  <span className="text-base md:text-xl font-medium tracking-tight text-white/40 group-hover:text-white transition-all duration-700 whitespace-nowrap">
                     {feature.name}
                   </span>
-                  <div className="ml-10 w-1.5 h-1.5 rounded-full bg-white/5 group-hover:bg-cyan/40 transition-colors duration-700"></div>
+                  <div className="ml-4 md:ml-10 w-1.5 h-1.5 rounded-full bg-white/5 group-hover:bg-cyan/40 transition-colors duration-700"></div>
                 </div>
               ))}
             </React.Fragment>
