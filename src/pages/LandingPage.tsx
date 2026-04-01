@@ -165,7 +165,7 @@ export function LandingPage() {
         />
 
         {/* Global Stats Footer Array Container */}
-        <div className="w-full px-6 md:px-10 max-w-5xl mx-auto mb-32">
+        {/* <div className="w-full px-6 md:px-10 max-w-5xl mx-auto mb-32">
           <div className="mt-8 w-full max-w-4xl mx-auto border-t border-white/10 pt-16 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-white/5 text-center">
               <div className="space-y-2">
               <div className="text-4xl font-heading font-bold tracking-tighter text-white">4M+</div>
@@ -184,7 +184,7 @@ export function LandingPage() {
               <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">Avg latency</div>
               </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       <Footer />

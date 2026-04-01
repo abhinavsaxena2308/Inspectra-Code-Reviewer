@@ -49,12 +49,12 @@ export default function ProductVideo() {
   return (
     <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
       {/* Floating UI Elements */}
-      <div className="absolute inset-0 z-40 hidden md:block opacity-90">
+      {/* <div className="absolute inset-0 z-40 hidden md:block opacity-90">
         <FloatingBadge icon={Search} delay={0.5} className="top-[20%] left-[15%]">Scanning repository...</FloatingBadge>
         <FloatingBadge icon={Bug} delay={1.5} className="bottom-[30%] right-[15%]">+32 issues detected</FloatingBadge>
         <FloatingBadge icon={Shield} delay={2.5} className="top-[40%] right-[20%]">Security Score: 94%</FloatingBadge>
         <FloatingBadge icon={Zap} delay={3.5} className="bottom-[20%] left-[20%]">Analysis Pipeline: Active</FloatingBadge>
-      </div>
+      </div> */}
 
       {/* Video Element - Increased Opacity for Visibility */}
       <video
@@ -63,7 +63,7 @@ export default function ProductVideo() {
         muted
         loop
         playsInline
-        className="absolute top-0 left-0 w-full h-full object-cover opacity-70 contrast-125 brightness-110 transition-opacity duration-1000"
+        className="absolute top-0 left-0 w-full h-full object-cover opacity-70 contrast-125 brightness-180 transition-opacity duration-1000"
       />
 
       {/* Simple Fades for Contrast */}
