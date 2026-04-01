@@ -12,6 +12,7 @@ import Marquee from '../components/ui/Marquee';
 import ProblemSolution from '../components/sections/ProblemSolution';
 import HowItWorks from '../components/sections/HowItWorks';
 import Features from '../components/sections/Features';
+import UseCases from '../components/sections/UseCases';
 import FloatingNavbar from '../components/layout/FloatingNavbar'
 
 export function LandingPage() {
@@ -140,6 +141,7 @@ export function LandingPage() {
         <ProblemSolution />
         <HowItWorks />
         <Features />
+        <UseCases />
 
         {/* Global Stats Footer Array Container */}
         <div className="w-full px-6 md:px-10 max-w-5xl mx-auto">
