@@ -15,7 +15,7 @@ export const ProtectedRoute: React.FC = () => {
   const { user, loading } = useAuth();
 
   if (loading) return <Spinner />;
-  if (!user) return <Navigate to="/" replace />;
+  if (!user) return <Navigate to="/login" replace />;
   
   return <Outlet />;
 };
