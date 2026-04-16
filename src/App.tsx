@@ -35,17 +35,20 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <div className="flex h-screen bg-gh-bg text-gh-text overflow-hidden font-sans">
+    <div className="flex h-screen bg-void text-on-surface overflow-hidden font-sans">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden relative">
-        <main className="flex-1 overflow-y-auto bg-gh-bg">
+        {/* Cinematic Backdrop for internal pages */}
+        <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_top_right,rgba(82,39,255,0.05),transparent_40%)] pointer-events-none" />
+        
+        <main className="flex-1 overflow-y-auto relative z-10 scrollbar-thin">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
               className="h-full"
             >
               {children}
