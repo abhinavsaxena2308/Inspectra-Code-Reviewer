@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import { 
   LayoutDashboard, 
   Github, 
@@ -14,6 +15,8 @@ import { cn } from '../../lib/utils';
 
 export const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
 
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
@@ -63,10 +66,16 @@ export const Sidebar = () => {
 
       {/* Bottom Actions */}
       <div className="p-4">
-        <button className={cn(
-          "w-full flex items-center gap-3 px-3 py-2 rounded-md text-on-surface-variant hover:bg-error-container/20 hover:text-error transition-all duration-100 text-sm font-medium",
-          isCollapsed ? "justify-center" : ""
-        )}>
+        <button 
+          onClick={async () => {
+            await signOut();
+            navigate('/');
+          }}
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2 rounded-md text-on-surface-variant hover:bg-error-container/20 hover:text-error transition-all duration-100 text-sm font-medium",
+            isCollapsed ? "justify-center" : ""
+          )}
+        >
           <LogOut className="w-4 h-4" />
           {!isCollapsed && <span>Logout</span>}
         </button>

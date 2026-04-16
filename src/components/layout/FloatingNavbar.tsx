@@ -73,12 +73,12 @@ export const FloatingNavbar = () => {
             
             <Show when="signed-out">
               <div className="hidden md:flex items-center gap-2">
-                <SignInButton mode="modal">
+                <SignInButton mode="modal" forceRedirectUrl="/dashboard">
                   <button className="text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors px-4 py-2">
                     Sign In
                   </button>
                 </SignInButton>
-                <SignUpButton mode="modal">
+                <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
                   <button className="px-5 py-2 bg-primary text-on-primary rounded-full text-sm font-semibold hover:bg-primary-container transition-colors shadow-sm">
                     Sign Up
                   </button>
@@ -136,7 +136,7 @@ export const FloatingNavbar = () => {
                 </Show>
                 
                 <Show when="signed-out">
-                  <SignInButton mode="modal">
+                  <SignInButton mode="modal" forceRedirectUrl="/dashboard">
                     <button 
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="text-base font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-md transition-all px-4 py-3 text-left"
@@ -144,7 +144,7 @@ export const FloatingNavbar = () => {
                       Sign In
                     </button>
                   </SignInButton>
-                  <SignUpButton mode="modal">
+                  <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
                     <button 
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="w-full py-3 bg-primary text-on-primary rounded-lg text-base font-semibold mt-2"
