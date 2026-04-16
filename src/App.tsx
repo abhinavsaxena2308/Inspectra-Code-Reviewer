@@ -7,7 +7,6 @@ import { SettingsPage } from './pages/SettingsPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { RepositoriesPage } from './pages/RepositoriesPage';
 import { Sidebar } from './components/layout/Sidebar';
-import { Navbar } from './components/layout/Navbar';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { ToastContainer } from './components/ui/Toast';
 import { AuthProvider } from './hooks/useAuth';
@@ -37,7 +36,6 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
     <div className="flex h-screen bg-gh-bg text-gh-text overflow-hidden font-sans">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden relative">
-        <Navbar />
         <main className="flex-1 overflow-y-auto bg-gh-bg">
           <AnimatePresence mode="wait">
             <motion.div
