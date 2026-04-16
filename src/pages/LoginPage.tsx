@@ -3,7 +3,6 @@ import { motion } from 'motion/react';
 import { Github, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthLayout } from '../components/auth/AuthLayout';
-import { insforge } from '../lib/insforge';
 import { useAuth } from '../hooks/useAuth';
 
 export const LoginPage: React.FC = () => {
@@ -22,58 +21,56 @@ export const LoginPage: React.FC = () => {
     if (!email || !password) return;
     setError('');
     setIsLoading(true);
+    
     try {
-      const { data, error: authError } = await insforge.auth.signInWithPassword({ email, password });
-      if (authError) {
-        setError(authError.message || 'Invalid email or password.');
-        return;
-      }
-      if (data?.user) {
-        setUser(data.user);
-        navigate('/dashboard', { replace: true });
-      }
+      // Mock login logic
+      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate delay
+      
+      const mockUser = {
+        id: 'mock-user-id',
+        email: email,
+        user_metadata: {
+          full_name: email.split('@')[0],
+          avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`
+        }
+      };
+
+      localStorage.setItem('inspectra_user', JSON.stringify(mockUser));
+      setUser(mockUser);
+      navigate('/dashboard', { replace: true });
     } catch (err: any) {
-      setError(err?.message || 'Something went wrong. Please try again.');
+      setError('Invalid email or password (Mock Mode)');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGitHub = async () => {
+  const handleOAuth = (provider: string) => {
     setIsOAuthLoading(true);
-    try {
-      await insforge.auth.signInWithOAuth({
-        provider: 'github',
-        redirectTo: window.location.origin + '/dashboard',
-      });
-    } catch (err: any) {
-      setError(err?.message || 'GitHub sign-in failed.');
-      setIsOAuthLoading(false);
-    }
-  };
-
-  const handleGoogle = async () => {
-    setIsOAuthLoading(true);
-    try {
-      await insforge.auth.signInWithOAuth({
-        provider: 'google',
-        redirectTo: window.location.origin + '/dashboard',
-      });
-    } catch (err: any) {
-      setError(err?.message || 'Google sign-in failed.');
-      setIsOAuthLoading(false);
-    }
+    setTimeout(() => {
+      const mockUser = {
+        id: `mock-${provider}-id`,
+        email: `${provider}-user@example.com`,
+        user_metadata: {
+          full_name: `${provider.charAt(0).toUpperCase() + provider.slice(1)} User`,
+          avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${provider}`
+        }
+      };
+      localStorage.setItem('inspectra_user', JSON.stringify(mockUser));
+      setUser(mockUser);
+      navigate('/dashboard', { replace: true });
+    }, 1000);
   };
 
   return (
     <AuthLayout
       title="Welcome back"
-      subtitle="Sign in to continue to Inspectra"
+      subtitle="Sign in to continue to Inspectra (Mock Mode)"
     >
       {/* OAuth Buttons */}
       <div className="flex flex-col gap-3 mb-5">
         <button
-          onClick={handleGitHub}
+          onClick={() => handleOAuth('github')}
           disabled={isOAuthLoading || isLoading}
           className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-md border border-white/10 bg-white/5 hover:bg-white/10 text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -86,7 +83,7 @@ export const LoginPage: React.FC = () => {
         </button>
 
         <button
-          onClick={handleGoogle}
+          onClick={() => handleOAuth('google')}
           disabled={isOAuthLoading || isLoading}
           className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-md border border-white/10 bg-white/5 hover:bg-white/10 text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >

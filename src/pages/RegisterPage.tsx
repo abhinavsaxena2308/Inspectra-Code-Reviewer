@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Github, Mail, Lock, Eye, EyeOff, User, AlertCircle, CheckCircle2, ArrowLeft, RefreshCw } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthLayout } from '../components/auth/AuthLayout';
-import { insforge } from '../lib/insforge';
 import { useAuth } from '../hooks/useAuth';
 
 type Step = 'register' | 'verify';
@@ -86,8 +85,6 @@ export const RegisterPage: React.FC = () => {
   const passwordsMatch = password && confirmPassword && password === confirmPassword;
   const passwordTooShort = password && password.length < 8;
 
-  // ── Handlers ────────────────────────────────────────────────────────────────
-
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -96,17 +93,13 @@ export const RegisterPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const { data, error: authError } = await insforge.auth.signUp({ email, password, name });
-      if (authError) { setError(authError.message || 'Registration failed. Try again.'); return; }
-
-      if (data) {
-        // Account created — show OTP verification step
-        setRegisteredEmail(email);
-        setStep('verify');
-        startResendCooldown();
-      }
+      // Mock registration logic
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setRegisteredEmail(email);
+      setStep('verify');
+      startResendCooldown();
     } catch (err: any) {
-      setError(err?.message || 'Something went wrong.');
+      setError('Registration failed (Mock Mode)');
     } finally {
       setIsLoading(false);
     }
@@ -118,17 +111,23 @@ export const RegisterPage: React.FC = () => {
     setError('');
     setIsLoading(true);
     try {
-      const { data, error: verifyError } = await insforge.auth.verifyEmail({
+      // Mock verification logic
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const mockUser = {
+        id: 'mock-user-id',
         email: registeredEmail,
-        otp,
-      });
-      if (verifyError) { setError(verifyError.message || 'Invalid or expired code. Try again.'); return; }
-      if (data?.user) {
-        setUser(data.user);
-      }
+        user_metadata: {
+          full_name: name || registeredEmail.split('@')[0],
+          avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${registeredEmail}`
+        }
+      };
+
+      localStorage.setItem('inspectra_user', JSON.stringify(mockUser));
+      setUser(mockUser);
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
-      setError(err?.message || 'Verification failed.');
+      setError('Verification failed (Mock Mode)');
     } finally {
       setIsLoading(false);
     }
@@ -137,12 +136,7 @@ export const RegisterPage: React.FC = () => {
   const handleResend = async () => {
     if (resendCooldown > 0) return;
     setError('');
-    try {
-      await insforge.auth.resendVerificationEmail({ email: registeredEmail });
-      startResendCooldown();
-    } catch (err: any) {
-      setError(err?.message || 'Could not resend email.');
-    }
+    startResendCooldown();
   };
 
   const startResendCooldown = () => {
@@ -155,45 +149,39 @@ export const RegisterPage: React.FC = () => {
     }, 1000);
   };
 
-  const handleGitHub = async () => {
+  const handleOAuth = (provider: string) => {
     setIsOAuthLoading(true);
-    try {
-      await insforge.auth.signInWithOAuth({ provider: 'github', redirectTo: window.location.origin + '/dashboard' });
-    } catch (err: any) {
-      setError(err?.message || 'GitHub sign-in failed.');
-      setIsOAuthLoading(false);
-    }
+    setTimeout(() => {
+      const mockUser = {
+        id: `mock-${provider}-id`,
+        email: `${provider}-user@example.com`,
+        user_metadata: {
+          full_name: `${provider.charAt(0).toUpperCase() + provider.slice(1)} User`,
+          avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${provider}`
+        }
+      };
+      localStorage.setItem('inspectra_user', JSON.stringify(mockUser));
+      setUser(mockUser);
+      navigate('/dashboard', { replace: true });
+    }, 1000);
   };
 
-  const handleGoogle = async () => {
-    setIsOAuthLoading(true);
-    try {
-      await insforge.auth.signInWithOAuth({ provider: 'google', redirectTo: window.location.origin + '/dashboard' });
-    } catch (err: any) {
-      setError(err?.message || 'Google sign-in failed.');
-      setIsOAuthLoading(false);
-    }
-  };
-
-  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <AuthLayout
-      title={step === 'register' ? 'Create an account' : 'Verify your email'}
+      title={step === 'register' ? 'Create an account (Mock Mode)' : 'Verify your email (Mock Mode)'}
       subtitle={
         step === 'register'
           ? 'Start reviewing code with AI today'
-          : `We sent a 6-digit code to ${registeredEmail}`
+          : `We sent a 6-digit code to ${registeredEmail} (Try 123456)`
       }
     >
       <AnimatePresence mode="wait">
 
-        {/* ── Step 1: Register ── */}
         {step === 'register' && (
           <motion.div key="register" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            {/* OAuth Buttons */}
             <div className="flex flex-col gap-3 mb-5">
               <button
-                onClick={handleGitHub}
+                onClick={() => handleOAuth('github')}
                 disabled={isOAuthLoading || isLoading}
                 className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-md border border-white/10 bg-white/5 hover:bg-white/10 text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -202,7 +190,7 @@ export const RegisterPage: React.FC = () => {
               </button>
 
               <button
-                onClick={handleGoogle}
+                onClick={() => handleOAuth('google')}
                 disabled={isOAuthLoading || isLoading}
                 className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-md border border-white/10 bg-white/5 hover:bg-white/10 text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -210,22 +198,10 @@ export const RegisterPage: React.FC = () => {
                   <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
                 ) : (
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                    />
+                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
+                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                   </svg>
                 )}
                 Continue with Google
@@ -246,7 +222,6 @@ export const RegisterPage: React.FC = () => {
             )}
 
             <form onSubmit={handleRegister} className="space-y-4">
-              {/* Name */}
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-1.5">Full name</label>
                 <div className="relative">
@@ -255,7 +230,6 @@ export const RegisterPage: React.FC = () => {
                     className="w-full pl-9 pr-4 py-2.5 rounded-md bg-white/5 border border-white/10 text-white text-sm placeholder-white/20 focus:outline-none focus:border-blue-500/50 transition-colors" />
                 </div>
               </div>
-              {/* Email */}
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-1.5">Email address</label>
                 <div className="relative">
@@ -264,7 +238,6 @@ export const RegisterPage: React.FC = () => {
                     className="w-full pl-9 pr-4 py-2.5 rounded-md bg-white/5 border border-white/10 text-white text-sm placeholder-white/20 focus:outline-none focus:border-blue-500/50 transition-colors" />
                 </div>
               </div>
-              {/* Password */}
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-1.5">Password</label>
                 <div className="relative">
@@ -276,7 +249,6 @@ export const RegisterPage: React.FC = () => {
                   </button>
                 </div>
               </div>
-              {/* Confirm */}
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-1.5">Confirm password</label>
                 <div className="relative">
@@ -298,9 +270,6 @@ export const RegisterPage: React.FC = () => {
               </button>
             </form>
 
-            <p className="mt-3 text-center text-[11px] text-white/20 leading-relaxed">
-              By creating an account, you agree to our <span className="text-blue-400/70">Terms</span> and <span className="text-blue-400/70">Privacy Policy</span>.
-            </p>
             <p className="mt-5 text-center text-xs text-white/30">
               Already have an account?{' '}
               <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">Sign in</Link>
@@ -308,11 +277,8 @@ export const RegisterPage: React.FC = () => {
           </motion.div>
         )}
 
-        {/* ── Step 2: Verify OTP ── */}
         {step === 'verify' && (
           <motion.div key="verify" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-
-            {/* Mail icon */}
             <div className="flex justify-center">
               <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
                 <Mail className="w-7 h-7 text-blue-400" />
@@ -328,14 +294,12 @@ export const RegisterPage: React.FC = () => {
 
             <form onSubmit={handleVerify} className="space-y-5">
               <OtpInput value={otp} onChange={(v) => { setOtp(v); setError(''); }} disabled={isLoading} />
-
               <button type="submit" disabled={isLoading || otp.length < 6}
                 className="w-full py-2.5 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                 {isLoading ? <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />Verifying...</> : 'Verify email'}
               </button>
             </form>
 
-            {/* Resend */}
             <div className="text-center">
               <p className="text-xs text-white/30 mb-2">Didn't receive the code?</p>
               <button onClick={handleResend} disabled={resendCooldown > 0}
@@ -345,7 +309,6 @@ export const RegisterPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Back */}
             <button onClick={() => { setStep('register'); setOtp(''); setError(''); }}
               className="flex items-center gap-1.5 mx-auto text-xs text-white/30 hover:text-white/60 transition-colors">
               <ArrowLeft className="w-3.5 h-3.5" />

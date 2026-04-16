@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { insforge } from '../lib/insforge';
 
 interface AuthContextType {
   user: any;
   loading: boolean;
   signOut: () => Promise<void>;
   setUser: (user: any) => void;
+  updateProfile: (profile: Record<string, any>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,12 +17,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const { data } = await insforge.auth.getCurrentUser();
-        if (data?.user) {
-          setUser(data.user);
+        // Mock authentication check from localStorage
+        const savedUser = localStorage.getItem('inspectra_user');
+        if (savedUser) {
+          setUser(JSON.parse(savedUser));
         }
       } catch (error) {
-        console.error('Error fetching user:', error);
+        console.error('Error fetching mock user:', error);
       } finally {
         setLoading(false);
       }
@@ -32,16 +33,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signOut = async () => {
-    await insforge.auth.signOut();
+    localStorage.removeItem('inspectra_user');
     setUser(null);
   };
 
   const updateProfile = async (profile: Record<string, any>) => {
-    const { data: updatedProfile, error } = await insforge.auth.setProfile(profile);
-    if (error) throw error;
-    // After updating profile, we should refresh the user session
-    const { data: userData } = await insforge.auth.getCurrentUser();
-    setUser(userData.user);
+    const updatedUser = { ...user, ...profile };
+    localStorage.setItem('inspectra_user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
   };
 
   return (
