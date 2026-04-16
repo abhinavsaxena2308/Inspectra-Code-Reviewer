@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, LogOut, LayoutDashboard, Settings, User } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, User } from 'lucide-react';
+import { SignInButton, SignUpButton, Show } from "@clerk/react";
 
 export const FloatingNavbar = () => {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ export const FloatingNavbar = () => {
           </div>
 
           <div className="flex items-center gap-2 md:gap-4">
-            {user ? (
+            <Show when="signed-in">
               <div className="flex items-center gap-2">
                 <button 
                   onClick={() => navigate('/dashboard')}
@@ -56,8 +57,11 @@ export const FloatingNavbar = () => {
                   Dashboard
                 </button>
                 <div className="relative group">
-                   <button className="w-9 h-9 rounded-full border border-outline-variant/30 flex items-center justify-center overflow-hidden bg-surface-container-high hover:border-primary/50 transition-all">
-                      {user.avatarUrl ? (
+                   <button 
+                      onClick={() => navigate('/dashboard')} // Link to profile/dashboard
+                      className="w-9 h-9 rounded-full border border-outline-variant/30 flex items-center justify-center overflow-hidden bg-surface-container-high hover:border-primary/50 transition-all"
+                   >
+                      {user?.avatarUrl ? (
                          <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
                       ) : (
                          <User className="w-4 h-4 text-on-surface-variant" />
@@ -65,22 +69,22 @@ export const FloatingNavbar = () => {
                    </button>
                 </div>
               </div>
-            ) : (
+            </Show>
+            
+            <Show when="signed-out">
               <div className="hidden md:flex items-center gap-2">
-                <button 
-                  onClick={() => navigate('/login')}
-                  className="text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors px-4 py-2"
-                >
-                  Sign In
-                </button>
-                <button 
-                  onClick={() => navigate('/register')}
-                  className="px-5 py-2 bg-primary text-on-primary rounded-full text-sm font-semibold hover:bg-primary-container transition-colors shadow-sm"
-                >
-                  Sign Up
-                </button>
+                <SignInButton mode="modal">
+                  <button className="text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors px-4 py-2">
+                    Sign In
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className="px-5 py-2 bg-primary text-on-primary rounded-full text-sm font-semibold hover:bg-primary-container transition-colors shadow-sm">
+                    Sign Up
+                  </button>
+                </SignUpButton>
               </div>
-            )}
+            </Show>
 
             <button 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -114,39 +118,41 @@ export const FloatingNavbar = () => {
               </div>
               <div className="h-px bg-outline-variant/20 w-full my-2" />
               <div className="flex flex-col gap-2">
-                {user ? (
-                  <>
+                <Show when="signed-in">
+                  <button 
+                    onClick={() => { navigate('/dashboard'); setIsMobileMenuOpen(false); }}
+                    className="flex items-center gap-4 text-base font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-md transition-all px-4 py-3"
+                  >
+                    <LayoutDashboard className="w-5 h-5 text-primary" />
+                    Dashboard
+                  </button>
+                  <button 
+                    onClick={() => { signOut(); setIsMobileMenuOpen(false); }}
+                    className="flex items-center gap-4 text-base font-medium text-error hover:bg-error-container/20 rounded-md transition-all px-4 py-3"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    Sign Out
+                  </button>
+                </Show>
+                
+                <Show when="signed-out">
+                  <SignInButton mode="modal">
                     <button 
-                      onClick={() => { navigate('/dashboard'); setIsMobileMenuOpen(false); }}
-                      className="flex items-center gap-4 text-base font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-md transition-all px-4 py-3"
-                    >
-                      <LayoutDashboard className="w-5 h-5 text-primary" />
-                      Dashboard
-                    </button>
-                    <button 
-                      onClick={() => { signOut(); setIsMobileMenuOpen(false); }}
-                      className="flex items-center gap-4 text-base font-medium text-error hover:bg-error-container/20 rounded-md transition-all px-4 py-3"
-                    >
-                      <LogOut className="w-5 h-5" />
-                      Sign Out
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button 
-                      onClick={() => { navigate('/login'); setIsMobileMenuOpen(false); }}
+                      onClick={() => setIsMobileMenuOpen(false)}
                       className="text-base font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-md transition-all px-4 py-3 text-left"
                     >
                       Sign In
                     </button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
                     <button 
-                      onClick={() => { navigate('/register'); setIsMobileMenuOpen(false); }}
+                      onClick={() => setIsMobileMenuOpen(false)}
                       className="w-full py-3 bg-primary text-on-primary rounded-lg text-base font-semibold mt-2"
                     >
                       Sign Up
                     </button>
-                  </>
-                )}
+                  </SignUpButton>
+                </Show>
               </div>
             </motion.div>
           )}

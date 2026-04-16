@@ -1,11 +1,10 @@
 import React from 'react';
-import { Search, Bell, User, LogOut, ChevronDown } from 'lucide-react';
+import { Search, Bell } from 'lucide-react';
 import { Input } from '../ui/Input';
-import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { UserButton, Show } from "@clerk/react";
 
 export const Navbar = () => {
-  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   return (
     <header className="fixed top-6 left-1/2 -translate-x-1/2 w-[calc(100%-48px)] max-w-7xl z-50">
@@ -40,36 +39,19 @@ export const Navbar = () => {
           <div className="h-4 w-px bg-white/10 mx-1" />
           
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 pl-1 pr-3 py-1 nav-item hover:bg-white/5 rounded-full group transition-all">
-              <div className="w-6 h-6 rounded-full bg-void/50 flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-cyan/50 group-hover:shadow-[0_0_10px_rgba(82,39,255,0.2)] transition-all">
-                {user?.avatarUrl ? (
-                  <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-3.5 h-3.5 text-white/40 group-hover:text-cyan transition-colors" />
-                )}
-              </div>
-              <div className="text-left hidden sm:flex items-center gap-1.5">
-                <span className="text-[11px] font-semibold text-white/80 tracking-tight group-hover:text-white transition-colors">
-                  {user?.name || user?.email?.split('@')[0] || 'User'}
-                </span>
-                <ChevronDown className="w-3 h-3 text-white/30 group-hover:text-cyan transition-colors" />
-              </div>
-            </button>
-
-            <button 
-              onClick={async () => {
-                await signOut();
-                navigate('/');
-              }}
-              className="ml-1 flex items-center gap-2 px-3 py-1.5 text-[10px] uppercase font-bold text-red-500/60 hover:text-red-500 hover:bg-red-500/5 rounded-full transition-all border border-red-500/10 hover:border-red-500/30 tracking-widest"
-            >
-              <LogOut className="w-3 h-3" />
-              <span>Sign out</span>
-            </button>
+            <Show when="signed-in">
+              <UserButton 
+                appearance={{
+                  elements: {
+                    userButtonAvatarBox: "w-8 h-8 rounded-full border border-white/10 hover:border-cyan/50 transition-all",
+                    userButtonTrigger: "focus:shadow-none focus:outline-none"
+                  }
+                }}
+              />
+            </Show>
           </div>
         </div>
       </div>
     </header>
   );
 };
-

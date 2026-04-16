@@ -6,8 +6,6 @@ import { AnalysisPage } from './pages/AnalysisPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { RepositoriesPage } from './pages/RepositoriesPage';
-import { LoginPage } from './pages/LoginPage';
-import { RegisterPage } from './pages/RegisterPage';
 import { Sidebar } from './components/layout/Sidebar';
 import { Navbar } from './components/layout/Navbar';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -28,7 +26,7 @@ const AppContent = ({ children }: { children: React.ReactNode }) => {
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const authRoutes = ['/', '/login', '/register'];
+  const authRoutes = ['/'];
   const isPublicPage = authRoutes.includes(location.pathname);
 
   if (isPublicPage) {
@@ -69,8 +67,6 @@ export default function App() {
               <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<LandingPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
 
                 {/* Protected routes — must be authenticated */}
                 <Route element={<ProtectedRoute />}>

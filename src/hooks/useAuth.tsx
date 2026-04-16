@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext } from 'react';
+import { useUser, useAuth as useClerkAuth } from "@clerk/react";
 
 interface AuthContextType {
   user: any;
@@ -11,40 +12,44 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        // Mock authentication check from localStorage
-        const savedUser = localStorage.getItem('inspectra_user');
-        if (savedUser) {
-          setUser(JSON.parse(savedUser));
-        }
-      } catch (error) {
-        console.error('Error fetching mock user:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkUser();
-  }, []);
+  const { user, isLoaded } = useUser();
+  const { signOut: clerkSignOut } = useClerkAuth();
 
   const signOut = async () => {
-    localStorage.removeItem('inspectra_user');
-    setUser(null);
+    await clerkSignOut();
+  };
+
+  const setUser = (user: any) => {
+    // This is essentially a no-op now as Clerk manages the user state
+    console.warn("setUser called manually. Clerk handles user state automatically.");
   };
 
   const updateProfile = async (profile: Record<string, any>) => {
-    const updatedUser = { ...user, ...profile };
-    localStorage.setItem('inspectra_user', JSON.stringify(updatedUser));
-    setUser(updatedUser);
+    if (user) {
+      await user.update({
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        // Add more fields if needed, mapping profile to Clerk user fields
+      });
+    }
+  };
+
+  const val = {
+    user: user ? {
+      ...user,
+      id: user.id,
+      email: user.primaryEmailAddress?.emailAddress,
+      name: user.fullName,
+      avatarUrl: user.imageUrl,
+    } : null,
+    loading: !isLoaded,
+    signOut,
+    setUser,
+    updateProfile
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut, setUser, updateProfile }}>
+    <AuthContext.Provider value={val}>
       {children}
     </AuthContext.Provider>
   );
