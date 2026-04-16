@@ -1,13 +1,11 @@
-import { GoogleGenerativeAI } from "@google/genai";
-import dotenv from "dotenv";
+import { GoogleGenAI } from "@google/genai";
+import { config } from "../config";
 
-dotenv.config();
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const ai = new GoogleGenAI({ apiKey: config.geminiApiKey });
+const modelName = "gemini-1.5-flash";
 
 export interface AnalysisIssue {
-  type: 'bug' | 'security' | 'quality' | 'suggestion' | 'performance';
+  type: 'bug' | 'security' | 'suggestion' | 'performance';
   severity: 'low' | 'medium' | 'high' | 'critical';
   message: string;
   suggestion: string;
@@ -53,9 +51,12 @@ You MUST return a JSON array of objects with the following schema:
 Do not include any other text, markdown blocks are fine if they are inside the strings. Use "bug" for general issues, "security" for vulnerabilities, "performance" for optimizations, and "suggestion" for quality/readability improvements.`;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    let text = response.text().trim();
+    const result = await ai.models.generateContent({
+      model: modelName,
+      contents: prompt
+    });
+    
+    let text = result.text.trim();
     
     // Clean up markdown block if present
     if (text.startsWith('```json')) {

@@ -11,6 +11,7 @@ const envSchema = z.object({
   GITHUB_TOKEN: z.string().min(1, 'GitHub Token is required for API requests'),
   VITE_INSFORGE_URL: z.url('InsForge URL must be a valid URL'),
   VITE_INSFORGE_ANON_KEY: z.string().min(1, 'InsForge Anon Key is required'),
+  GEMINI_API_KEY: z.string().min(1, 'Gemini API Key is required'),
 });
 
 // Validate environment variables
@@ -27,4 +28,5 @@ export const config = {
   githubToken: _env.data.GITHUB_TOKEN,
   insforgeUrl: _env.data.VITE_INSFORGE_URL,
   insforgeAnonKey: _env.data.VITE_INSFORGE_ANON_KEY,
+  geminiApiKey: _env.data.GEMINI_API_KEY,
 };

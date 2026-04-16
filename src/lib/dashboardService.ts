@@ -77,14 +77,15 @@ export const fetchRepositories = async (): Promise<Repository[]> => {
 
     // Handle error where 'score' column is missing
     let finalAnalyses = analyses;
-    if (analysisError && analysisError.message.includes('column "score" does not exist')) {
+    if (analysisError && (analysisError.code === '42703' || analysisError.message.includes('score'))) {
+        console.warn('Dashboard: "score" column missing in analyses table, using fallback.');
         const { data: fallbackAnalyses, error: fallbackError } = await client.database
             .from('analyses')
             .select('repo_id, status, created_at')
             .in('repo_id', repoIds)
             .order('created_at', { ascending: false });
         if (fallbackError) throw fallbackError;
-        finalAnalyses = fallbackAnalyses?.map(a => ({ ...a, score: 0 }));
+        finalAnalyses = (fallbackAnalyses || []).map(a => ({ ...a, score: 0 }));
     } else if (analysisError) {
         throw analysisError;
     }
@@ -127,7 +128,7 @@ export const fetchDashboardStats = async (): Promise<DashboardStats[]> => {
     
     // Robustly handle missing score column in analyses
     let analyses = Array.isArray(analysesResult.data) ? analysesResult.data : [];
-    if (analysesResult.error && analysesResult.error.message.includes('column "score" does not exist')) {
+    if (analysesResult.error && (analysesResult.error.code === '42703' || analysesResult.error.message.includes('score'))) {
        const { data } = await client.database.from('analyses').select('status');
        analyses = (data || []).map(a => ({ ...a, score: 0 }));
     }
@@ -191,7 +192,7 @@ export const fetchHistoryStats = async (): Promise<HistoryStat[]> => {
     const { data: analysesResult, error } = await client.database.from('analyses').select('status, score').catch(() => ({ data: [], error: { message: 'fallback' } }));
     
     let analyses = Array.isArray(analysesResult) ? analysesResult : [];
-    if (error && error.message.includes('column "score" does not exist')) {
+    if (error && (error.code === '42703' || error.message.includes('score'))) {
        const { data } = await client.database.from('analyses').select('status');
        analyses = (data || []).map(a => ({ ...a, score: 0 }));
     }

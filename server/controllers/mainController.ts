@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { parseRepoUrl } from '../services/githubService';
 import { createPendingAnalysis, getAnalysis } from '../services/storageService';
 import { processRepositoryAnalysis } from '../workers/analysisWorker';
+import { calculateScore } from '../services/scoringService';
 
 const analyzeBodySchema = z.object({
   repoUrl: z.string().url('Must provide a valid URL string'),
@@ -49,7 +50,6 @@ export const analyzeRepository = async (req: Request, res: Response, next: NextF
     }
 
     // 2. Fire and Forget the worker
-    // Notice we do NOT await this statement, it runs in the background.
     processRepositoryAnalysis(analysisId, repoUrl, owner, repo).catch(err => {
         console.error(`[Main] Background worker crashed for ${analysisId}:`, err);
     });
@@ -97,70 +97,44 @@ export const getAnalysisResult = async (req: Request, res: Response, next: NextF
       });
     }
 
-    console.log(`[Main] Founding job ${id} with status: ${result.status}`);
     console.log(`[Main] Found job ${id} with status: ${result.status}`);
 
-    // Fetch repository and issues if not in result
-    let repository = result.repositories;
-    let issues = result.issues;
-
-    if (!repository && result.repo_id) {
-       const client = (await import('../services/storageService')).getClient();
-       if (client) {
-         const { data: repoData } = await client.database
-           .from('repositories')
-           .select('repo_url, owner, repo_name')
-           .eq('id', result.repo_id)
-           .single();
-         repository = repoData;
-       }
-    }
-
-    if (!issues) {
-       const client = (await import('../services/storageService')).getClient();
-       if (client) {
-         const { data: issuesData } = await client.database
-           .from('issues')
-           .select('*')
-           .eq('analysis_id', id);
-         issues = issuesData || [];
-       }
-    }
+    // The getAnalysis result now includes joined repositories and issues
+    const repository = result.repositories;
+    const issues = result.issues || [];
 
     // Group issues by file_name
     const filesMap: Record<string, any[]> = {};
-    (issues || []).forEach((issue: any) => {
-      if (!filesMap[issue.file_name]) {
-        filesMap[issue.file_name] = [];
+    issues.forEach((issue: any) => {
+      const fileName = issue.file_name || 'unknown';
+      
+      // If the table doesn't have a 'type' column, issue.type might be undefined.
+      // We also check for 'file-meta' marker to potentially skip it in UI if needed, 
+      // but usually the UI expects all files that were analyzed.
+      if (!filesMap[fileName]) {
+        filesMap[fileName] = [];
       }
       
-      // Only add to issues list if it's not a marker
       if (issue.type !== 'file-meta') {
-        filesMap[issue.file_name].push({
+        filesMap[fileName].push({
           type: issue.type || 'bug',
-          severity: issue.severity,
-          message: issue.message,
-          suggestion: issue.suggestion || ''
+          severity: issue.severity || 'info',
+          message: issue.message || 'No message',
+          suggestion: issue.suggestion || '',
+          line: issue.line_number
         });
       }
     });
 
-    const files = Object.entries(filesMap).map(([file_name, issues]) => ({
+    const files = Object.entries(filesMap).map(([file_name, fileIssues]) => ({
       file_name,
-      issues
+      issues: fileIssues
     }));
 
-    // Calculate score
+    // Calculate score if it's not already stored
     let score = result.score;
     if (score === undefined || score === null) {
-      score = 100;
-      (issues || []).forEach((issue: any) => {
-        if (issue.type === 'bug') score -= 10;
-        else if (issue.severity === 'high' || issue.severity === 'critical') score -= 15;
-        else if (issue.severity === 'medium') score -= 5;
-        else score -= 2;
-      });
-      score = Math.max(0, score);
+      score = calculateScore(issues);
     }
 
     res.status(200).json({

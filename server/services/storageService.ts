@@ -99,7 +99,11 @@ export const saveAnalysisIssues = async (analysisId: string, issues: any[], scor
       .eq('id', analysisId);
     
     if (scoreError) {
-      console.warn(`[Storage] Failed to update score for ${analysisId}. It's possible the 'score' column is missing from the table 'analyses'. Error: ${scoreError.message}`);
+      if (scoreError.code === '42703' || scoreError.message.includes('score')) {
+         console.warn(`[Storage] 'score' column missing in 'analyses' table. Skipping update.`);
+      } else {
+         console.warn(`[Storage] Failed to update score for ${analysisId}. Error: ${scoreError.message}`);
+      }
     }
 
     // 2. Save Issues (and file metadata)
@@ -132,6 +136,7 @@ export const saveAnalysisIssues = async (analysisId: string, issues: any[], scor
       }
 
       if (issuesToInsert.length > 0) {
+        console.log(`[Storage] Inserting ${issuesToInsert.length} issues/meta for ${analysisId}`);
         const { error: issuesError } = await client.database
           .from('issues')
           .insert(issuesToInsert);
@@ -139,7 +144,8 @@ export const saveAnalysisIssues = async (analysisId: string, issues: any[], scor
         if (issuesError) {
           console.warn(`[Storage] Failed to insert issues for ${analysisId}. Error: ${issuesError.message}`);
           // Fallback: try inserting without 'type' if it failed due to missing column
-          if (issuesError.message.includes('column "type" does not exist')) {
+          if (issuesError.code === '42703' || issuesError.message.includes('column "type" does not exist')) {
+            console.log(`[Storage] Retrying without 'type' column...`);
             const fallbackIssues = issuesToInsert.map(({ type, ...rest }) => rest);
             const { error: fallbackError } = await client.database
               .from('issues')
@@ -149,6 +155,7 @@ export const saveAnalysisIssues = async (analysisId: string, issues: any[], scor
             throw issuesError;
           }
         }
+        console.log(`[Storage] Successfully saved issues for ${analysisId}`);
       }
     }
   } catch (error: any) {
@@ -165,7 +172,7 @@ export const getAnalysis = async (id: string) => {
 
   const { data: result, error } = await client.database
     .from('analyses')
-    .select('*')
+    .select('*, repositories(*), issues(*)')
     .eq('id', id)
     .single();
 

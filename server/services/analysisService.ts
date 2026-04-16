@@ -35,9 +35,11 @@ export const analyzeFile = async (
   repoName: string = 'Unknown Repository'
 ): Promise<FileAnalysis> => {
   const language = getLanguageFromExtension(filename);
+  console.log(`[AnalysisService] Analyzing file: ${filename} (Language: ${language})`);
   
   try {
     const issues = await analyzeCodeWithGemini(repoName, filename, language, content);
+    console.log(`[AnalysisService] Found ${issues.length} issues in ${filename}`);
     
     return {
       file: filename,
@@ -48,7 +50,7 @@ export const analyzeFile = async (
     return {
       file: filename,
       issues: [{
-        type: 'quality',
+        type: 'suggestion',
         severity: 'low',
         message: 'Analysis failed for this file.',
         suggestion: 'The AI service might be temporarily unavailable or the file content too complex.'

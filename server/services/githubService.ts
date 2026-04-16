@@ -61,6 +61,7 @@ export const getRepositoryContents = async (owner: string, repo: string, path: s
         }
       }
     }
+    console.log(`[GitHubService] Found ${files.length} files in ${owner}/${repo}`);
     return files;
   } catch (error: any) {
     throw new Error(`Failed to fetch contents from GitHub: ${error.message}`);
