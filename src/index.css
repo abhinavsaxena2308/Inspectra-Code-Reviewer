@@ -10,8 +10,8 @@
   /* Inspectra Design System (Ethereal) - Refined for Professional Internal UI */
   --color-void: #000000;
   --color-void-surface: #0a0a0c;
-  --color-cyan: #5227FF;
-  --color-magenta: #FF9FFC;
+  --color-cyan: #3b82f6; /* More professional blue */
+  --color-magenta: #a855f7; /* More professional purple */
   --color-indigo: #0A0A2E;
   
   /* Semantic Architect Surface Tokens - Refined Zinc/Slate palette */
@@ -135,7 +135,7 @@
 }
 
 .glow-text {
-  text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  text-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
 }
 
 .shadow-overlay {

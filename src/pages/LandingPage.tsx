@@ -89,8 +89,8 @@ export function LandingPage() {
           <div className="px-6 md:px-10 max-w-5xl mx-auto flex flex-col items-center justify-center text-center">
             {/* Status Badge */}
             <div className="inline-flex items-center gap-3 px-4 py-1.5 border border-white/5 bg-white/5 rounded-full mb-6">
-              <span className="font-mono text-[9px] text-cyan font-bold uppercase tracking-widest">System Status: Optimal</span>
-              <div className="w-1 h-1 rounded-full bg-cyan shadow-[0_0_8px_var(--color-cyan)]"></div>
+              <span className="font-mono text-[9px] text-white/40 font-bold uppercase tracking-widest">System Status: Optimal</span>
+              <div className="w-1 h-1 rounded-full bg-primary/60 shadow-[0_0_8px_var(--color-primary)]"></div>
             </div>
 
             {/* Hero Headline */}

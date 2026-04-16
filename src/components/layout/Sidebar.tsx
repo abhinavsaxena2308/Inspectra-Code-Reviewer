@@ -45,7 +45,7 @@ export const Sidebar = () => {
         {!isCollapsed && (
           <div className="flex flex-col">
             <span className="font-heading font-bold text-base tracking-tight text-white leading-none">Inspectra</span>
-            <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mt-1 pulse-soft">v4.2 PRO</span>
+            <span className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mt-1 pulse-soft">v4.2 PRO</span>
           </div>
         )}
       </div>

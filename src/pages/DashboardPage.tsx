@@ -227,7 +227,7 @@ export const DashboardPage = () => {
               </div>
             </div>
             <div className="space-y-1">
-               <div className="text-7xl font-bold text-white tracking-tighter glow-text">
+               <div className="text-7xl font-bold text-white tracking-tighter">
                  {stats.find(s => s.label === 'Average Score')?.value ?? '—'}
                </div>
                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
