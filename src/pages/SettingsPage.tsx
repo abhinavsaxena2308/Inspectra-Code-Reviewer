@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   User, Palette, Key, Shield, Moon, Monitor, Eye, EyeOff,
-  ChevronRight, LogOut, AlertTriangle, Loader2, Save, Github, Link, Unlink,
+  ChevronRight, LogOut, AlertTriangle, Loader2, Save, Github, Link, Unlink, Bell
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
@@ -24,6 +24,28 @@ export const SettingsPage = () => {
   const [email, setEmail] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
+
+  const notificationsState = (user?.unsafeMetadata?.notifications as any) || {
+    scanCompletion: true,
+    weeklyDigest: false,
+    criticalAlerts: true
+  };
+
+  const handleToggleNotification = async (key: string) => {
+    try {
+      const newNotifications = { ...notificationsState, [key]: !notificationsState[key] };
+      // Optimistic update would require local state, but we'll just update Clerk for simplicity
+      await user?.update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          notifications: newNotifications
+        }
+      });
+      addToast('Notification preferences updated', 'success');
+    } catch (err: any) {
+      addToast('Failed to update preferences', 'error');
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -171,6 +193,63 @@ export const SettingsPage = () => {
                   <span
                     className={`inline-block h-3.5 w-3.5 transform rounded-full bg-black shadow transition-transform ${isHighContrast ? 'translate-x-[18px]' : 'translate-x-[4px]'}`}
                   />
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Notifications */}
+        <section className="lg:col-span-7 bg-surface border border-white/10 rounded-xl overflow-hidden mt-6">
+          <div className="p-6 md:p-8 flex flex-col h-full">
+            <div className="flex items-center gap-2 mb-6">
+              <Bell className="w-4 h-4 text-on-surface-variant" />
+              <h3 className="text-sm font-semibold tracking-tight text-on-surface">Notification Preferences</h3>
+            </div>
+            <div className="space-y-4">
+              {/* Scan Completion */}
+              <div className="flex items-center justify-between p-4 bg-surface-container border border-white/5 rounded-md">
+                <div>
+                  <h4 className="text-sm font-medium text-on-surface mb-1">Scan Completion</h4>
+                  <p className="text-xs text-on-surface-variant">Email me when a deep-scan completes.</p>
+                </div>
+                <button
+                  role="switch"
+                  aria-checked={notificationsState.scanCompletion}
+                  onClick={() => handleToggleNotification('scanCompletion')}
+                  className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus:outline-none ${notificationsState.scanCompletion ? 'bg-white' : 'bg-surface-container-high'}`}
+                >
+                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-black shadow transition-transform ${notificationsState.scanCompletion ? 'translate-x-[18px]' : 'translate-x-[4px]'}`} />
+                </button>
+              </div>
+              {/* Weekly Digest */}
+              <div className="flex items-center justify-between p-4 bg-surface-container border border-white/5 rounded-md">
+                <div>
+                  <h4 className="text-sm font-medium text-on-surface mb-1">Weekly Digest</h4>
+                  <p className="text-xs text-on-surface-variant">Send me a weekly digest of repository health and new vulnerabilities.</p>
+                </div>
+                <button
+                  role="switch"
+                  aria-checked={notificationsState.weeklyDigest}
+                  onClick={() => handleToggleNotification('weeklyDigest')}
+                  className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus:outline-none ${notificationsState.weeklyDigest ? 'bg-white' : 'bg-surface-container-high'}`}
+                >
+                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-black shadow transition-transform ${notificationsState.weeklyDigest ? 'translate-x-[18px]' : 'translate-x-[4px]'}`} />
+                </button>
+              </div>
+              {/* Critical Alerts */}
+              <div className="flex items-center justify-between p-4 bg-surface-container border border-white/5 rounded-md">
+                <div>
+                  <h4 className="text-sm font-medium text-on-surface mb-1">Critical Alerts</h4>
+                  <p className="text-xs text-on-surface-variant">Alert me immediately if a critical security vulnerability is found.</p>
+                </div>
+                <button
+                  role="switch"
+                  aria-checked={notificationsState.criticalAlerts}
+                  onClick={() => handleToggleNotification('criticalAlerts')}
+                  className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus:outline-none ${notificationsState.criticalAlerts ? 'bg-error' : 'bg-surface-container-high'}`}
+                >
+                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full ${notificationsState.criticalAlerts ? 'bg-white' : 'bg-black'} shadow transition-transform ${notificationsState.criticalAlerts ? 'translate-x-[18px]' : 'translate-x-[4px]'}`} />
                 </button>
               </div>
             </div>
