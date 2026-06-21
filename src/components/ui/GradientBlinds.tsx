@@ -19,6 +19,7 @@ export interface GradientBlindsProps {
   distortAmount?: number;
   shineDirection?: 'left' | 'right';
   mixBlendMode?: string;
+  isLightMode?: boolean;
 }
 
 const MAX_COLORS = 8;
@@ -57,7 +58,8 @@ export function GradientBlinds({
   spotlightOpacity = 1,
   distortAmount = 0,
   shineDirection = 'left',
-  mixBlendMode = 'lighten'
+  mixBlendMode = 'normal',
+  isLightMode = false
 }: GradientBlindsProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -113,6 +115,7 @@ uniform float uSpotlightOpacity;
 uniform float uMirror;
 uniform float uDistort;
 uniform float uShineFlip;
+uniform float uLightMode;
 uniform vec3  uColor0;
 uniform vec3  uColor1;
 uniform vec3  uColor2;
@@ -192,8 +195,17 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     float stripe = fract(uvMod.x * max(uBlindCount, 1.0));
     if (uShineFlip > 0.5) stripe = 1.0 - stripe;
     vec3 ran = vec3(stripe);
-    vec3 col = cir + base - ran;
-    col += (rand(gl_FragCoord.xy + iTime) - 0.5) * uNoise;
+    
+    vec3 col;
+    if (uLightMode > 0.5) {
+      col = mix(vec3(1.0), base, stripe * 0.8 + 0.2);
+      col += cir * 0.1; 
+      col += (rand(gl_FragCoord.xy + iTime) - 0.5) * uNoise * 0.5;
+    } else {
+      col = cir + base - ran;
+      col += (rand(gl_FragCoord.xy + iTime) - 0.5) * uNoise;
+    }
+    
     fragColor = vec4(col, 1.0);
 }
 
@@ -221,6 +233,7 @@ void main() {
       uMirror: { value: mirrorGradient ? 1 : 0 },
       uDistort: { value: distortAmount },
       uShineFlip: { value: shineDirection === 'right' ? 1 : 0 },
+      uLightMode: { value: isLightMode ? 1 : 0 },
       uColor0: { value: colorArr[0] },
       uColor1: { value: colorArr[1] },
       uColor2: { value: colorArr[2] },

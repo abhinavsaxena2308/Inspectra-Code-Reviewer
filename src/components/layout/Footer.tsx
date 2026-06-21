@@ -87,7 +87,7 @@ export default function Footer() {
           © {new Date().getFullYear()} Inspectra Inc. All rights reserved.
         </p>
         <p className="text-xs text-on-surface-variant/50 group cursor-default">
-          Designed with <span className="text-error duration-500 group-hover:scale-125 inline-block">❤</span> for the future.
+          Designed for the future.
         </p>
       </div>
     </footer>

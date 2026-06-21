@@ -1,21 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Github, Sparkles, Link as LinkIcon, Zap, Brain, Bug, Shield, Gauge,
-  ClipboardPaste, LineChart, CheckSquare, Terminal, Code2, Users,
-  Menu, X, LogOut, LayoutDashboard, Settings
+  Terminal, Shield, Zap as ZapIcon, Brain, Code2, ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useAuth as useClerkAuth } from '@clerk/react';
 import { motion } from 'framer-motion';
 import { GradientBlinds } from '../components/ui/GradientBlinds';
-import Marquee from '../components/ui/Marquee';
-import ProductVideo from '../components/sections/ProductVideo';
-import ProblemSolution from '../components/sections/ProblemSolution';
-import HowItWorks from '../components/sections/HowItWorks';
-import Features from '../components/sections/Features';
-import UseCases from '../components/sections/UseCases';
-import FinalCTA from '../components/sections/FinalCTA';
 import Footer from '../components/layout/Footer';
 import FloatingNavbar from '../components/layout/FloatingNavbar';
 
@@ -66,15 +57,32 @@ export function LandingPage() {
   };
 
   return (
-    <div className="bg-void text-white font-sans selection:bg-cyan/30 min-h-screen relative overflow-x-hidden">
-      {/* Hero Section Wrapper with Solid Background */}
-      {/* This hides the fixed video until the user scrolls past the hero */}
-      <div className="relative z-20 w-full bg-void">
-        {/* Shadow Overlay */}
-        <div className="shadow-overlay absolute inset-0 z-10"></div>
+    <div className="bg-background text-on-surface font-sans min-h-screen relative overflow-x-hidden transition-colors duration-300">
+      <FloatingNavbar />
+
+      {/* Hero Section Wrapper */}
+      <div className="relative w-full bg-white dark:bg-[#0a0a0c] text-on-surface dark:text-white overflow-hidden transition-colors duration-300">
         
-        {/* WebGL Gradient Blinds Background */}
-        <div className="absolute top-0 left-0 right-0 h-[80vh] md:h-screen max-h-[900px] z-0 mask-[linear-gradient(to_bottom,black_85%,transparent_100%)] touch-none pointer-events-none">
+        {/* Light Mode Gradient Blinds */}
+        <div className="absolute top-0 left-0 right-0 h-full z-0 [mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)] touch-none pointer-events-none block dark:hidden">
+          <GradientBlinds
+            gradientColors={['#fbcfe8', '#d8b4fe']}
+            angle={-15}
+            noise={0.1}
+            blindCount={20}
+            blindMinWidth={40}
+            spotlightRadius={0.6}
+            spotlightSoftness={0.8}
+            spotlightOpacity={0.5}
+            mouseDampening={0.12}
+            distortAmount={2}
+            shineDirection="left"
+            isLightMode={true}
+          />
+        </div>
+
+        {/* Dark Mode Gradient Blinds */}
+        <div className="absolute top-0 left-0 right-0 h-full z-0 [mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)] touch-none pointer-events-none hidden dark:block">
           <GradientBlinds
             gradientColors={['#FF9FFC', '#5227FF']}
             angle={-15}
@@ -87,39 +95,57 @@ export function LandingPage() {
             mouseDampening={0.12}
             distortAmount={2}
             shineDirection="left"
-            mixBlendMode="lighten"
+            mixBlendMode="normal"
+            isLightMode={false}
           />
         </div>
 
-        <FloatingNavbar />
+        {/* Clean Hero Section */}
+        <main className="relative pt-32 pb-24 md:pt-48 md:pb-32 w-full flex flex-col items-center border-b border-outline-variant/20 dark:border-white/10 z-10">
+          <div className="px-6 md:px-10 max-w-4xl mx-auto flex flex-col items-center justify-center text-center">
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/50 dark:bg-white/5 border border-black/5 dark:border-white/10 mb-8 shadow-sm backdrop-blur-md"
+            >
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+              <span className="text-xs font-medium text-black/60 dark:text-white/80 tracking-wide">Inspectra AI Engine v4.2 Online</span>
+            </motion.div>
 
-        {/* Hero Main Content */}
-        <main className="relative z-20 pt-28 md:pt-32 pb-20 w-full flex flex-col items-center min-h-[calc(100vh-160px)]">
-          {/* Hero Section Container */}
-          <div className="px-6 md:px-10 max-w-5xl mx-auto flex flex-col items-center justify-center text-center">
-            {/* Status Badge */}
-            <div className="inline-flex items-center gap-3 px-4 py-1.5 border border-white/5 bg-white/5 rounded-full mb-6">
-              <span className="font-mono text-[9px] text-white/40 font-bold uppercase tracking-widest">System Status: Optimal</span>
-              <div className="w-1 h-1 rounded-full bg-primary/60 shadow-[0_0_8px_var(--color-primary)]"></div>
-            </div>
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-5xl md:text-7xl font-bold tracking-tight mb-6 text-black dark:text-white leading-tight"
+            >
+              Code Review, <br className="hidden md:block" />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-magenta">
+                Automated by AI.
+              </span>
+            </motion.h1>
 
-            {/* Hero Headline */}
-            <h1 className="font-heading text-5xl md:text-8xl font-extrabold tracking-tighter mb-6 md:mb-8 text-white leading-tight md:leading-[1.1]">
-              Precision Analytics & <br className="hidden md:block"/> Observability
-            </h1>
-
-            {/* Subheading */}
-            <p className="text-base md:text-xl font-medium text-white/40 mb-10 md:mb-12 max-w-md md:max-w-2xl mx-auto leading-relaxed">
-              Inspect code, detect issues, and improve quality instantly. Our high-performance LLMs analyze every line for vulnerabilities and patterns.
-            </p>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-lg md:text-xl text-black/60 dark:text-white/60 mb-12 max-w-2xl mx-auto leading-relaxed"
+            >
+              Instantly detect vulnerabilities, anti-patterns, and bugs in your GitHub repositories. Connect a repo and let our LLM engine do the heavy lifting in seconds.
+            </motion.p>
 
             {/* Input & CTA */}
-            <div className="w-full max-w-2xl mx-auto flex flex-col items-center gap-4 md:gap-6 mt-4">
-              <div className="relative w-full group flex flex-col sm:flex-row gap-4 sm:gap-0">
-                <div className="relative flex-grow">
-                  <Terminal className="absolute left-5 sm:left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-cyan transition-colors z-40" />
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="w-full max-w-2xl mx-auto flex flex-col items-center gap-4"
+            >
+              <div className="relative w-full group flex flex-col sm:flex-row shadow-2xl shadow-black/5 dark:shadow-black/50 rounded-2xl md:rounded-full bg-white/60 dark:bg-white/5 border border-black/10 dark:border-white/10 p-2 transition-all focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/20 backdrop-blur-xl">
+                <div className="relative flex-grow flex items-center">
+                  <Terminal className="absolute left-4 w-5 h-5 text-black/40 dark:text-white/40" />
                   <input
-                    className="w-full bg-surface-container-low/40 border border-outline-variant/30 rounded-full sm:rounded-l-full sm:rounded-r-none pl-14 sm:pl-16 pr-4 sm:pr-52 py-4 sm:py-5 text-sm font-mono focus:ring-1 focus:ring-primary/50 focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/50 text-on-surface backdrop-blur-md relative z-30"
+                    className="w-full bg-transparent pl-12 pr-4 py-3 text-sm md:text-base outline-none text-black dark:text-white placeholder:text-black/40 dark:placeholder:text-white/40"
                     placeholder="https://github.com/username/repo"
                     value={repoUrl}
                     onChange={(e) => setRepoUrl(e.target.value)}
@@ -131,73 +157,103 @@ export function LandingPage() {
                 <button 
                   onClick={handleAnalyze} 
                   disabled={isAnalyzing} 
-                  className="w-full sm:w-auto sm:absolute sm:right-2 sm:top-1/2 sm:-translate-y-1/2 ethereal-btn px-8 py-4 sm:py-3.5 rounded-full text-xs sm:text-[10px] uppercase tracking-[0.2em] font-bold text-white flex items-center justify-center gap-2 group z-40 sm:h-[calc(100%-16px)]"
+                  className="w-full sm:w-auto mt-2 sm:mt-0 px-6 py-3 rounded-xl md:rounded-full bg-primary hover:bg-primary/90 text-white text-sm font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-70 disabled:cursor-not-allowed shrink-0"
                 >
-                  {isAnalyzing ? 'Initializing...' : 'Start Inspecting'}
-                  {!isAnalyzing && <Zap className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />}
+                  {isAnalyzing ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    <>
+                      Analyze Repo
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
                 </button>
               </div>
 
               {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-3 rounded-md bg-error-container/40 border border-error/20 text-error text-sm font-medium w-full backdrop-blur-md mt-4"
-                >
+                <div className="p-3 rounded-lg bg-error/10 text-error text-sm font-medium w-full text-center border border-error/20">
                   {error}
-                </motion.div>
+                </div>
               )}
-            </div>
+            </motion.div>
           </div>
         </main>
       </div>
 
-      {/* Fixed Cinematic Backdrop Video */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <ProductVideo />
-      </div>
-
-      {/* Main Content Flow */}
-      <div className="relative z-10 w-full flex flex-col items-center">
-        {/* Full-Width Marquee */}
-        <div className="w-full pt-32 mb-20">
-          <Marquee />
-        </div>
-
-        <ProblemSolution />
-        
-        <HowItWorks />
-        <Features />
-        <UseCases />
-        <FinalCTA 
-          repoUrl={repoUrl} 
-          setRepoUrl={setRepoUrl} 
-          handleAnalyze={handleAnalyze} 
-          isAnalyzing={isAnalyzing} 
-        />
-
-        {/* Global Stats Footer Array Container */}
-        {/* <div className="w-full px-6 md:px-10 max-w-5xl mx-auto mb-32">
-          <div className="mt-8 w-full max-w-4xl mx-auto border-t border-white/10 pt-16 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-white/5 text-center">
-              <div className="space-y-2">
-              <div className="text-4xl font-heading font-bold tracking-tighter text-white">4M+</div>
-              <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">Lines Analyzed</div>
-              </div>
-              <div className="space-y-2">
-              <div className="text-4xl font-heading font-bold tracking-tighter text-white">12k</div>
-              <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">Vulns Caught</div>
-              </div>
-              <div className="space-y-2">
-              <div className="text-4xl font-heading font-bold tracking-tighter text-cyan glow-text">99.9%</div>
-              <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">Uptime</div>
-              </div>
-              <div className="space-y-2">
-              <div className="text-4xl font-heading font-bold tracking-tighter text-white">0.4s</div>
-              <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">Avg latency</div>
-              </div>
+      {/* Features Grid */}
+      <section className="py-24 bg-surface">
+        <div className="max-w-6xl mx-auto px-6 md:px-10">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-on-surface mb-4">Enterprise-grade static analysis</h2>
+            <p className="text-on-surface-variant max-w-2xl mx-auto">
+              Everything you need to ship secure, high-quality code faster than ever before.
+            </p>
           </div>
-        </div> */}
-      </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <Shield className="w-6 h-6 text-primary" />,
+                title: 'Security First',
+                description: 'Detect OWASP top 10 vulnerabilities, exposed secrets, and logic flaws instantly.'
+              },
+              {
+                icon: <Brain className="w-6 h-6 text-magenta" />,
+                title: 'Context-Aware AI',
+                description: 'Our custom LLM understands the full context of your repository, reducing false positives.'
+              },
+              {
+                icon: <ZapIcon className="w-6 h-6 text-amber-500" />,
+                title: 'Lightning Fast',
+                description: 'Deep-scan massive codebases in under 30 seconds with our optimized edge workers.'
+              }
+            ].map((feature, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="p-8 rounded-2xl bg-surface-container border border-outline-variant/30 hover:border-outline-variant transition-colors shadow-sm hover:shadow-md"
+              >
+                <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center mb-6">
+                  {feature.icon}
+                </div>
+                <h3 className="text-lg font-semibold text-on-surface mb-3">{feature.title}</h3>
+                <p className="text-on-surface-variant leading-relaxed">
+                  {feature.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How it Works / Social Proof */}
+      <section className="py-24 bg-surface-container-low border-t border-outline-variant/20">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-bold text-on-surface mb-12 tracking-tight">Trusted by modern engineering teams</h2>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+             <div className="text-xl font-bold font-heading text-on-surface flex items-center justify-center gap-2">
+               <div className="w-6 h-6 rounded bg-on-surface"></div>
+               Acme Corp
+             </div>
+             <div className="text-xl font-bold font-mono text-on-surface flex items-center justify-center gap-2">
+               <div className="w-6 h-6 rounded-full border-2 border-on-surface"></div>
+               GlobalTech
+             </div>
+             <div className="text-xl font-bold font-sans text-on-surface flex items-center justify-center gap-1">
+               <Code2 className="w-6 h-6" />
+               DevScale
+             </div>
+             <div className="text-xl font-bold font-serif text-on-surface flex items-center justify-center gap-2">
+               <div className="w-6 h-6 rounded-sm rotate-45 bg-on-surface"></div>
+               Nexus
+             </div>
+          </div>
+        </div>
+      </section>
 
       <Footer />
     </div>
