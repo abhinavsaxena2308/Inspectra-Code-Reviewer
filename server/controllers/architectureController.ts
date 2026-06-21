@@ -69,7 +69,12 @@ export const analyzeArchitectureController = async (req: Request, res: Response,
 I am providing you with the core configuration, infrastructure, and entrypoint files for a software repository.
 Your task is to:
 1. Understand the high-level architecture (services, databases, frameworks, ports).
-2. Generate a valid Mermaid.js graph TD flowchart that maps out these components and how they interact. Enclose the mermaid code strictly in \`\`\`mermaid ... \`\`\` block. CRITICAL: You MUST use double quotes for all node labels (e.g. \`NodeID["My Label (Info)"]\`) to prevent parse errors from special characters like brackets or parentheses.
+2. Generate a valid Mermaid.js graph TD flowchart that maps out these components and how they interact. Enclose the mermaid code strictly in \`\`\`mermaid ... \`\`\` block. 
+CRITICAL MERMAID RULES:
+- Use ONLY alphanumeric characters without spaces for Node IDs (e.g. \`Node1\`, \`BackendAPI\`).
+- Node labels MUST be wrapped in double quotes to prevent syntax errors (e.g. \`BackendAPI["Backend API (Express)"]\`).
+- DO NOT use any special characters (brackets, parentheses, hyphens) outside of the double-quoted labels.
+- Use simple arrows for edges: \`-->\`
 3. Below the diagram, provide a "Threat Model & Architecture Report" in Markdown format, detailing potential macro-level security risks (e.g. exposed ports, missing rate limiting, vulnerable architecture patterns).
 
 Here are the files:

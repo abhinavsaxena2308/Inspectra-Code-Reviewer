@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Network, ShieldAlert, Code2, Loader2, Play } from 'lucide-react';
+import { Network, ShieldAlert, Code2, Loader2, Play, Database } from 'lucide-react';
 import { useAuth } from '@clerk/react';
 import { fetchConnectedRepos, Repository } from '../lib/dashboardService';
 import ReactMarkdown from 'react-markdown';
@@ -16,6 +16,7 @@ export const ArchitecturePage = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [mermaidCode, setMermaidCode] = useState<string | null>(null);
   const [threatModel, setThreatModel] = useState<string | null>(null);
+  const [isTableVisible, setIsTableVisible] = useState(true);
   const { theme } = useTheme();
   
   const mermaidRef = useRef<HTMLDivElement>(null);
@@ -112,6 +113,7 @@ export const ArchitecturePage = () => {
 
       setMermaidCode(data.data.mermaid);
       setThreatModel(data.data.report);
+      setIsTableVisible(false);
       toast.success('Architecture modeled successfully!');
     } catch (error: any) {
       toast.error(error.message);
@@ -136,17 +138,14 @@ export const ArchitecturePage = () => {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <select
-              value={selectedRepo}
-              onChange={(e) => setSelectedRepo(e.target.value)}
-              className="bg-surface border border-white/10 rounded-md px-4 py-2 text-sm text-on-surface outline-none min-w-[250px]"
-            >
-              {repositories.map(repo => (
-                <option key={repo.id} value={repo.url || `https://github.com/${repo.name}`}>
-                  {repo.name}
-                </option>
-              ))}
-            </select>
+            {!isTableVisible && (
+              <button
+                onClick={() => setIsTableVisible(true)}
+                className="px-4 py-2 bg-surface border border-white/10 text-on-surface rounded-md text-sm font-semibold flex items-center gap-2 hover:bg-surface-container transition-colors"
+              >
+                <Database className="w-4 h-4" /> Change Project
+              </button>
+            )}
             <button
               onClick={handleAnalyze}
               disabled={isAnalyzing || !selectedRepo}
@@ -163,8 +162,77 @@ export const ArchitecturePage = () => {
           </div>
         </div>
 
+        {/* Repositories Table */}
+        {isTableVisible && (
+          <div className="bg-surface border border-white/10 rounded-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4">
+            <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-surface-container-low border-b border-white/10 text-xs uppercase tracking-wider text-on-surface-variant">
+                <th className="p-4 font-semibold">Repository</th>
+                <th className="p-4 font-semibold text-center">Architecture Status</th>
+                <th className="p-4 font-semibold text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {repositories.map(repo => {
+                const isSelected = selectedRepo === repo.url;
+                return (
+                  <tr 
+                    key={repo.id} 
+                    className={cn(
+                      "transition-colors cursor-pointer",
+                      isSelected ? "bg-emerald-500/10" : "hover:bg-surface-container-high"
+                    )}
+                    onClick={() => {
+                      setSelectedRepo(repo.url || '');
+                      setIsTableVisible(false);
+                    }}
+                  >
+                    <td className="p-4 flex items-center gap-3">
+                      <Database className={cn("w-4 h-4", isSelected ? "text-emerald-400" : "text-on-surface-variant")} />
+                      <span className={cn("font-medium", isSelected ? "text-emerald-400" : "text-on-surface")}>
+                        {repo.name}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center">
+                      {repo.has_architecture ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400">
+                          <Network className="w-3.5 h-3.5" /> Saved
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-white/5 text-on-surface-variant">
+                          Pending
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-4 text-right">
+                      {isSelected ? (
+                        <span className="text-xs font-bold text-emerald-400 flex items-center justify-end gap-1">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Active
+                        </span>
+                      ) : (
+                        <span className="text-xs font-medium text-primary hover:text-primary-light">
+                          Select
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+              {repositories.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="p-8 text-center text-on-surface-variant text-sm">
+                    No connected repositories found. Connect a repository on the Dashboard first.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        )}
+
         {/* Content */}
-        {isAnalyzing ? (
+        {!isTableVisible && isAnalyzing ? (
           <div className="flex flex-col items-center justify-center py-32 bg-surface border border-white/10 rounded-xl">
             <div className="relative">
               <div className="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
@@ -209,15 +277,15 @@ export const ArchitecturePage = () => {
             </div>
             
           </div>
-        ) : (
-          <div className="py-24 text-center bg-surface border border-white/10 border-dashed rounded-xl">
+        ) : !isTableVisible ? (
+          <div className="py-24 text-center bg-surface border border-white/10 border-dashed rounded-xl animate-in fade-in zoom-in-95">
             <Network className="w-12 h-12 text-on-surface-variant mx-auto mb-4 opacity-50" />
             <h3 className="text-lg font-semibold text-on-surface mb-2">No Architecture Loaded</h3>
             <p className="text-sm text-on-surface-variant max-w-md mx-auto">
-              Select a repository and click Analyze Architecture to generate a system dependency graph and threat model.
+              Click Analyze Architecture to generate a system dependency graph and threat model.
             </p>
           </div>
-        )}
+        ) : null}
 
       </div>
     </div>

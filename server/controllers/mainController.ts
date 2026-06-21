@@ -244,7 +244,8 @@ export const getConnectedRepos = async (req: Request, res: Response, next: NextF
           analysisId: dbInfo?.analysis_id,
           score: dbInfo?.score,
           status: dbInfo?.status || 'unscanned',
-          lastAnalyzed: dbInfo?.last_analyzed
+          lastAnalyzed: dbInfo?.last_analyzed,
+          has_architecture: dbInfo?.has_architecture
         };
       });
       return res.json({ status: 'success', data: mergedRepos });
@@ -261,7 +262,8 @@ export const getConnectedRepos = async (req: Request, res: Response, next: NextF
           analysisId: r.analysis_id,
           score: r.score,
           status: r.status,
-          lastAnalyzed: r.last_analyzed
+          lastAnalyzed: r.last_analyzed,
+          has_architecture: r.has_architecture
       }));
       return res.json({ status: 'success', data: fallbackRepos });
     }
