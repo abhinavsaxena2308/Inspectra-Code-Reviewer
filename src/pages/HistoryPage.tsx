@@ -48,27 +48,28 @@ export const HistoryPage = () => {
   );
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto w-full">
+    <div className="p-8 md:p-12 space-y-10 max-w-7xl mx-auto w-full">
       {/* Page Header Area */}
-      <div className="mb-8">
-        <h2 className="text-4xl font-extrabold tracking-tight text-[#c9d1d9] mb-3">Analysis History</h2>
-        <p className="text-[#8b949e] text-lg max-w-2xl leading-relaxed">
-          Review and manage all historical code analysis runs across your enterprise infrastructure.
-        </p>
-      </div>
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-white/10">
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold tracking-tight text-on-surface">Analysis Ledger</h2>
+          <p className="text-on-surface-variant text-sm max-w-2xl">
+            Review and manage all historical intelligence sequences.
+          </p>
+        </div>
+      </header>
 
       {/* Dashboard Controls & Metrics Grid */}
-      <div className="grid grid-cols-12 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {isLoading && stats.length === 0 ? (
-             <div className="col-span-12 text-center text-outline py-8">Loading history stats...</div>
+             <div className="col-span-3 text-center text-on-surface-variant py-8 border border-white/10 rounded-xl border-dashed">Loading history stats...</div>
           ) : (
             stats.map((stat, index) => (
-              <div key={index} className="col-span-12 md:col-span-4 bg-[#181c22] p-6 rounded-lg relative overflow-hidden group">
-                <div className={cn("absolute top-0 left-0 w-1 h-full", stat.colorClass)}></div>
-                <p className="text-xs font-bold uppercase tracking-widest text-[#8b949e] mb-1">{stat.label}</p>
+              <div key={index} className="bg-surface border border-white/10 p-5 rounded-xl flex flex-col gap-2 hover:border-white/20 transition-colors">
+                <span className="text-xs text-on-surface-variant font-medium">{stat.label}</span>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-mono font-bold text-[#c9d1d9]">{stat.value}</span>
-                  <span className={cn("text-sm font-medium", stat.colorClass.replace('bg-', 'text-'))}>{stat.subtext}</span>
+                  <span className="text-2xl font-semibold tracking-tight text-on-surface">{stat.value}</span>
+                  <span className={cn("text-[10px] font-mono", stat.colorClass.replace('bg-', 'text-').replace('error', 'red-400').replace('secondary', 'emerald-400'))}>{stat.subtext}</span>
                 </div>
               </div>
             ))
@@ -76,39 +77,39 @@ export const HistoryPage = () => {
         </div>
 
         {/* Table Section */}
-        <div className="bg-[#181c22] rounded-lg overflow-hidden flex flex-col">
+        <div className="bg-surface border border-white/10 rounded-xl overflow-hidden flex flex-col">
           {/* Table Toolbar */}
-          <div className="px-6 py-5 flex flex-wrap items-center justify-between bg-[#1c2026] gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-[#c9d1d9]">Showing:</span>
-              <span className="text-xs font-mono px-2 py-1 bg-[#262a31] rounded text-primary">ALL_RUNS_{new Date().getFullYear()}</span>
-            </div>
+          <div className="px-6 py-4 flex flex-wrap items-center justify-between border-b border-white/10 gap-4">
             <div className="flex items-center gap-3">
-              <button className="flex items-center gap-2 px-4 py-2 bg-[#262a31] hover:bg-[#31353c] text-[#c9d1d9] text-sm font-medium rounded transition-all active:scale-95">
-                <Filter className="w-4 h-4" />
+              <span className="text-sm font-medium text-on-surface">System Logs</span>
+              <span className="text-[10px] font-mono px-2 py-0.5 bg-surface-container border border-white/5 rounded text-on-surface-variant">ARCHIVE_{new Date().getFullYear()}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-2 bg-surface hover:bg-surface-container text-on-surface transition-colors border border-white/10">
+                <Filter className="w-3.5 h-3.5 opacity-70" />
                 Filter
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-primary to-primary-container text-on-primary text-sm font-bold uppercase tracking-wider rounded transition-all hover:brightness-110 active:scale-95">
-                <Download className="w-4 h-4" />
-                Export
+              <button className="px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-2 bg-white text-black hover:bg-zinc-200 transition-colors">
+                <Download className="w-3.5 h-3.5" />
+                Export CSV
               </button>
             </div>
           </div>
 
           {/* GitHub Inspired Minimal Table */}
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
-                <tr className="border-b border-outline-variant/10 text-[#8b949e] text-[11px] uppercase tracking-widest font-bold">
-                  <th className="px-6 py-4">Repo Name</th>
-                  <th className="px-6 py-4">Commit</th>
-                  <th className="px-6 py-4">Date/Time</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Health Score</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                <tr className="border-b border-white/10 text-on-surface-variant text-[10px] uppercase tracking-wide font-medium bg-surface-container-low">
+                  <th className="px-6 py-3">Repository</th>
+                  <th className="px-6 py-3">Commit</th>
+                  <th className="px-6 py-3">Timestamp</th>
+                  <th className="px-6 py-3">Status</th>
+                  <th className="px-6 py-3">Integrity Score</th>
+                  <th className="px-6 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-outline-variant/10">
+              <tbody className="divide-y divide-white/5">
                 {isLoading ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-8 text-center text-outline">
@@ -135,55 +136,54 @@ export const HistoryPage = () => {
                     return (
                       <tr 
                         key={row.id} 
-                        className="hover:bg-[#262a31] transition-colors duration-150 group cursor-pointer"
+                        className="hover:bg-surface-container transition-colors duration-150 group cursor-pointer"
                         onClick={() => navigate(`/analysis/${row.id}`)}
                       >
-                        <td className="px-6 py-5">
+                        <td className="px-6 py-3.5">
                           <div className="flex items-center gap-3">
-                            <FolderOpen className="w-5 h-5 text-[#8b949e] group-hover:text-primary transition-colors" />
-                            <span className="text-[#c9d1d9] font-semibold text-sm">{row.repoName}</span>
+                            <FolderOpen className="w-4 h-4 text-on-surface-variant group-hover:text-on-surface transition-colors" />
+                            <span className="text-on-surface font-medium text-sm hover:underline underline-offset-4">{row.repoName}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-5">
-                          <span className="font-mono text-xs text-primary px-2 py-0.5 bg-primary/10 rounded">
+                        <td className="px-6 py-3.5">
+                          <span className="font-mono text-xs text-on-surface-variant group-hover:text-on-surface transition-colors">
                             {row.commitHash}
                           </span>
                         </td>
-                        <td className="px-6 py-5">
+                        <td className="px-6 py-3.5">
                           <div className="flex flex-col">
-                            <span className="text-sm text-[#dfe2eb]">{row.date}</span>
-                            <span className="text-xs text-[#8b949e]">{row.time}</span>
+                            <span className="text-sm text-on-surface">{row.date}</span>
+                            <span className="text-[10px] font-mono text-on-surface-variant mt-0.5">{row.time}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-5">
+                        <td className="px-6 py-3.5">
                           <div className="flex items-center gap-2">
-                            <div className={cn("w-2 h-2 rounded-full", dotClass)}></div>
-                            <span className={cn("text-xs font-bold uppercase", textClass)}>
-                              {row.status}
+                            <div className={cn("w-1.5 h-1.5 rounded-full", dotClass.replace('bg-', 'bg-').replace('secondary', 'emerald-500').replace('tertiary', 'amber-500').replace('error', 'red-500'))}></div>
+                            <span className="text-xs font-mono text-on-surface-variant group-hover:text-on-surface transition-colors">
+                              {row.status === 'completed' && isSuccess ? 'PASS' : row.status === 'completed' ? 'WARN' : row.status === 'failed' ? 'FAIL' : 'SYNC'}
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-5">
+                        <td className="px-6 py-3.5">
                           {isFailed ? (
-                             <div className="flex items-center gap-3 text-error">
-                               <AlertTriangle className="w-4 h-4" />
+                             <div className="flex items-center gap-2 text-on-surface-variant">
                                <span className="font-mono text-sm">--</span>
                              </div>
                           ) : (
                              <div className="flex items-center gap-3">
-                               <div className="w-24 h-1.5 bg-[#262a31] rounded-full overflow-hidden">
-                                 <div className={cn("h-full", dotClass)} style={{ width: `${Math.max(0, Math.min(100, row.score || 0))}%` }}></div>
+                               <div className="w-20 h-1 bg-white/10 overflow-hidden">
+                                 <div className={cn("h-full", dotClass.replace('bg-', 'bg-').replace('secondary', 'white').replace('tertiary', 'amber-500').replace('error', 'red-500'))} style={{ width: `${Math.max(0, Math.min(100, row.score || 0))}%` }}></div>
                                </div>
-                               <span className="font-mono text-sm text-[#c9d1d9]">{score}</span>
+                               <span className="font-mono text-xs text-on-surface">{score}</span>
                              </div>
                           )}
                         </td>
-                        <td className="px-6 py-5 text-right">
+                        <td className="px-6 py-3.5 text-right">
                           <button 
                             onClick={(e) => { e.stopPropagation(); /* TODO options menu */ }}
-                            className="text-[#8b949e] hover:text-[#c9d1d9] p-1"
+                            className="text-on-surface-variant hover:text-on-surface p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            <MoreVertical className="w-5 h-5" />
+                            <MoreVertical className="w-4 h-4" />
                           </button>
                         </td>
                       </tr>
@@ -195,82 +195,49 @@ export const HistoryPage = () => {
           </div>
 
           {/* Pagination / Footer */}
-          <div className="px-6 py-4 flex items-center justify-between bg-[#1c2026] text-xs font-medium text-[#8b949e]">
-             <span>Showing 1 to {Math.min(filteredHistory.length, 10)} of {filteredHistory.length} runs</span>
-             <div className="flex items-center gap-2">
-               <button className="px-3 py-1 bg-[#262a31] rounded hover:text-[#c9d1d9] transition-colors disabled:opacity-50" disabled>Previous</button>
-               <div className="flex items-center gap-1">
-                 <button className="w-7 h-7 flex items-center justify-center bg-primary text-on-primary rounded">1</button>
-               </div>
-               <button className="px-3 py-1 bg-[#262a31] rounded hover:text-[#c9d1d9] transition-colors disabled:opacity-50" disabled>Next</button>
+          <div className="px-6 py-3 flex items-center justify-between border-t border-white/10 bg-surface-container-low text-xs font-medium text-on-surface-variant">
+             <span>Showing {Math.min(filteredHistory.length, 10)} of {filteredHistory.length}</span>
+             <div className="flex items-center gap-1.5">
+               <button className="px-2 py-1 bg-surface border border-white/5 rounded hover:bg-surface-container text-on-surface transition-colors disabled:opacity-50" disabled>Prev</button>
+               <button className="px-2.5 py-1 bg-white text-black rounded font-medium">1</button>
+               <button className="px-2 py-1 bg-surface border border-white/5 rounded hover:bg-surface-container text-on-surface transition-colors disabled:opacity-50" disabled>Next</button>
              </div>
           </div>
         </div>
 
         {/* Side Commentary / Bento Detail */}
-        <div className="mt-12 grid grid-cols-12 gap-8 pb-12">
-          <div className="col-span-12 lg:col-span-8">
-            <div className="bg-gradient-to-r from-surface-container-low to-surface-container p-8 rounded-lg border-l-4 border-primary">
-              <h3 className="text-xl font-bold text-[#c9d1d9] mb-4">Historical Trends</h3>
-              <div className="w-full aspect-[21/9] bg-[#0a0e14] rounded flex items-end p-4 gap-2 relative group overflow-hidden">
-                <img 
-                  alt="Chart Background" 
-                  className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAM0O_4_wfgSHuXy8fRQhORYAs9PoWvzW7CJqnord-RtkqrFNQbPFJ2TcN5DFokLICAqC-Cv0NyttPNAk4q1qoagXR1Lk0KEgT6VbSExwTLAV39ZA_9DggcBgrWfcytjnQe9FSBUziISfnkipvyd_yi8NSE0Bm0fysKZKt43s_8qqYD8P8SNU_BQGB2dzeidbbVwLQUj_8W5xrdHcLrTUU91qwreTxWje5v0rA36Bw2FkuGdCY1Q5rC3kt0LnqL2FOHZUmFuEVRoKKd"
-                />
-                {/* Dynamic Bar Chart */}
-                <div className="absolute inset-0 w-full h-full flex items-end p-6 gap-3 z-10">
-                  {history.slice(0, 10).reverse().map((run, i) => {
-                    const score = run.score || 0;
-                    const heightPercent = Math.max(10, score);
-                    
-                    // Determine color based on score (matching table logic)
-                    const isSuccess = score >= 60;
-                    const isWarning = score > 0 && score < 60;
-                    
-                    const barColor = isSuccess ? 'bg-secondary' : isWarning ? 'bg-tertiary' : 'bg-error';
-                    const glowColor = isSuccess ? 'shadow-[0_0_20px_rgba(16,185,129,0.4)]' : isWarning ? 'shadow-[0_0_20px_rgba(245,158,11,0.4)]' : 'shadow-[0_0_20px_rgba(239,68,68,0.4)]';
-                    const gradientFrom = isSuccess ? 'from-secondary/20' : isWarning ? 'from-tertiary/20' : 'from-error/20';
-
-                    return (
-                      <div key={i} className="flex-1 flex flex-col justify-end items-center group h-full relative cursor-pointer" title={`${run.repoName} - Score: ${score}`}>
-                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 text-xs font-mono font-bold text-white bg-[#262a31] border border-white/10 px-2 py-1 rounded pointer-events-none z-20 shadow-xl">
-                          {score}
-                        </div>
-                        <div 
-                          className={`w-full rounded-t-md transition-all duration-300 relative overflow-hidden bg-gradient-to-t ${gradientFrom} to-transparent group-hover:brightness-125`} 
-                          style={{ height: `${heightPercent}%` }}
-                        >
-                          <div className={`absolute top-0 left-0 w-full h-1.5 ${barColor} ${glowColor}`}></div>
-                        </div>
-                        <div className="mt-2 text-[9px] uppercase tracking-wider text-[#8b949e] font-semibold truncate w-full text-center group-hover:text-[#c9d1d9] transition-colors">
-                          {run.repoName.split('/').pop() || 'Run'}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {history.length === 0 && (
-                    <div className="w-full h-full flex items-center justify-center text-[#8b949e] text-sm">No historical data to display</div>
-                  )}
-                </div>
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 pb-12">
+          <div className="md:col-span-2">
+            <div className="bg-surface border border-white/10 p-6 rounded-xl flex flex-col h-full">
+              <h3 className="text-sm font-semibold text-on-surface mb-4">Historical Integrity Trend</h3>
+              <div className="flex-1 w-full bg-[#050505] border border-white/5 rounded-lg flex items-end p-2 gap-1 relative overflow-hidden h-40">
+                {/* Visual placeholder for a line chart */}
+                {[20, 40, 30, 60, 50, 80, 40, 70, 90, 85, 100].map((h, i) => (
+                  <div key={i} className="flex-1 bg-white/10 rounded-t-sm relative overflow-hidden hover:bg-white/20 transition-colors" style={{ height: `${h}%` }}>
+                    <div className="absolute bottom-0 left-0 w-full bg-white h-1/4 opacity-50"></div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-          <div className="col-span-12 lg:col-span-4 space-y-6">
-            <div className="bg-[#1c2026] p-6 rounded-lg">
-              <h4 className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Integrations</h4>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-[#10141a] rounded">
-                  <span className="text-sm font-medium">GitHub Actions</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 bg-secondary/10 text-secondary rounded">CONNECTED</span>
+          <div className="md:col-span-1 space-y-4">
+            <div className="bg-surface border border-white/10 p-6 rounded-xl h-full">
+              <h4 className="text-xs font-semibold text-on-surface-variant mb-4 flex items-center justify-between">
+                <span>Integrations</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+              </h4>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-2.5 bg-surface-container rounded-md border border-white/5">
+                  <span className="text-sm text-on-surface">GitHub Actions</span>
+                  <span className="text-[10px] font-mono text-on-surface-variant">PASS</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-[#10141a] rounded">
-                  <span className="text-sm font-medium">Jira Cloud</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 bg-secondary/10 text-secondary rounded">CONNECTED</span>
+                <div className="flex items-center justify-between p-2.5 bg-surface-container rounded-md border border-white/5">
+                  <span className="text-sm text-on-surface">Jira Cloud</span>
+                  <span className="text-[10px] font-mono text-on-surface-variant">PASS</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-[#10141a] rounded">
-                  <span className="text-sm font-medium">Slack Webhooks</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 bg-error/10 text-error rounded">OFFLINE</span>
+                <div className="flex items-center justify-between p-2.5 bg-surface-container rounded-md border border-white/5 opacity-50">
+                  <span className="text-sm text-on-surface">Slack Webhooks</span>
+                  <span className="text-[10px] font-mono text-on-surface-variant">WARN</span>
                 </div>
               </div>
             </div>

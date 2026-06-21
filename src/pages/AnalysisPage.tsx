@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  FileCode, 
-  AlertTriangle, 
-  Lightbulb, 
-  ShieldAlert, 
+import {
+  FileCode,
+  AlertTriangle,
+  Lightbulb,
+  ShieldAlert,
   Zap,
   ArrowLeft,
   ExternalLink,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Clock,
+  Shield,
+  RefreshCw,
+  Terminal,
+  Download
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -41,17 +46,17 @@ export const AnalysisPage = () => {
         const result = await getAnalysisStatus(id, token);
         if (result.status === 'success') {
           setAnalysis(result.data);
-          
+
           if (result.data.status === 'completed' || result.data.status === 'failed') {
             setIsLoading(false);
             clearInterval(pollInterval);
-            
+
             // Set initial selected file if files exist
             if (result.data.files && result.data.files.length > 0 && !selectedFile) {
               setSelectedFile(result.data.files[0].file_name);
             }
           } else {
-             setIsLoading(true);
+            setIsLoading(true);
           }
         }
       } catch (err: any) {
@@ -78,21 +83,21 @@ export const AnalysisPage = () => {
   const filteredIssues = allIssues.filter(i => i.type === typeMap[activeTab]);
 
   const getTabCount = (tab: string) => {
-     const type = typeMap[tab];
-     return allIssues.filter(i => i.type === type).length;
+    const type = typeMap[tab];
+    return allIssues.filter(i => i.type === type).length;
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity.toLowerCase()) {
       case 'high':
       case 'critical':
-        return 'text-red-500 bg-red-500/10 border-red-500/20';
+        return 'text-red-400 bg-red-500/10 ring-1 ring-red-500/20';
       case 'medium':
-        return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
+        return 'text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20';
       case 'low':
-        return 'text-green-500 bg-green-500/10 border-green-500/20';
+        return 'text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20';
       default:
-        return 'text-on-surface-variant bg-on-surface-variant/10 border-on-surface-variant/20';
+        return 'text-on-surface-variant bg-surface-container ring-1 ring-outline-variant/30';
     }
   };
 
@@ -110,7 +115,7 @@ export const AnalysisPage = () => {
   if (isLoading || !analysis) {
     return (
       <div className="p-8 flex flex-col items-center justify-center min-h-screen bg-surface">
-        <motion.div 
+        <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
           className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full mb-8"
@@ -120,176 +125,143 @@ export const AnalysisPage = () => {
           We're performing a deep scan of the codebase to identify bugs, security vulnerabilities, and quality improvements.
         </p>
         <div className="flex gap-8">
-            <div className="flex flex-col items-center gap-2 opacity-100">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Scanning</span>
-            </div>
-            <div className="flex flex-col items-center gap-2 opacity-50">
-                <div className="w-2 h-2 rounded-full bg-slate-700" />
-                <span className="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant">Scoring</span>
-            </div>
+          <div className="flex flex-col items-center gap-2 opacity-100">
+            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Scanning</span>
+          </div>
+          <div className="flex flex-col items-center gap-2 opacity-50">
+            <div className="w-2 h-2 rounded-full bg-slate-700" />
+            <span className="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant">Scoring</span>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen bg-surface flex flex-col overflow-hidden">
-      {/* Header */}
-      <header className="border-b border-none bg-surface-container/50 backdrop-blur-md px-6 py-4 flex items-center justify-between z-10 shrink-0">
-        <div className="flex items-center gap-4">
-          <Button variant="secondary" size="sm" onClick={() => navigate('/dashboard')} className="p-2 h-auto">
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <div>
-            <div className="flex items-center gap-2 mb-0.5">
-              <h1 className="text-lg font-semibold text-on-surface">{analysis.repo}</h1>
-              <Badge variant="neutral" className="lowercase text-[10px] px-1.5 py-0">Public</Badge>
+    <div className="min-h-screen bg-background text-on-surface flex flex-col md:flex-row">
+          <aside className="w-72 bg-surface-container-low border-r border-white/10 flex flex-col">
+            <div className="p-4 border-b border-white/10">
+              <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="w-full justify-start gap-2 text-on-surface-variant">
+                <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+              </Button>
             </div>
-            <p className="text-[10px] text-on-surface-variant font-mono uppercase tracking-tighter">
-              Scan ID: {analysis.id.slice(0, 8)} • {new Date(analysis.created_at).toLocaleTimeString()}
-            </p>
-          </div>
-        </div>
 
-        <div className="flex items-center gap-6">
-          <div className="flex flex-col items-end">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-on-surface-variant mb-1">Health Score</span>
-            <div className="flex items-center gap-3">
-              <div className="h-1.5 w-32 bg-surface-container border border-none rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${analysis.score}%` }}
-                  className={cn(
-                    "h-full transition-colors",
-                    analysis.score > 80 ? 'bg-secondary' : analysis.score > 50 ? 'bg-tertiary' : 'bg-error'
-                  )}
-                />
+            <div className="p-4 border-b border-white/10">
+              <h3 className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-4">Categories</h3>
+              <div className="space-y-1">
+                {['issues', 'suggestions', 'security', 'performance'].map((tab) => {
+                  const Icon = tab === 'issues' ? AlertTriangle : tab === 'suggestions' ? Lightbulb : tab === 'security' ? ShieldAlert : Zap;
+                  const count = getTabCount(tab);
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab as any)}
+                      className={cn(
+                        "w-full flex items-center justify-between px-3 py-2 text-sm rounded-md transition-colors",
+                        activeTab === tab ? "bg-surface border border-white/10 text-on-surface" : "text-on-surface-variant hover:text-on-surface"
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon className="w-4 h-4" />
+                        <span className="capitalize">{tab}</span>
+                      </div>
+                      {count > 0 && <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded-full">{count}</span>}
+                    </button>
+                  );
+                })}
               </div>
-              <span className="text-sm font-bold text-on-surface">{analysis.score}</span>
             </div>
-          </div>
-          <Button size="sm" className="gap-2">
-            <ExternalLink className="w-4 h-4" />
-            GitHub
-          </Button>
-        </div>
-      </header>
 
-      {/* Content Layout */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar: Categories & Files */}
-        <aside className="w-72 border-r border-none bg-surface flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-none bg-surface-container/20">
-            <h3 className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">Categories</h3>
-            <div className="space-y-1">
-              {['issues', 'suggestions', 'security', 'performance'].map((tab) => {
-                const Icon = tab === 'issues' ? AlertTriangle : tab === 'suggestions' ? Lightbulb : tab === 'security' ? ShieldAlert : Zap;
-                const isActive = activeTab === tab;
-                const count = getTabCount(tab);
-                
-                return (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab as any)}
-                    className={cn(
-                      "w-full flex items-center justify-between px-3 py-1.5 text-xs rounded-md transition-all",
-                      isActive 
-                        ? "bg-primary/10 text-primary font-semibold ring-1 ring-primary/20" 
-                        : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50"
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Icon className="w-3.5 h-3.5" />
-                      <span className="capitalize">{tab}</span>
-                    </div>
-                    {count > 0 && (
-                      <span className={cn("text-[9px] px-1.5 py-0.5 rounded-full font-bold", isActive ? "bg-primary/20 text-primary" : "bg-surface-container text-on-surface-variant")}>
-                        {count}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-            <h3 className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">Files</h3>
-            <div className="space-y-0.5">
+            <div className="flex-1 overflow-y-auto p-4">
+              <h3 className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-4">Files</h3>
               {(analysis.files || []).map((file) => (
                 <button
                   key={file.file_name}
                   onClick={() => setSelectedFile(file.file_name)}
                   className={cn(
-                    "w-full flex items-center gap-2 px-3 py-1.5 text-xs rounded-md transition-all text-left truncate",
-                    selectedFile === file.file_name
-                      ? "bg-surface-container text-on-surface font-medium border border-none shadow-sm"
-                      : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container/30"
+                    "w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md truncate transition-colors",
+                    selectedFile === file.file_name ? "bg-surface border border-white/10 text-on-surface" : "text-on-surface-variant hover:text-on-surface"
                   )}
                 >
-                  <FileCode className="w-3.5 h-3.5 shrink-0" />
+                  <FileCode className="w-4 h-4 shrink-0" />
                   <span className="truncate">{file.file_name}</span>
                 </button>
               ))}
             </div>
-          </div>
-        </aside>
+          </aside>
 
-        {/* Main Content: Issues */}
-        <main className="flex-1 bg-surface overflow-y-auto custom-scrollbar p-8">
-          <div className="max-w-3xl mx-auto space-y-6">
-            <div className="mb-8">
-              <h2 className="text-xl font-bold text-on-surface capitalize mb-1">{activeTab} Details</h2>
-              <p className="text-on-surface-variant text-xs">Analysis results for <span className="text-primary font-mono">{selectedFile || 'selected file'}</span></p>
-            </div>
+          <main className="flex-1 flex flex-col h-screen overflow-hidden">
+            <header className="h-16 border-b border-white/10 flex items-center justify-between px-8 bg-surface-container-low shrink-0">
+              <div className="flex items-center gap-2">
+                <Terminal className="w-5 h-5 text-on-surface-variant" />
+                <h1 className="text-lg font-semibold font-mono">{analysis.repo}</h1>
+              </div>
+              <div className="flex items-center gap-2">
+                <button className="px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 bg-white text-black hover:bg-zinc-200 transition-colors">
+                  <RefreshCw className="w-3.5 h-3.5" /> Sync
+                </button>
+                <button className="px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-2 bg-surface hover:bg-surface-container text-on-surface border border-white/10">
+                  <Download className="w-3.5 h-3.5 opacity-70" /> Export
+                </button>
+              </div>
+            </header>
 
-            <AnimatePresence mode="popLayout">
-              {filteredIssues.length === 0 ? (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex flex-col items-center justify-center py-20 bg-surface-container/10 rounded-xl border border-dashed border-transparent"
-                >
-                  <CheckCircle2 className="w-8 h-8 text-secondary mb-4 opacity-30" />
-                  <p className="text-sm text-on-surface-variant">No {activeTab} detected here.</p>
-                </motion.div>
-              ) : (
-                filteredIssues
-                  .filter(i => !selectedFile || i.file_name === selectedFile)
-                  .map((issue, idx) => (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.03 }}
-                    >
-                      <Card className="p-5 border-l-4 bg-surface-container/20" 
-                        style={{ borderLeftColor: issue.severity === 'high' ? '#ef4444' : issue.severity === 'medium' ? '#eab308' : '#22c55e' }}
-                      >
-                        <div className="flex items-center gap-2 mb-3">
-                          <Badge className={cn("text-[9px] uppercase font-extrabold px-1.5 py-0.5", getSeverityColor(issue.severity))}>
-                            {issue.severity}
-                          </Badge>
-                          <span className="text-[10px] text-on-surface-variant font-mono">{issue.file_name}</span>
-                        </div>
-                        <h4 className="text-sm font-bold text-on-surface mb-4 leading-relaxed">{issue.message}</h4>
-                        
-                        <div className="bg-surface/50 border border-none rounded-lg p-3">
-                          <div className="flex items-center gap-1.5 mb-2 text-primary">
-                            <Lightbulb className="w-3 h-3" />
-                            <span className="text-[9px] font-bold uppercase tracking-widest">Recommended Fix</span>
+            <div className="flex-1 overflow-y-auto p-8">
+              <div className="max-w-5xl mx-auto space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="col-span-1 lg:col-span-2 bg-surface border border-white/10 rounded-xl p-6">
+                    <h3 className="text-sm font-semibold text-on-surface mb-1">Integrity Score</h3>
+                    <div className="mt-6 flex flex-col gap-2">
+                      <span className="text-4xl font-semibold">{analysis.score}</span>
+                      <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full bg-white" style={{ width: `${analysis.score}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-surface border border-white/10 rounded-xl p-6 flex flex-col gap-4 justify-center">
+                    <div className="flex items-center gap-3">
+                      <Clock className="w-4 h-4 text-on-surface-variant" />
+                      <p className="text-xs font-mono">{new Date(analysis.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Shield className="w-4 h-4 text-on-surface-variant" />
+                      <p className="text-xs font-mono uppercase">Completed</p>
+                    </div>
+                  </div>
+                </div>
+
+                <AnimatePresence mode="popLayout">
+                  {filteredIssues.length === 0 ? (
+                    <div className="py-20 flex flex-col items-center justify-center text-center bg-surface border border-white/10 rounded-xl border-dashed">
+                      <CheckCircle2 className="w-6 h-6 text-emerald-500 mb-4" />
+                      <h3 className="text-lg font-semibold text-on-surface mb-1">Clean Bill of Health</h3>
+                      <p className="text-sm text-on-surface-variant">No issues found in this file.</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4">
+                      {filteredIssues.filter(i => !selectedFile || i.file_name === selectedFile).map((issue, idx) => (
+                        <div key={idx} className="bg-surface border border-white/10 rounded-xl p-5 flex flex-col gap-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3">
+                              <AlertTriangle className={cn("w-5 h-5", issue.severity === 'critical' ? 'text-red-500' : 'text-amber-500')} />
+                              <div>
+                                <h4 className="text-sm font-semibold text-on-surface">{issue.message}</h4>
+                                <span className="text-[10px] text-on-surface-variant font-mono">Line {issue.line}</span>
+                              </div>
+                            </div>
                           </div>
-                          <pre className="text-xs text-on-surface font-mono whitespace-pre-wrap leading-relaxed opacity-90">{issue.suggestion}</pre>
+                          <div className="bg-[#050505] rounded-md p-4 border border-white/5">
+                            <p className="text-xs font-mono text-on-surface-variant">{issue.suggestion}</p>
+                          </div>
                         </div>
-                      </Card>
-                    </motion.div>
-                  ))
-              )}
-            </AnimatePresence>
-          </div>
-        </main>
-      </div>
-    </div>
-  );
-};
+                      ))}
+                    </div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </main>
+        </div>
+      );
+    };
