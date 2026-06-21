@@ -11,7 +11,9 @@ import {
   getConnectedRepos,
   exportDataController,
   clearHistoryController,
-  chatController
+  chatController,
+  getAiSettings,
+  updateAiSettings
 } from '../controllers/mainController';
 
 const router = Router();
@@ -33,5 +35,8 @@ router.get('/data/export', exportDataController);
 router.delete('/data/history', clearHistoryController);
 
 router.post('/chat', chatController);
+
+router.get('/settings/ai', getAiSettings);
+router.post('/settings/ai', updateAiSettings);
 
 export default router;

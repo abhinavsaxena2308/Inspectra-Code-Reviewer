@@ -32,6 +32,13 @@ export const SettingsPage = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  
+  const [aiSettings, setAiSettings] = useState({
+    strictness: 'standard',
+    focusArea: 'general',
+    customInstructions: ''
+  });
+  const [isSavingAi, setIsSavingAi] = useState(false);
 
   const notificationsState = (user?.unsafeMetadata?.notifications as any) || {
     scanCompletion: true,
@@ -55,12 +62,50 @@ export const SettingsPage = () => {
     }
   };
 
+  const handleSaveAiSettings = async () => {
+    setIsSavingAi(true);
+    try {
+      const token = await getToken();
+      const res = await fetch('/api/settings/ai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(aiSettings)
+      });
+      if (!res.ok) throw new Error("Failed to save AI settings");
+      addToast('AI Rulesets updated successfully!', 'success');
+    } catch (error) {
+      addToast('Failed to update AI Rulesets', 'error');
+    } finally {
+      setIsSavingAi(false);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       setName(user.fullName || '');
       setEmail(user.primaryEmailAddress?.emailAddress || '');
     }
-  }, [user]);
+    const loadSettings = async () => {
+      try {
+        const token = await getToken();
+        
+        // Fetch AI Settings
+        const aiRes = await fetch('/api/settings/ai', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const aiData = await aiRes.json();
+        if (aiData.status === 'success' && aiData.data) {
+          setAiSettings(aiData.data);
+        }
+      } catch (err) {
+        console.error("Failed to load settings");
+      }
+    };
+    loadSettings();
+  }, [user, getToken]);
 
   const handleUpdateProfile = async () => {
     try {
@@ -436,7 +481,7 @@ export const SettingsPage = () => {
                   role="switch"
                   aria-checked={notificationsState.criticalAlerts}
                   onClick={() => handleToggleNotification('criticalAlerts')}
-                  className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus:outline-none ${notificationsState.criticalAlerts ? 'bg-error' : 'bg-surface-container-high'}`}
+                  className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus:outline-none ${notificationsState.criticalAlerts ? 'bg-red-500' : 'bg-surface-container-high'}`}
                 >
                   <span className={`inline-block h-3.5 w-3.5 transform rounded-full ${notificationsState.criticalAlerts ? 'bg-white' : 'bg-black'} shadow transition-transform ${notificationsState.criticalAlerts ? 'translate-x-[18px]' : 'translate-x-[4px]'}`} />
                 </button>
@@ -622,6 +667,76 @@ export const SettingsPage = () => {
             </div>
           </div>
         </section>
+
+        {/* Phase 6: Custom AI Rulesets */}
+        <section className="lg:col-span-12 bg-surface border border-white/10 rounded-xl overflow-hidden mt-6">
+          <div className="p-6 border-b border-white/10 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                <Shield className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-on-surface">AI Rulesets & Behavior</h3>
+                <p className="text-sm text-on-surface-variant">Customize how Inspectra reviews your codebase</p>
+              </div>
+            </div>
+            <button onClick={handleSaveAiSettings} disabled={isSavingAi} className="gap-2">
+              {isSavingAi ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save Rulesets
+            </button>
+          </div>
+
+          <div className="p-6 space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Strictness */}
+              <div>
+                <label className="block text-sm font-semibold text-on-surface mb-2">Review Strictness</label>
+                <p className="text-xs text-on-surface-variant mb-4">Determine how pedantic the AI should be when flagging issues.</p>
+                <select 
+                  value={aiSettings.strictness}
+                  onChange={(e) => setAiSettings({...aiSettings, strictness: e.target.value})}
+                  className="w-full bg-surface-container border border-white/10 rounded-md px-4 py-2.5 text-sm text-on-surface outline-none focus:border-emerald-500/50"
+                >
+                  <option value="lenient">Lenient (Only critical bugs and security flaws)</option>
+                  <option value="standard">Standard (Balanced review, default)</option>
+                  <option value="strict">Strict (Enforce best practices strictly)</option>
+                  <option value="pedantic">Pedantic (Flag every minor styling or convention issue)</option>
+                </select>
+              </div>
+
+              {/* Focus Area */}
+              <div>
+                <label className="block text-sm font-semibold text-on-surface mb-2">Primary Focus Area</label>
+                <p className="text-xs text-on-surface-variant mb-4">Tell the AI what matters most to your team.</p>
+                <select 
+                  value={aiSettings.focusArea}
+                  onChange={(e) => setAiSettings({...aiSettings, focusArea: e.target.value})}
+                  className="w-full bg-surface-container border border-white/10 rounded-md px-4 py-2.5 text-sm text-on-surface outline-none focus:border-emerald-500/50"
+                >
+                  <option value="general">General Code Quality</option>
+                  <option value="security">Security First (OWASP Top 10 focus)</option>
+                  <option value="performance">Performance & Optimization</option>
+                  <option value="readability">Clean Code & Readability</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Custom Instructions */}
+            <div className="border-t border-white/10 pt-8">
+              <label className="block text-sm font-semibold text-on-surface mb-2">Custom Team Instructions (Prompt Injection)</label>
+              <p className="text-xs text-on-surface-variant mb-4">
+                These instructions will be prepended to the AI's core system prompt. Use this to enforce your specific team guidelines.
+              </p>
+              <textarea 
+                value={aiSettings.customInstructions}
+                onChange={(e) => setAiSettings({...aiSettings, customInstructions: e.target.value})}
+                placeholder="e.g., We use Tailwind CSS exclusively, flag any inline styles. Enforce strict typing in TypeScript, never allow 'any'. Prefer arrow functions over function declarations."
+                className="w-full h-32 bg-surface-container border border-white/10 rounded-md p-4 text-sm text-on-surface outline-none focus:border-emerald-500/50 resize-none font-mono"
+              />
+            </div>
+          </div>
+        </section>
+
       </div>
 
       {/* Footer */}

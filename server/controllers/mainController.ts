@@ -410,3 +410,44 @@ export const chatController = async (req: Request, res: Response, next: NextFunc
     next(error);
   }
 };
+
+export const getAiSettings = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = getAuth(req).userId;
+    if (!userId) return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+
+    const userObj = await clerkClient.users.getUser(userId);
+    const aiSettings = userObj.publicMetadata?.aiSettings || {
+      strictness: 'standard',
+      focusArea: 'general',
+      customInstructions: ''
+    };
+
+    res.json({ status: 'success', data: aiSettings });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateAiSettings = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = getAuth(req).userId;
+    if (!userId) return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+
+    const { strictness, focusArea, customInstructions } = req.body;
+
+    await clerkClient.users.updateUserMetadata(userId, {
+      publicMetadata: {
+        aiSettings: {
+          strictness: strictness || 'standard',
+          focusArea: focusArea || 'general',
+          customInstructions: customInstructions || ''
+        }
+      }
+    });
+
+    res.json({ status: 'success', message: 'AI Settings updated' });
+  } catch (error) {
+    next(error);
+  }
+};
