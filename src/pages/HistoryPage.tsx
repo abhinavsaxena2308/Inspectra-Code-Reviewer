@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export const HistoryPage = () => {
   const { getToken } = useAuth();
@@ -89,69 +89,65 @@ export const HistoryPage = () => {
           )}
         </div>
 
-        {/* Quality Score Trend Chart (Full Width) */}
+        {/* Historical Integrity Trend (Bar Chart) */}
         {!isLoading && chartData.length > 0 && (
-          <div className="bg-surface border border-white/10 rounded-xl p-6 flex flex-col w-full h-[250px] mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-on-surface">Analysis Trend</h2>
-              <div className="flex items-center gap-2">
-                 <span className="w-2 h-2 rounded-full bg-primary" />
-                 <span className="text-xs text-on-surface-variant">Quality Score</span>
-              </div>
+          <div className="bg-surface border border-outline-variant/30 rounded-2xl p-6 md:p-8 flex flex-col w-full mb-8 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-base font-semibold tracking-tight text-on-surface">Historical Integrity Trend</h2>
             </div>
             
-            <div className="flex-grow w-full">
+            <div className="flex-grow w-full h-[280px] bg-surface-container-low border border-outline-variant/50 rounded-xl p-6 pt-8">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
+                <BarChart
                   data={chartData}
-                  margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
+                  margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                  barSize={40}
                 >
                   <defs>
-                    <linearGradient id="colorScoreHistory" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
+                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={1}/>
+                      <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0.3}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-outline-variant)" vertical={false} opacity={0.3} />
                   <XAxis 
                     dataKey="name" 
                     stroke="var(--color-on-surface-variant)" 
-                    fontSize={10} 
+                    fontSize={11} 
                     tickLine={false} 
                     axisLine={false}
                     minTickGap={20}
+                    dy={10}
                   />
                   <YAxis 
                     stroke="var(--color-on-surface-variant)" 
-                    fontSize={10} 
+                    fontSize={11} 
                     tickLine={false} 
                     axisLine={false}
                     domain={[0, 100]}
                     ticks={[0, 25, 50, 75, 100]}
+                    dx={-10}
                   />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: 'var(--color-surface-container)', borderColor: 'var(--color-outline-variant)', borderRadius: '8px' }}
+                    cursor={{ fill: 'var(--color-surface-container-high)', opacity: 0.5 }}
+                    contentStyle={{ backgroundColor: 'var(--color-surface-container)', borderColor: 'var(--color-outline-variant)', borderRadius: '12px', padding: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
                     itemStyle={{ color: 'var(--color-on-surface)' }}
-                    labelStyle={{ color: 'var(--color-on-surface-variant)', fontSize: '12px', marginBottom: '4px' }}
+                    labelStyle={{ color: 'var(--color-on-surface-variant)', fontSize: '12px', marginBottom: '8px' }}
                     formatter={(value: number, name: string, props: any) => [
-                      <span key="val" className="font-semibold text-primary">{value}</span>, 
+                      <span key="val" className="font-semibold text-primary text-lg">{value}</span>, 
                       <span key="lbl" className="text-on-surface-variant ml-2 text-xs">{props.payload.repo}</span>
                     ]}
                   />
-                  <Area 
-                    type="monotone" 
+                  <Bar 
                     dataKey="score" 
-                    stroke="var(--color-primary)" 
-                    strokeWidth={2}
-                    fillOpacity={1} 
-                    fill="url(#colorScoreHistory)" 
-                    activeDot={{ r: 6, fill: 'var(--color-magenta)', stroke: 'var(--color-surface)', strokeWidth: 2 }}
+                    fill="url(#barGradient)" 
+                    radius={[6, 6, 0, 0]}
+                    background={{ fill: 'var(--color-surface-container-high)', radius: [6, 6, 0, 0] }}
                     isAnimationActive={true}
                     animationBegin={200}
-                    animationDuration={2500}
+                    animationDuration={1500}
                     animationEasing="ease-out"
                   />
-                </AreaChart>
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
