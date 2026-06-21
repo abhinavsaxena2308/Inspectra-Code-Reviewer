@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Command } from 'cmdk';
 import { useNavigate } from 'react-router-dom';
-import { Search, Terminal, Settings, LayoutDashboard, Database, History, Sun, Moon } from 'lucide-react';
+import { Search, Terminal, Settings, LayoutDashboard, Database, History, Sun, Moon, Network } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 
 export const CommandPalette = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   // Toggle the menu when ⌘K is pressed
   useEffect(() => {
@@ -75,6 +75,13 @@ export const CommandPalette = () => {
                 <span>Repositories</span>
               </Command.Item>
               <Command.Item 
+                onSelect={() => runCommand(() => navigate('/architecture'))}
+                className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-primary/10 cursor-pointer text-sm font-medium hover:text-primary transition-colors"
+              >
+                <Network className="w-4 h-4" />
+                <span>Architecture</span>
+              </Command.Item>
+              <Command.Item 
                 onSelect={() => runCommand(() => navigate('/history'))}
                 className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-primary/10 cursor-pointer text-sm font-medium hover:text-primary transition-colors"
               >
@@ -99,7 +106,7 @@ export const CommandPalette = () => {
                 <span>Trigger New Analysis</span>
               </Command.Item>
               <Command.Item 
-                onSelect={() => runCommand(() => toggleTheme())}
+                onSelect={() => runCommand(() => setTheme(theme === 'dark' ? 'light' : 'dark'))}
                 className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-primary/10 cursor-pointer text-sm font-medium hover:text-primary transition-colors"
               >
                 {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}

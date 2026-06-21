@@ -11,12 +11,16 @@ import {
   getConnectedRepos,
   exportDataController,
   clearHistoryController,
-  chatController
+  chatController,
+  getAiSettings,
+  updateAiSettings
 } from '../controllers/mainController';
+import { analyzeArchitectureController } from '../controllers/architectureController';
 
 const router = Router();
 
 router.post('/analyze', analyzeRepository);
+router.post('/architecture/analyze', analyzeArchitectureController);
 router.get('/analysis/:id', getAnalysisResult);
 router.get('/status/:id', getAnalysisResult);
 router.get('/analysis/:id/logs', streamAnalysisLogs);
@@ -31,7 +35,9 @@ router.get('/github/repos', getConnectedRepos);
 
 router.get('/data/export', exportDataController);
 router.delete('/data/history', clearHistoryController);
-
 router.post('/chat', chatController);
+
+router.get('/settings/ai', getAiSettings);
+router.post('/settings/ai', updateAiSettings);
 
 export default router;

@@ -11,7 +11,8 @@ import {
   ChevronRight,
   Shield,
   Activity,
-  Box
+  Box,
+  Network
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { UserButton, OrganizationSwitcher } from "@clerk/react";
@@ -25,6 +26,7 @@ export const Sidebar = () => {
     { name: 'Home', icon: Home, path: '/' },
     { name: 'Intelligence Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { name: 'Repositories', icon: Github, path: '/repos' },
+    { name: 'Architecture', icon: Network, path: '/architecture' },
     { name: 'Sequence History', icon: History, path: '/history' },
     { name: 'System Settings', icon: Settings, path: '/settings' },
   ];
@@ -101,7 +103,6 @@ export const Sidebar = () => {
           !isCollapsed && "bg-surface-container-low border border-outline-variant/30"
         )}>
           <UserButton 
-            afterSignOutUrl="/" 
             appearance={{
               elements: {
                 userButtonAvatarBox: "w-9 h-9 rounded-xl",
