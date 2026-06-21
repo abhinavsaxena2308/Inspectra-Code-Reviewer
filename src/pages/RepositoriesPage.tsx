@@ -8,13 +8,17 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { useDebounce } from '../hooks/useDebounce';
 import { useAuth } from '@clerk/react';
+import { toast } from 'sonner';
 
 export const RepositoriesPage = () => {
   const { getToken } = useAuth();
   const [repoUrl, setRepoUrl] = useState('');
-  const debouncedFilter = useDebounce(repoUrl, 300);
-  const [repositories, setRepositories] = useState<any[]>([]);
+  const [repositories, setRepositories] = useState<Repository[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filter, setFilter] = useState('');
+  const [sortOrder, setSortOrder] = useState<'alpha' | 'score-desc' | 'score-asc' | 'recent'>('recent');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pass' | 'warn' | 'fail'>('all');
+  const debouncedFilter = useDebounce(filter, 300);
   const navigate = useNavigate();
 
   const loadData = async () => {
@@ -26,6 +30,7 @@ export const RepositoriesPage = () => {
       setRepositories(reposData);
     } catch (error) {
       console.error('Failed to load repositories:', error);
+      toast.error('Failed to load repositories.');
     } finally {
       setIsLoading(false);
     }
@@ -42,16 +47,36 @@ export const RepositoriesPage = () => {
       const { analyzeRepository } = await import('../lib/api');
       const response = await analyzeRepository(url, token);
       if (response.status === 'success') {
+        toast.success(`Analysis started for ${url}`);
         navigate(`/analysis/${response.data.id}`);
       }
     } catch (error) {
       console.error('Failed to trigger analysis:', error);
+      toast.error('Failed to trigger analysis. Please check the URL and try again.');
     }
   };
 
-  const filteredRepos = repositories.filter(repo =>
-    repo.name.toLowerCase().includes(debouncedFilter.toLowerCase())
-  );
+  const filteredRepos = repositories
+    .filter(repo => repo.name.toLowerCase().includes(debouncedFilter.toLowerCase()))
+    .filter(repo => {
+      if (statusFilter === 'all') return true;
+      const score = repo.score ?? 0;
+      if (statusFilter === 'pass') return score >= 80;
+      if (statusFilter === 'warn') return score >= 60 && score < 80;
+      if (statusFilter === 'fail') return score < 60 || repo.status === 'failed';
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortOrder === 'alpha') return a.name.localeCompare(b.name);
+      if (sortOrder === 'score-desc') return (b.score ?? 0) - (a.score ?? 0);
+      if (sortOrder === 'score-asc') return (a.score ?? 0) - (b.score ?? 0);
+      if (sortOrder === 'recent') {
+        const timeA = a.lastAnalyzed ? new Date(a.lastAnalyzed).getTime() : 0;
+        const timeB = b.lastAnalyzed ? new Date(b.lastAnalyzed).getTime() : 0;
+        return timeB - timeA;
+      }
+      return 0;
+    });
 
   const getScoreColor = (score?: number) => {
     if (!score) return 'text-outline';
@@ -60,10 +85,39 @@ export const RepositoriesPage = () => {
     return 'text-error';
   };
 
+  const totalRepos = repositories.length;
+  const validScores = repositories.filter(r => r.score !== undefined && r.score !== null).map(r => r.score);
+  const avgScore = validScores.length > 0 ? Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length) : 0;
+  const needsAttentionCount = repositories.filter(r => r.status === 'failed' || (r.score !== undefined && r.score !== null && r.score < 80)).length;
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="p-8 md:p-12 space-y-10 max-w-7xl mx-auto w-full">
+        {/* Skeleton Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4 border-b border-white/10">
+          <div className="space-y-2 flex-1">
+            <div className="h-8 w-48 bg-surface-container rounded-lg animate-pulse" />
+            <div className="h-4 w-96 bg-surface-container rounded-lg animate-pulse" />
+          </div>
+          <div className="h-10 w-full sm:w-80 bg-surface-container rounded-lg animate-pulse" />
+        </div>
+
+        {/* Skeleton Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+           <div className="h-32 glass-card rounded-xl border border-white/5 bg-surface-container-low animate-pulse" />
+           <div className="h-32 glass-card rounded-xl border border-white/5 bg-surface-container-low animate-pulse" />
+           <div className="h-32 glass-card rounded-xl border border-white/5 bg-surface-container-low animate-pulse" />
+        </div>
+
+        {/* Skeleton Table */}
+        <div className="glass-card rounded-xl border border-white/5 overflow-hidden">
+           <div className="h-16 border-b border-white/5 bg-surface-container animate-pulse" />
+           <div className="divide-y divide-white/5">
+             {[1,2,3,4,5].map(i => (
+               <div key={i} className="h-20 bg-surface-container-low animate-pulse" />
+             ))}
+           </div>
+        </div>
       </div>
     );
   }
@@ -143,104 +197,76 @@ export const RepositoriesPage = () => {
         </div>
       ) : (
         <>
-          {/* Bento Featured Repos — top 2 */}
-          {filteredRepos.length >= 1 && !repoUrl.includes('github.com') && (
-            <div className="grid grid-cols-12 gap-6">
-              {/* Main featured repo */}
-              <div
-                onClick={() => filteredRepos[0].analysisId ? navigate(`/analysis/${filteredRepos[0].analysisId}`) : handleAnalyze(filteredRepos[0].url)}
-                className="col-span-12 lg:col-span-8 glass-card-premium rounded-xl relative overflow-hidden group cursor-pointer p-8"
-              >
-                <div className="flex justify-between items-start mb-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-surface-container-high rounded-lg shadow-lg">
-                      <Terminal className="w-6 h-6 text-primary" />
-                    </div>
+          {/* Aggregate Stats Overview */}
+          {!repoUrl.includes('github.com') && (
+            <div className="space-y-6">
+              <div className="glass-card rounded-2xl p-6 border border-outline-variant/30 relative overflow-visible">
+                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-error via-amber-500 to-primary opacity-30" />
+                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                     <div>
-                      <h3 className="text-xl font-bold text-on-surface font-mono group-hover:text-primary transition-colors">{filteredRepos[0].name}</h3>
-                      <p className="text-sm text-on-surface-variant font-sans mt-1 line-clamp-1">
-                        {filteredRepos[0].description || 'Primary workspace repository'}
-                      </p>
+                      <h3 className="font-bold text-on-surface font-sans text-sm tracking-wider uppercase">Workspace Health Map</h3>
+                      <p className="text-xs text-on-surface-variant mt-1">A high-level view of all {repositories.length} connected repositories.</p>
                     </div>
-                  </div>
-                  <span className="px-3 py-1 rounded-full text-[10px] font-mono bg-surface-container text-on-surface border border-outline/50 uppercase">
-                    {filteredRepos[0].isPrivate ? 'Private' : 'Public'}
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-8 pt-4 border-t border-white/5">
-                  <div className="space-y-2">
-                    <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">Health Score</p>
-                    <div className="flex items-center gap-2">
-                      <span className={cn("text-4xl font-bold font-heading leading-none glow-text", getScoreColor(filteredRepos[0].score))}>
-                        {filteredRepos[0].score ?? '—'}
-                      </span>
-                      <span className="text-sm text-on-surface-variant font-mono">/ 100</span>
+                    <div className="flex items-center gap-2 text-[10px] text-on-surface-variant font-mono uppercase bg-surface-container-low px-3 py-1.5 rounded-lg border border-white/5">
+                       <span>No Data</span>
+                       <div className="flex gap-1.5 px-2">
+                          <div className="w-3 h-3 rounded-[3px] bg-surface-container-high border border-outline-variant/30" />
+                          <div className="w-3 h-3 rounded-[3px] bg-error/80 border border-error/50" />
+                          <div className="w-3 h-3 rounded-[3px] bg-amber-500/80 border border-amber-500/50" />
+                          <div className="w-3 h-3 rounded-[3px] bg-primary/80 border border-primary/50" />
+                       </div>
+                       <span>Healthy</span>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">Status</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className={cn("ghost-label", (filteredRepos[0].score ?? 0) >= 80 ? "text-primary border-primary/30" : (filteredRepos[0].score ?? 0) >= 60 ? "text-amber-500 border-amber-500/30" : "text-error border-error/30")}>
-                         {(filteredRepos[0].score ?? 0) >= 80 ? 'PASS' : (filteredRepos[0].score ?? 0) >= 60 ? 'WARN' : 'FAIL'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">Last Sync</p>
-                    <p className="text-sm font-medium text-on-surface font-mono leading-none pt-1">{filteredRepos[0].lastAnalyzed || 'Unknown'}</p>
-                  </div>
-                </div>
+                 </div>
+                 <div className="flex flex-wrap gap-2">
+                    {repositories.map(repo => {
+                       let bgColor = 'bg-surface-container-high border-outline-variant/30 hover:border-outline-variant';
+                       if (repo.score != null) {
+                          if (repo.score >= 80) bgColor = 'bg-primary/80 border-primary/50 shadow-[0_0_8px_rgba(16,185,129,0.2)] hover:shadow-[0_0_12px_rgba(16,185,129,0.6)] hover:bg-primary z-10';
+                          else if (repo.score >= 60) bgColor = 'bg-amber-500/80 border-amber-500/50 shadow-[0_0_8px_rgba(245,158,11,0.2)] hover:shadow-[0_0_12px_rgba(245,158,11,0.6)] hover:bg-amber-500 z-10';
+                          else bgColor = 'bg-error/80 border-error/50 shadow-[0_0_8px_rgba(239,68,68,0.2)] hover:shadow-[0_0_12px_rgba(239,68,68,0.6)] hover:bg-error z-10';
+                       }
+                       return (
+                          <div 
+                             key={repo.id}
+                             title={`${repo.name}\nScore: ${repo.score ?? 'Not Scanned'}`}
+                             className={cn("w-5 h-5 sm:w-6 sm:h-6 rounded-[4px] border cursor-pointer hover:scale-125 transition-all duration-200", bgColor)}
+                             onClick={() => repo.analysisId ? navigate(`/analysis/${repo.analysisId}`) : handleAnalyze(repo.url)}
+                          />
+                       );
+                    })}
+                 </div>
               </div>
 
-              {/* Secondary repo or placeholder */}
-              {filteredRepos[1] ? (
-                <div
-                  onClick={() => filteredRepos[1].analysisId ? navigate(`/analysis/${filteredRepos[1].analysisId}`) : handleAnalyze(filteredRepos[1].url)}
-                  className="col-span-12 lg:col-span-4 glass-card rounded-xl relative overflow-hidden group cursor-pointer p-6 flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <Database className="w-5 h-5 text-secondary" />
-                        <h3 className="font-bold text-on-surface font-mono text-base truncate group-hover:text-primary transition-colors">{filteredRepos[1].name}</h3>
-                      </div>
-                    </div>
-                    <p className="text-xs text-on-surface-variant font-sans line-clamp-2 mb-6">
-                       {filteredRepos[1].description || 'Secondary workspace repository'}
-                    </p>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-end">
-                      <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider leading-none">Health</span>
-                      <span className={cn("text-3xl font-bold font-heading leading-none", getScoreColor(filteredRepos[1].score))}>
-                        {filteredRepos[1].score ?? '—'}
-                      </span>
-                    </div>
-                    <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
-                      <div
-                        className={cn("h-full transition-all shadow-[0_0_10px_currentColor]",
-                          (filteredRepos[1].score ?? 0) >= 80 ? 'bg-primary' :
-                          (filteredRepos[1].score ?? 0) >= 60 ? 'bg-amber-500' : 'bg-error'
-                        )}
-                        style={{ width: `${filteredRepos[1].score ?? 0}%` }}
-                      />
-                    </div>
-                    <div className="pt-2 flex justify-between">
-                      <span className={cn("ghost-label text-[9px]", (filteredRepos[1].score ?? 0) >= 80 ? "text-primary border-primary/30" : "text-amber-500 border-amber-500/30")}>
-                        {(filteredRepos[1].score ?? 0) >= 80 ? 'PASS' : (filteredRepos[1].score ?? 0) >= 60 ? 'WARN' : 'FAIL'}
-                      </span>
-                      <span className="text-[10px] font-mono text-on-surface-variant">{filteredRepos[1].lastAnalyzed || 'Unknown'}</span>
-                    </div>
-                  </div>
+              {/* Controls Bar */}
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-surface-container border border-white/5 rounded-lg p-3">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                   <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider pl-2">Filter Status:</span>
+                   <select 
+                     className="bg-surface border border-white/10 rounded-md text-sm text-on-surface py-1.5 px-3 outline-none focus:border-primary transition-colors cursor-pointer"
+                     value={statusFilter}
+                     onChange={(e) => setStatusFilter(e.target.value as any)}
+                   >
+                     <option value="all">All Repositories</option>
+                     <option value="pass">Passing (80+)</option>
+                     <option value="warn">Warning (60-79)</option>
+                     <option value="fail">Failing (&lt;60)</option>
+                   </select>
                 </div>
-              ) : (
-                <div className="col-span-12 lg:col-span-4 glass-card rounded-xl p-6 flex flex-col items-center justify-center gap-4 text-center border border-white/5">
-                  <div className="p-4 bg-surface-container-high rounded-full">
-                    <Plus className="w-6 h-6 text-outline/50" />
-                  </div>
-                  <p className="text-sm font-sans text-on-surface-variant">Analyze more repositories to populate this view.</p>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                   <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider pl-2">Sort By:</span>
+                   <select 
+                     className="bg-surface border border-white/10 rounded-md text-sm text-on-surface py-1.5 px-3 outline-none focus:border-primary transition-colors cursor-pointer"
+                     value={sortOrder}
+                     onChange={(e) => setSortOrder(e.target.value as any)}
+                   >
+                     <option value="recent">Recently Analyzed</option>
+                     <option value="score-desc">Health Score (High to Low)</option>
+                     <option value="score-asc">Health Score (Low to High)</option>
+                     <option value="alpha">Alphabetical</option>
+                   </select>
                 </div>
-              )}
+              </div>
             </div>
           )}
 
