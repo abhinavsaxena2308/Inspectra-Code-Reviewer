@@ -16,6 +16,7 @@ import {
   updateAiSettings
 } from '../controllers/mainController';
 import { analyzeArchitectureController, getSavedArchitectureController } from '../controllers/architectureController';
+import { autoFixIssueController } from '../controllers/autofixController';
 
 const router = Router();
 
@@ -37,6 +38,7 @@ router.get('/github/repos', getConnectedRepos);
 router.get('/data/export', exportDataController);
 router.delete('/data/history', clearHistoryController);
 router.post('/chat', chatController);
+router.post('/autofix', autoFixIssueController);
 
 router.get('/settings/ai', getAiSettings);
 router.post('/settings/ai', updateAiSettings);

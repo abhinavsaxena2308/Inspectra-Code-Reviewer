@@ -47,12 +47,42 @@ export const AnalysisPage = () => {
 
   const handleAutoFix = async (issueIdx: number) => {
     setFixingIssues(prev => ({ ...prev, [issueIdx]: true }));
-    // Simulate generation of patch and PR
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setFixingIssues(prev => ({ ...prev, [issueIdx]: false }));
-    toast.success('Auto-Fix Applied!', {
-      description: 'A pull request with the suggested fix has been generated and pushed to GitHub.'
-    });
+    try {
+      const issueToFix = filteredIssues.filter(i => !selectedFile || i.file_name === selectedFile)[issueIdx];
+      const token = await getToken();
+      
+      const res = await fetch('/api/autofix', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          repoUrl: `https://github.com/${analysis?.repo}`,
+          filePath: issueToFix.file_name,
+          issueDescription: `${issueToFix.message}\n\nSuggestion: ${issueToFix.suggestion}`
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to generate auto-fix PR');
+
+      toast.success('Auto-Fix PR Generated!', {
+        description: (
+          <div className="mt-2 flex flex-col gap-2">
+            <span>A pull request with the suggested fix has been pushed to GitHub.</span>
+            <a href={data.data.prUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-purple-400 hover:text-purple-300 font-medium">
+              <GitPullRequest className="w-4 h-4" /> View Pull Request
+            </a>
+          </div>
+        ),
+        duration: 8000
+      });
+    } catch (err: any) {
+      toast.error('Auto-Fix Failed', { description: err.message });
+    } finally {
+      setFixingIssues(prev => ({ ...prev, [issueIdx]: false }));
+    }
   };
 
   const handlePrint = useReactToPrint({
