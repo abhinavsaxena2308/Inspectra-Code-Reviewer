@@ -31,5 +31,6 @@ export const config = {
   githubToken: process.env.GITHUB_TOKEN,
   nodeEnv: process.env.NODE_ENV || 'development',
   clerkSecretKey: process.env.CLERK_SECRET_KEY,
-  resendApiKey: process.env.RESEND_API_KEY,
+  emailUser: process.env.EMAIL_USER,
+  emailPass: process.env.EMAIL_PASS,
 };
