@@ -56,7 +56,7 @@ export const analyzeRepository = async (req: Request, res: Response, next: NextF
     }
 
     // 2. Fire and Forget the worker
-    processRepositoryAnalysis(analysisId, repoUrl, owner, repo).catch(err => {
+    processRepositoryAnalysis(analysisId, repoUrl, owner, repo, userId).catch(err => {
         console.error(`[Main] Background worker crashed for ${analysisId}:`, err);
     });
 
