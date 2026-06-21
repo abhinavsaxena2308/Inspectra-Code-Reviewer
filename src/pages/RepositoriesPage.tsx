@@ -224,16 +224,17 @@ export const RepositoriesPage = () => {
             {/* Repo Rows */}
             <div className="divide-y divide-white/5">
               {filteredRepos.map((repo) => {
-                const isAnalyzing = repo.status === 'needs-improvement';
-                const isFailed = repo.status === 'critical';
-                const isHealthy = repo.status === 'good';
+                const isAnalyzing = repo.status === 'pending' || repo.status === 'processing';
+                const isFailedJob = repo.status === 'failed';
                 const score = repo.score ?? 0;
+                
+                const scoreColorClass = score >= 80 ? 'emerald-500' : score >= 60 ? 'amber-500' : 'red-500';
 
-                const dotClass = isHealthy
-                  ? 'bg-emerald-500'
-                  : isAnalyzing
+                const dotClass = isAnalyzing
                   ? 'bg-amber-500 animate-pulse'
-                  : 'bg-red-500';
+                  : isFailedJob
+                  ? 'bg-red-500'
+                  : `bg-${scoreColorClass}`;
 
                 return (
                   <div
@@ -261,15 +262,19 @@ export const RepositoriesPage = () => {
                           <RefreshCw className="w-3.5 h-3.5 text-on-surface-variant animate-spin" />
                           <span className="text-[10px] font-mono text-on-surface-variant">SYNCING</span>
                         </div>
+                      ) : isFailedJob ? (
+                        <div className="flex items-center gap-2">
+                           <span className="text-[10px] font-mono text-on-surface-variant">ERR</span>
+                        </div>
                       ) : (
                         <div className="flex items-center gap-3">
                           <div className="w-16 h-1 bg-white/10 overflow-hidden">
                             <div
-                              className={cn('h-full', isFailed ? 'bg-red-500' : 'bg-emerald-500')}
+                              className={cn('h-full', `bg-${scoreColorClass}`)}
                               style={{ width: `${score}%` }}
                             />
                           </div>
-                          <span className={cn('text-xs font-mono', isFailed ? 'text-red-400' : 'text-on-surface')}>
+                          <span className={cn('text-xs font-mono', `text-${scoreColorClass}`)}>
                             {score}
                           </span>
                         </div>
@@ -278,14 +283,16 @@ export const RepositoriesPage = () => {
 
                     {/* Status */}
                     <div className="col-span-2">
-                      {isHealthy && (
-                        <span className="text-[10px] font-mono text-on-surface-variant">PASS</span>
+                      {repo.status === 'completed' && (
+                        <span className="text-[10px] font-mono text-on-surface-variant">
+                          {score >= 80 ? 'PASS' : score >= 60 ? 'WARN' : 'FAIL'}
+                        </span>
                       )}
                       {isAnalyzing && (
                         <span className="text-[10px] font-mono text-on-surface-variant">SYNC</span>
                       )}
-                      {isFailed && (
-                        <span className="text-[10px] font-mono text-on-surface-variant">FAIL</span>
+                      {isFailedJob && (
+                        <span className="text-[10px] font-mono text-red-400">ERROR</span>
                       )}
                     </div>
 

@@ -172,12 +172,12 @@ export const getDashboardRepositories = async (req: Request, res: Response, next
     }
     const repos = await getUserRepositories(userId);
     res.json({ status: 'success', data: repos.map(r => ({
-      id: r.id,
+      id: r.analysis_id || r.id, // Fallback to repo id if no analysis exists
       name: `${r.owner}/${r.repo_name}`,
       language: 'Unknown',
       score: r.score || 0,
       lastAnalyzed: r.last_analyzed ? new Date(r.last_analyzed).toLocaleDateString() : 'Never',
-      status: r.score >= 90 ? 'good' : (r.score >= 70 ? 'needs-improvement' : 'critical')
+      status: r.status || 'pending'
     })) });
   } catch (error) { next(error); }
 };

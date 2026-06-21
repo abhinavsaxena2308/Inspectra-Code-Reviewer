@@ -121,7 +121,7 @@ export const getUserRepositories = async (userId: string) => {
   try {
     const res = await pool.query(
       `SELECT r.id, r.repo_url, r.owner, r.repo_name, r.created_at, 
-              a.score, a.status, a.created_at as last_analyzed
+              a.id as analysis_id, a.score, a.status, a.created_at as last_analyzed
        FROM repositories r
        LEFT JOIN analyses a ON r.id = a.repo_id
        WHERE r.clerk_user_id = $1

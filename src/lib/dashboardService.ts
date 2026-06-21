@@ -6,7 +6,7 @@ export interface Repository {
   language: string;
   score: number;
   lastAnalyzed: string;
-  status: 'good' | 'needs-improvement' | 'critical';
+  status: 'pending' | 'processing' | 'completed' | 'failed';
 }
 
 export interface DashboardStats {
