@@ -10,7 +10,7 @@ const analyzeBodySchema = z.object({
 });
 
 const idParamSchema = z.object({
-  id: z.string().uuid('Invalid Analysis ID format'),
+  id: z.string().min(1, 'Invalid Analysis ID format'),
 });
 
 export const analyzeRepository = async (req: Request, res: Response, next: NextFunction) => {

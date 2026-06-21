@@ -2,7 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { config } from "../config";
 
 const ai = new GoogleGenAI({ apiKey: config.geminiApiKey });
-const modelName = "gemini-1.5-flash";
+const modelName = "gemini-2.5-flash";
 
 export interface AnalysisIssue {
   type: 'bug' | 'security' | 'suggestion' | 'performance';
@@ -50,13 +50,39 @@ You MUST return a JSON array of objects with the following schema:
 
 Do not include any other text, markdown blocks are fine if they are inside the strings. Use "bug" for general issues, "security" for vulnerabilities, "performance" for optimizations, and "suggestion" for quality/readability improvements.`;
 
+  let text = "";
   try {
-    const result = await ai.models.generateContent({
-      model: modelName,
-      contents: prompt
-    });
+    let result;
+    let retries = 3;
+    let delay = 2000; // start with 2 seconds
+
+    while (retries > 0) {
+      try {
+        result = await ai.models.generateContent({
+          model: modelName,
+          contents: prompt
+        });
+        break; // Success, exit loop
+      } catch (apiError: any) {
+        const errString = String(apiError);
+        if (errString.includes('503') || errString.includes('UNAVAILABLE')) {
+          retries--;
+          if (retries === 0) throw apiError;
+          console.warn(`[Gemini] High demand (503). Retrying in ${delay}ms...`);
+          await new Promise(res => setTimeout(res, delay));
+          delay *= 2;
+        } else {
+          throw apiError; // Throw other errors immediately
+        }
+      }
+    }
     
-    let text = result.text.trim();
+    if (result && result.text) {
+      text = result.text.trim();
+    } else {
+      throw new Error("No text returned from Gemini API");
+    }
+
     
     // Clean up markdown block if present
     if (text.startsWith('```json')) {
