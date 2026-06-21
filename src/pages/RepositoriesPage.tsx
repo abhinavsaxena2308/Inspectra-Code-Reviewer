@@ -13,9 +13,12 @@ import { toast } from 'sonner';
 export const RepositoriesPage = () => {
   const { getToken } = useAuth();
   const [repoUrl, setRepoUrl] = useState('');
-  const debouncedFilter = useDebounce(repoUrl, 300);
-  const [repositories, setRepositories] = useState<any[]>([]);
+  const [repositories, setRepositories] = useState<Repository[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filter, setFilter] = useState('');
+  const [sortOrder, setSortOrder] = useState<'alpha' | 'score-desc' | 'score-asc' | 'recent'>('recent');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pass' | 'warn' | 'fail'>('all');
+  const debouncedFilter = useDebounce(filter, 300);
   const navigate = useNavigate();
 
   const loadData = async () => {
@@ -53,9 +56,27 @@ export const RepositoriesPage = () => {
     }
   };
 
-  const filteredRepos = repositories.filter(repo =>
-    repo.name.toLowerCase().includes(debouncedFilter.toLowerCase())
-  );
+  const filteredRepos = repositories
+    .filter(repo => repo.name.toLowerCase().includes(debouncedFilter.toLowerCase()))
+    .filter(repo => {
+      if (statusFilter === 'all') return true;
+      const score = repo.score ?? 0;
+      if (statusFilter === 'pass') return score >= 80;
+      if (statusFilter === 'warn') return score >= 60 && score < 80;
+      if (statusFilter === 'fail') return score < 60 || repo.status === 'failed';
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortOrder === 'alpha') return a.name.localeCompare(b.name);
+      if (sortOrder === 'score-desc') return (b.score ?? 0) - (a.score ?? 0);
+      if (sortOrder === 'score-asc') return (a.score ?? 0) - (b.score ?? 0);
+      if (sortOrder === 'recent') {
+        const timeA = a.lastAnalyzed ? new Date(a.lastAnalyzed).getTime() : 0;
+        const timeB = b.lastAnalyzed ? new Date(b.lastAnalyzed).getTime() : 0;
+        return timeB - timeA;
+      }
+      return 0;
+    });
 
   const getScoreColor = (score?: number) => {
     if (!score) return 'text-outline';
@@ -178,59 +199,108 @@ export const RepositoriesPage = () => {
         <>
           {/* Aggregate Stats Overview */}
           {!repoUrl.includes('github.com') && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Stat Card 1 */}
-              <div className="glass-card rounded-xl p-6 border border-white/5 flex flex-col justify-between">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2.5 bg-surface-container-high rounded-lg shadow-lg">
-                    <Database className="w-5 h-5 text-secondary" />
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Stat Card 1 */}
+                <div className="group relative bg-gradient-to-br from-surface to-surface-container rounded-2xl p-6 border border-outline-variant/30 hover:border-primary/30 transition-all duration-500 overflow-hidden shadow-sm hover:shadow-primary/5">
+                  <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all duration-500" />
+                  <div className="relative z-10 flex flex-col justify-between h-full">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="p-3 bg-surface-container-high rounded-xl shadow-sm border border-outline-variant/20 group-hover:scale-110 transition-transform duration-500">
+                        <Database className="w-5 h-5 text-secondary" />
+                      </div>
+                      <h3 className="font-bold text-on-surface-variant font-sans text-xs uppercase tracking-widest">Total Workspaces</h3>
+                    </div>
+                    <div className="flex items-end justify-between">
+                      <span className="text-5xl font-bold font-heading text-on-surface tracking-tight group-hover:text-primary transition-colors duration-500">{totalRepos}</span>
+                      <span className="text-xs text-on-surface-variant font-mono pb-2 uppercase tracking-wider">Connected</span>
+                    </div>
                   </div>
-                  <h3 className="font-bold text-on-surface-variant font-sans text-xs uppercase tracking-wider">Total Workspaces</h3>
                 </div>
-                <div className="flex items-end justify-between">
-                  <span className="text-4xl font-bold font-heading text-on-surface">{totalRepos}</span>
-                  <span className="text-xs text-on-surface-variant font-mono pb-1">Connected</span>
-                </div>
-              </div>
 
-              {/* Stat Card 2 */}
-              <div className="glass-card rounded-xl p-6 border border-white/5 flex flex-col justify-between">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2.5 bg-primary/10 rounded-lg shadow-lg border border-primary/20">
-                    <CheckCircle2 className="w-5 h-5 text-primary" />
-                  </div>
-                  <h3 className="font-bold text-on-surface-variant font-sans text-xs uppercase tracking-wider">Avg Health Score</h3>
-                </div>
-                <div className="flex items-end justify-between">
-                  <span className={cn("text-4xl font-bold font-heading glow-text", getScoreColor(avgScore))}>
-                    {avgScore}
-                  </span>
-                  <span className="text-xs text-on-surface-variant font-mono pb-1">/ 100</span>
-                </div>
-                {/* Visual Progress Bar */}
-                <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden mt-4">
-                  <div
-                    className={cn("h-full transition-all shadow-[0_0_10px_currentColor]",
-                      avgScore >= 80 ? 'bg-primary' : avgScore >= 60 ? 'bg-amber-500' : 'bg-error'
-                    )}
-                    style={{ width: `${avgScore}%` }}
+                {/* Stat Card 2 */}
+                <div className="group relative bg-gradient-to-br from-surface to-surface-container rounded-2xl p-6 border border-outline-variant/30 hover:border-primary/30 transition-all duration-500 overflow-hidden shadow-sm hover:shadow-primary/5">
+                  <div className={cn("absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 rounded-full blur-2xl transition-all duration-500", 
+                    avgScore >= 80 ? 'bg-primary/10 group-hover:bg-primary/20' : 
+                    avgScore >= 60 ? 'bg-amber-500/10 group-hover:bg-amber-500/20' : 
+                    'bg-error/10 group-hover:bg-error/20')} 
                   />
+                  <div className="relative z-10 flex flex-col justify-between h-full">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className={cn("p-3 rounded-xl shadow-sm border group-hover:scale-110 transition-transform duration-500", 
+                        avgScore >= 80 ? 'bg-primary/10 border-primary/20' : 
+                        avgScore >= 60 ? 'bg-amber-500/10 border-amber-500/20' : 
+                        'bg-error/10 border-error/20')}
+                      >
+                        <CheckCircle2 className={cn("w-5 h-5", getScoreColor(avgScore))} />
+                      </div>
+                      <h3 className="font-bold text-on-surface-variant font-sans text-xs uppercase tracking-widest">Avg Health Score</h3>
+                    </div>
+                    <div className="flex items-end justify-between">
+                      <span className={cn("text-5xl font-bold font-heading tracking-tight glow-text", getScoreColor(avgScore))}>
+                        {avgScore}
+                      </span>
+                      <span className="text-xs text-on-surface-variant font-mono pb-2">/ 100</span>
+                    </div>
+                    {/* Visual Progress Bar */}
+                    <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden mt-5">
+                      <div
+                        className={cn("h-full transition-all duration-1000 ease-out shadow-[0_0_10px_currentColor]",
+                          avgScore >= 80 ? 'bg-primary' : avgScore >= 60 ? 'bg-amber-500' : 'bg-error'
+                        )}
+                        style={{ width: `${avgScore}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stat Card 3 */}
+                <div className="group relative bg-gradient-to-br from-surface to-surface-container rounded-2xl p-6 border border-outline-variant/30 hover:border-error/30 transition-all duration-500 overflow-hidden shadow-sm hover:shadow-error/5">
+                  <div className={cn("absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 rounded-full blur-2xl transition-all duration-500", needsAttentionCount > 0 ? "bg-error/10 group-hover:bg-error/20" : "bg-primary/5")} />
+                  <div className="relative z-10 flex flex-col justify-between h-full">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className={cn("p-3 rounded-xl shadow-sm border group-hover:scale-110 transition-transform duration-500", needsAttentionCount > 0 ? "bg-error/10 border-error/20" : "bg-surface-container-high border-outline-variant/20")}>
+                        <Settings className={cn("w-5 h-5", needsAttentionCount > 0 ? "text-error" : "text-on-surface-variant")} />
+                      </div>
+                      <h3 className="font-bold text-on-surface-variant font-sans text-xs uppercase tracking-widest">Needs Attention</h3>
+                    </div>
+                    <div className="flex items-end justify-between">
+                      <span className={cn("text-5xl font-bold font-heading tracking-tight", needsAttentionCount > 0 ? "text-error glow-text" : "text-on-surface")}>
+                        {needsAttentionCount}
+                      </span>
+                      <span className="text-xs text-on-surface-variant font-mono pb-2 uppercase tracking-wider">Repositories</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Stat Card 3 */}
-              <div className="glass-card rounded-xl p-6 border border-white/5 flex flex-col justify-between">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2.5 bg-error/10 rounded-lg shadow-lg border border-error/20">
-                    <Settings className="w-5 h-5 text-error" />
-                  </div>
-                  <h3 className="font-bold text-on-surface-variant font-sans text-xs uppercase tracking-wider">Needs Attention</h3>
+              {/* Controls Bar */}
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-surface-container border border-white/5 rounded-lg p-3">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                   <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider pl-2">Filter Status:</span>
+                   <select 
+                     className="bg-surface border border-white/10 rounded-md text-sm text-on-surface py-1.5 px-3 outline-none focus:border-primary transition-colors cursor-pointer"
+                     value={statusFilter}
+                     onChange={(e) => setStatusFilter(e.target.value as any)}
+                   >
+                     <option value="all">All Repositories</option>
+                     <option value="pass">Passing (80+)</option>
+                     <option value="warn">Warning (60-79)</option>
+                     <option value="fail">Failing (&lt;60)</option>
+                   </select>
                 </div>
-                <div className="flex items-end justify-between">
-                  <span className={cn("text-4xl font-bold font-heading", needsAttentionCount > 0 ? "text-error glow-text" : "text-on-surface")}>
-                    {needsAttentionCount}
-                  </span>
-                  <span className="text-xs text-on-surface-variant font-mono pb-1">Repositories</span>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                   <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider pl-2">Sort By:</span>
+                   <select 
+                     className="bg-surface border border-white/10 rounded-md text-sm text-on-surface py-1.5 px-3 outline-none focus:border-primary transition-colors cursor-pointer"
+                     value={sortOrder}
+                     onChange={(e) => setSortOrder(e.target.value as any)}
+                   >
+                     <option value="recent">Recently Analyzed</option>
+                     <option value="score-desc">Health Score (High to Low)</option>
+                     <option value="score-asc">Health Score (Low to High)</option>
+                     <option value="alpha">Alphabetical</option>
+                   </select>
                 </div>
               </div>
             </div>

@@ -11,7 +11,7 @@ import { analyzeRepository } from '../lib/api';
 import { useToast } from '../hooks/useToast';
 import { motion } from 'framer-motion';
 import { useAuth } from '@clerk/react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 
 export const DashboardPage = () => {
   const { getToken } = useAuth();
@@ -122,6 +122,22 @@ export const DashboardPage = () => {
       desc: 'Executing sequences',
     },
   ];
+
+  // Phase 2: Compute Data for Charts
+  const languageCounts = repositories.reduce((acc, repo) => {
+    if (repo.language) {
+      acc[repo.language] = (acc[repo.language] || 0) + 1;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+  const languageData = Object.keys(languageCounts).map(key => ({ name: key, value: languageCounts[key] })).sort((a,b) => b.value - a.value);
+  const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+
+  const topReposData = repositories
+    .filter(r => r.score != null)
+    .sort((a,b) => b.score! - a.score!)
+    .slice(0, 5)
+    .map(r => ({ name: r.name.split('/').pop(), score: r.score, fullName: r.name }));
 
   if (isLoading) {
     return (
@@ -425,6 +441,69 @@ export const DashboardPage = () => {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Advanced Analytics (Phase 2 Additions) */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6">
+        {/* Language Distribution Pie Chart */}
+        <div className="bg-surface border border-white/10 rounded-xl p-6 flex flex-col h-[350px]">
+          <h2 className="text-sm font-semibold text-on-surface mb-6">Language Distribution</h2>
+          <div className="flex-grow w-full h-full">
+             {languageData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={languageData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {languageData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: 'var(--color-surface-container)', borderColor: 'var(--color-outline-variant)', borderRadius: '8px' }}
+                      itemStyle={{ color: 'var(--color-on-surface)' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+             ) : (
+                <div className="w-full h-full flex items-center justify-center text-sm text-on-surface-variant">No language data available.</div>
+             )}
+          </div>
+        </div>
+
+        {/* Top 5 Repositories Bar Chart */}
+        <div className="bg-surface border border-white/10 rounded-xl p-6 flex flex-col h-[350px]">
+          <h2 className="text-sm font-semibold text-on-surface mb-6">Top Performers</h2>
+          <div className="flex-grow w-full h-full">
+             {topReposData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topReposData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-outline-variant)" vertical={false} opacity={0.3} />
+                    <XAxis dataKey="name" stroke="var(--color-on-surface-variant)" fontSize={10} tickLine={false} axisLine={false} />
+                    <YAxis stroke="var(--color-on-surface-variant)" fontSize={10} tickLine={false} axisLine={false} domain={[0, 100]} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: 'var(--color-surface-container)', borderColor: 'var(--color-outline-variant)', borderRadius: '8px' }}
+                      cursor={{ fill: 'var(--color-surface-container-high)', opacity: 0.4 }}
+                    />
+                    <Bar dataKey="score" fill="var(--color-primary)" radius={[4, 4, 0, 0]} barSize={30}>
+                       {topReposData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.score! >= 80 ? 'var(--color-primary)' : entry.score! >= 60 ? '#f59e0b' : '#ef4444'} />
+                       ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+             ) : (
+                <div className="w-full h-full flex items-center justify-center text-sm text-on-surface-variant">No score data available.</div>
+             )}
           </div>
         </div>
       </section>
