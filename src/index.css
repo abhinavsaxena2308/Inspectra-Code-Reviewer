@@ -62,6 +62,44 @@
 }
 
 @layer base {
+  .light {
+    --color-void: #f8fafc;
+    --color-void-surface: #ffffff;
+    --color-background: #ffffff;
+    --color-surface: #f4f4f5;
+    --color-surface-container-low: #e4e4e7;
+    --color-surface-container: #d4d4d8;
+    --color-surface-container-high: #a1a1aa;
+    --color-surface-container-highest: #71717a;
+    --color-on-surface: #18181b;
+    --color-on-surface-variant: #3f3f46;
+    --color-outline: #e4e4e7;
+    --color-outline-variant: #d4d4d8;
+    
+    --color-gh-bg: #ffffff;
+    --color-gh-border: #d0d7de;
+    --color-gh-header: #f6f8fa;
+    --color-gh-text: #24292f;
+    --color-gh-muted: #57606a;
+  }
+
+  .high-contrast {
+    --color-void: #000000;
+    --color-background: #000000;
+    --color-surface: #000000;
+    --color-surface-container-low: #000000;
+    --color-surface-container: #000000;
+    --color-surface-container-high: #000000;
+    --color-surface-container-highest: #000000;
+    --color-on-surface: #ffffff;
+    --color-on-surface-variant: #ffffff;
+    --color-outline: #ffffff;
+    --color-outline-variant: #ffffff;
+    --color-primary: #ffff00;
+    --color-secondary: #00ff00;
+    --color-error: #ff0000;
+  }
+
   html {
     @apply scroll-smooth;
   }

@@ -5,14 +5,17 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
+import { useTheme } from '../hooks/useTheme';
 import { UserProfile } from '@clerk/react';
 import { dark } from '@clerk/themes';
 
 export const SettingsPage = () => {
   const { user, signOut, updateProfile } = useAuth();
   const { addToast } = useToast();
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  const [isHighContrast, setIsHighContrast] = useState(false);
+  const { theme, setTheme, isHighContrast, setIsHighContrast } = useTheme();
+  const isDarkMode = theme === 'dark';
+  const setIsDarkMode = (dark: boolean) => setTheme(dark ? 'dark' : 'light');
+
   const [showToken, setShowToken] = useState(false);
   const [githubToken, setGithubToken] = useState('');
   const [name, setName] = useState('');
@@ -86,7 +89,7 @@ export const SettingsPage = () => {
                   type="text"
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  className="w-full bg-[#050505] border border-white/10 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-white/40 text-on-surface transition-colors"
+                  className="w-full bg-surface-container-low border border-outline-variant/30 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-outline text-on-surface transition-colors"
                 />
               </div>
               <div className="space-y-2">
@@ -97,7 +100,7 @@ export const SettingsPage = () => {
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className="w-full bg-[#050505] border border-white/10 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-white/40 text-on-surface transition-colors"
+                  className="w-full bg-surface-container-low border border-outline-variant/30 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-outline text-on-surface transition-colors"
                 />
               </div>
             </div>
@@ -204,7 +207,7 @@ export const SettingsPage = () => {
                       value={githubToken}
                       onChange={e => setGithubToken(e.target.value)}
                       placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                      className="w-full bg-[#050505] border border-white/10 rounded-md px-4 py-2.5 pr-12 text-sm font-mono placeholder:text-on-surface-variant/30 focus:outline-none focus:border-white/40 text-on-surface transition-colors"
+                      className="w-full bg-surface-container-low border border-outline-variant/30 rounded-md py-2.5 pl-4 pr-10 text-sm focus:outline-none focus:border-outline text-on-surface font-mono placeholder:text-on-surface-variant/50 transition-colors"
                     />
                     <button
                       onClick={() => setShowToken(!showToken)}
