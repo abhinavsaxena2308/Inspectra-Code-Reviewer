@@ -166,7 +166,7 @@ export const DashboardPage = () => {
                   <div className="relative flex-grow flex items-center">
                     <Github className="absolute left-3 w-4 h-4 text-on-surface-variant" />
                     <input
-                      className="w-full bg-[#050505] border border-white/10 hover:border-white/20 rounded-md py-2.5 pl-9 pr-4 text-sm focus:outline-none focus:border-white/40 text-on-surface placeholder:text-white/20 font-mono transition-colors"
+                      className="w-full bg-surface-container-low border border-outline-variant/30 hover:border-outline-variant rounded-md py-2.5 pl-9 pr-4 text-sm focus:outline-none focus:border-outline text-on-surface placeholder:text-on-surface-variant/50 font-mono transition-colors"
                       placeholder="github.com/org/repo"
                       type="text"
                       value={repoUrl}

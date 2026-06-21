@@ -89,7 +89,7 @@ export const SettingsPage = () => {
                   type="text"
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  className="w-full bg-[#050505] border border-white/10 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-white/40 text-on-surface transition-colors"
+                  className="w-full bg-surface-container-low border border-outline-variant/30 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-outline text-on-surface transition-colors"
                 />
               </div>
               <div className="space-y-2">
@@ -100,7 +100,7 @@ export const SettingsPage = () => {
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className="w-full bg-[#050505] border border-white/10 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-white/40 text-on-surface transition-colors"
+                  className="w-full bg-surface-container-low border border-outline-variant/30 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-outline text-on-surface transition-colors"
                 />
               </div>
             </div>
@@ -199,7 +199,7 @@ export const SettingsPage = () => {
                       value={githubToken}
                       onChange={e => setGithubToken(e.target.value)}
                       placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                      className="w-full bg-[#050505] border border-white/10 rounded-md px-4 py-2.5 pr-12 text-sm font-mono placeholder:text-on-surface-variant/30 focus:outline-none focus:border-white/40 text-on-surface transition-colors"
+                      className="w-full bg-surface-container-low border border-outline-variant/30 rounded-md py-2.5 pl-4 pr-10 text-sm focus:outline-none focus:border-outline text-on-surface font-mono placeholder:text-on-surface-variant/50 transition-colors"
                     />
                     <button
                       onClick={() => setShowToken(!showToken)}

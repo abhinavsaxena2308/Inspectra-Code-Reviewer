@@ -6,6 +6,7 @@ import {
   Menu, X, LogOut, LayoutDashboard, Settings
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useAuth as useClerkAuth } from '@clerk/react';
 import { motion } from 'framer-motion';
 import { GradientBlinds } from '../components/ui/GradientBlinds';
 import Marquee from '../components/ui/Marquee';
@@ -23,11 +24,17 @@ export function LandingPage() {
   const [repoUrl, setRepoUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState('');
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
+  const { getToken } = useClerkAuth();
 
   const handleAnalyze = async () => {
     if (!repoUrl) {
       setError('Please enter a valid GitHub repository URL');
+      return;
+    }
+
+    if (!user) {
+      navigate('/register');
       return;
     }
 
@@ -40,8 +47,11 @@ export function LandingPage() {
         throw new Error('Invalid URL format. Use: https://github.com/owner/repo');
       }
 
+      const token = await getToken();
+      if (!token) throw new Error("Authentication required");
+
       const { analyzeRepository } = await import('../lib/api');
-      const response = await analyzeRepository(repoUrl);
+      const response = await analyzeRepository(repoUrl, token);
       
       if (response.status === 'success') {
         navigate(`/analysis/${response.data.id}`);
@@ -109,7 +119,7 @@ export function LandingPage() {
                 <div className="relative flex-grow">
                   <Terminal className="absolute left-5 sm:left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-cyan transition-colors z-40" />
                   <input
-                    className="w-full bg-black/40 border border-white/10 rounded-full sm:rounded-l-full sm:rounded-r-none pl-14 sm:pl-16 pr-4 sm:pr-52 py-4 sm:py-5 text-sm font-mono focus:ring-1 focus:ring-cyan/50 focus:border-cyan outline-none transition-all placeholder:text-white/20 text-white backdrop-blur-md relative z-30"
+                    className="w-full bg-surface-container-low/40 border border-outline-variant/30 rounded-full sm:rounded-l-full sm:rounded-r-none pl-14 sm:pl-16 pr-4 sm:pr-52 py-4 sm:py-5 text-sm font-mono focus:ring-1 focus:ring-primary/50 focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/50 text-on-surface backdrop-blur-md relative z-30"
                     placeholder="https://github.com/username/repo"
                     value={repoUrl}
                     onChange={(e) => setRepoUrl(e.target.value)}
