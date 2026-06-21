@@ -86,13 +86,13 @@ export const AnalysisPage = () => {
     switch (severity.toLowerCase()) {
       case 'high':
       case 'critical':
-        return 'text-red-500 bg-red-500/10 border-red-500/20';
+        return 'text-red-400 bg-red-500/10 ring-1 ring-red-500/20';
       case 'medium':
-        return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
+        return 'text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20';
       case 'low':
-        return 'text-green-500 bg-green-500/10 border-green-500/20';
+        return 'text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20';
       default:
-        return 'text-on-surface-variant bg-on-surface-variant/10 border-on-surface-variant/20';
+        return 'text-on-surface-variant bg-surface-container ring-1 ring-outline-variant/30';
     }
   };
 
@@ -134,12 +134,16 @@ export const AnalysisPage = () => {
   }
 
   return (
-    <div className="h-screen bg-surface flex flex-col overflow-hidden">
+    <div className="h-screen bg-background flex flex-col overflow-hidden relative">
+      {/* Background Glow Effects */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[120px] pointer-events-none opacity-50" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/5 rounded-full blur-[120px] pointer-events-none opacity-50" />
+
       {/* Header */}
-      <header className="border-b border-none bg-surface-container/50 backdrop-blur-md px-6 py-4 flex items-center justify-between z-10 shrink-0">
-        <div className="flex items-center gap-4">
-          <Button variant="secondary" size="sm" onClick={() => navigate('/dashboard')} className="p-2 h-auto">
-            <ArrowLeft className="w-4 h-4" />
+      <header className="border-b border-white/5 bg-surface/50 backdrop-blur-xl px-8 py-5 flex items-center justify-between z-10 shrink-0">
+        <div className="flex items-center gap-5">
+          <Button variant="secondary" size="sm" onClick={() => navigate('/dashboard')} className="p-2.5 h-auto rounded-xl bg-surface-container-high/50 hover:bg-surface-container-high border-none transition-colors">
+            <ArrowLeft className="w-4 h-4 text-on-surface" />
           </Button>
           <div>
             <div className="flex items-center gap-2 mb-0.5">
@@ -152,37 +156,43 @@ export const AnalysisPage = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-8">
           <div className="flex flex-col items-end">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-on-surface-variant mb-1">Health Score</span>
-            <div className="flex items-center gap-3">
-              <div className="h-1.5 w-32 bg-surface-container border border-none rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${analysis.score}%` }}
-                  className={cn(
-                    "h-full transition-colors",
-                    analysis.score > 80 ? 'bg-secondary' : analysis.score > 50 ? 'bg-tertiary' : 'bg-error'
-                  )}
-                />
-              </div>
-              <span className="text-sm font-bold text-on-surface">{analysis.score}</span>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant">Health Score</span>
+              <span className={cn(
+                "text-sm font-black tracking-tight",
+                analysis.score > 80 ? 'text-secondary' : analysis.score > 50 ? 'text-tertiary' : 'text-error'
+              )}>{analysis.score}</span>
+            </div>
+            <div className="h-1.5 w-40 bg-surface-container-high rounded-full overflow-hidden ring-1 ring-inset ring-black/50">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${analysis.score}%` }}
+                className={cn(
+                  "h-full transition-all duration-1000 ease-out",
+                  analysis.score > 80 ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : analysis.score > 50 ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 'bg-gradient-to-r from-red-500 to-red-400'
+                )}
+              />
             </div>
           </div>
-          <Button size="sm" className="gap-2">
-            <ExternalLink className="w-4 h-4" />
-            GitHub
+          <div className="h-8 w-px bg-white/10 mx-2" />
+          <Button size="sm" className="gap-2 rounded-lg font-medium px-4 bg-surface-container-high hover:bg-surface-container-highest text-on-surface border-white/5 transition-all">
+            <ExternalLink className="w-4 h-4 text-on-surface-variant" />
+            View Repository
           </Button>
         </div>
       </header>
 
       {/* Content Layout */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden z-10">
         {/* Sidebar: Categories & Files */}
-        <aside className="w-72 border-r border-none bg-surface flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-none bg-surface-container/20">
-            <h3 className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">Categories</h3>
-            <div className="space-y-1">
+        <aside className="w-80 border-r border-white/5 bg-surface/30 backdrop-blur-sm flex flex-col overflow-hidden">
+          <div className="p-6 border-b border-white/5">
+            <h3 className="text-[10px] font-bold text-on-surface-variant/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <div className="w-1 h-1 rounded-full bg-primary/50" /> Categories
+            </h3>
+            <div className="space-y-1.5">
               {['issues', 'suggestions', 'security', 'performance'].map((tab) => {
                 const Icon = tab === 'issues' ? AlertTriangle : tab === 'suggestions' ? Lightbulb : tab === 'security' ? ShieldAlert : Zap;
                 const isActive = activeTab === tab;
@@ -193,18 +203,21 @@ export const AnalysisPage = () => {
                     key={tab}
                     onClick={() => setActiveTab(tab as any)}
                     className={cn(
-                      "w-full flex items-center justify-between px-3 py-1.5 text-xs rounded-md transition-all",
+                      "w-full flex items-center justify-between px-3.5 py-2.5 text-sm rounded-xl transition-all duration-200 group",
                       isActive 
-                        ? "bg-primary/10 text-primary font-semibold ring-1 ring-primary/20" 
-                        : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50"
+                        ? "bg-primary/10 text-primary font-medium ring-1 ring-primary/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" 
+                        : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50"
                     )}
                   >
-                    <div className="flex items-center gap-2">
-                      <Icon className="w-3.5 h-3.5" />
+                    <div className="flex items-center gap-3">
+                      <Icon className={cn("w-4 h-4 transition-colors", isActive ? "text-primary" : "text-on-surface-variant group-hover:text-on-surface")} />
                       <span className="capitalize">{tab}</span>
                     </div>
                     {count > 0 && (
-                      <span className={cn("text-[9px] px-1.5 py-0.5 rounded-full font-bold", isActive ? "bg-primary/20 text-primary" : "bg-surface-container text-on-surface-variant")}>
+                      <span className={cn(
+                        "text-[10px] px-2 py-0.5 rounded-full font-bold transition-colors", 
+                        isActive ? "bg-primary/20 text-primary" : "bg-surface-container-highest text-on-surface-variant group-hover:bg-white/10 group-hover:text-on-surface"
+                      )}>
                         {count}
                       </span>
                     )}
@@ -214,21 +227,23 @@ export const AnalysisPage = () => {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-            <h3 className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">Files</h3>
-            <div className="space-y-0.5">
+          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+            <h3 className="text-[10px] font-bold text-on-surface-variant/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <div className="w-1 h-1 rounded-full bg-secondary/50" /> Analyzed Files
+            </h3>
+            <div className="space-y-1">
               {(analysis.files || []).map((file) => (
                 <button
                   key={file.file_name}
                   onClick={() => setSelectedFile(file.file_name)}
                   className={cn(
-                    "w-full flex items-center gap-2 px-3 py-1.5 text-xs rounded-md transition-all text-left truncate",
+                    "w-full flex items-center gap-3 px-3 py-2 text-sm rounded-xl transition-all text-left truncate group",
                     selectedFile === file.file_name
-                      ? "bg-surface-container text-on-surface font-medium border border-none shadow-sm"
-                      : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container/30"
+                      ? "bg-surface-container-high text-on-surface font-medium ring-1 ring-white/10 shadow-sm"
+                      : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/30"
                   )}
                 >
-                  <FileCode className="w-3.5 h-3.5 shrink-0" />
+                  <FileCode className={cn("w-4 h-4 shrink-0 transition-colors", selectedFile === file.file_name ? "text-primary" : "text-on-surface-variant/50 group-hover:text-on-surface-variant")} />
                   <span className="truncate">{file.file_name}</span>
                 </button>
               ))}
@@ -237,22 +252,29 @@ export const AnalysisPage = () => {
         </aside>
 
         {/* Main Content: Issues */}
-        <main className="flex-1 bg-surface overflow-y-auto custom-scrollbar p-8">
-          <div className="max-w-3xl mx-auto space-y-6">
-            <div className="mb-8">
-              <h2 className="text-xl font-bold text-on-surface capitalize mb-1">{activeTab} Details</h2>
-              <p className="text-on-surface-variant text-xs">Analysis results for <span className="text-primary font-mono">{selectedFile || 'selected file'}</span></p>
+        {/* Main Content: Issues */}
+        <main className="flex-1 overflow-y-auto custom-scrollbar p-10 lg:p-14">
+          <div className="max-w-4xl mx-auto space-y-8">
+            <div className="mb-10 pb-6 border-b border-white/5">
+              <h2 className="text-3xl font-bold text-on-surface capitalize mb-3 tracking-tight">{activeTab} Details</h2>
+              <div className="flex items-center gap-2 text-sm text-on-surface-variant">
+                <span>Displaying findings for</span>
+                <Badge variant="neutral" className="font-mono bg-surface-container px-2 py-1 border-white/5 text-primary/90">{selectedFile || 'selected file'}</Badge>
+              </div>
             </div>
 
             <AnimatePresence mode="popLayout">
               {filteredIssues.length === 0 ? (
                 <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex flex-col items-center justify-center py-20 bg-surface-container/10 rounded-xl border border-dashed border-transparent"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex flex-col items-center justify-center py-24 bg-surface-container/20 rounded-2xl border border-dashed border-white/10"
                 >
-                  <CheckCircle2 className="w-8 h-8 text-secondary mb-4 opacity-30" />
-                  <p className="text-sm text-on-surface-variant">No {activeTab} detected here.</p>
+                  <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center mb-6">
+                    <CheckCircle2 className="w-8 h-8 text-secondary" />
+                  </div>
+                  <h3 className="text-lg font-bold text-on-surface mb-2">Clean Bill of Health</h3>
+                  <p className="text-on-surface-variant">No {activeTab} detected in this file. Great job!</p>
                 </motion.div>
               ) : (
                 filteredIssues
@@ -260,27 +282,33 @@ export const AnalysisPage = () => {
                   .map((issue, idx) => (
                     <motion.div
                       key={idx}
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.03 }}
+                      transition={{ delay: idx * 0.05, ease: "easeOut" }}
+                      className="mb-6"
                     >
-                      <Card className="p-5 border-l-4 bg-surface-container/20" 
-                        style={{ borderLeftColor: issue.severity === 'high' ? '#ef4444' : issue.severity === 'medium' ? '#eab308' : '#22c55e' }}
-                      >
-                        <div className="flex items-center gap-2 mb-3">
-                          <Badge className={cn("text-[9px] uppercase font-extrabold px-1.5 py-0.5", getSeverityColor(issue.severity))}>
-                            {issue.severity}
-                          </Badge>
-                          <span className="text-[10px] text-on-surface-variant font-mono">{issue.file_name}</span>
-                        </div>
-                        <h4 className="text-sm font-bold text-on-surface mb-4 leading-relaxed">{issue.message}</h4>
-                        
-                        <div className="bg-surface/50 border border-none rounded-lg p-3">
-                          <div className="flex items-center gap-1.5 mb-2 text-primary">
-                            <Lightbulb className="w-3 h-3" />
-                            <span className="text-[9px] font-bold uppercase tracking-widest">Recommended Fix</span>
+                      <Card className="overflow-hidden bg-surface-container-low/50 backdrop-blur-sm border-white/5 shadow-xl hover:border-white/10 transition-colors group">
+                        <div className="p-6 md:p-8">
+                          <div className="flex items-center justify-between mb-5">
+                            <Badge className={cn("text-[10px] font-black px-2.5 py-1 tracking-wider", getSeverityColor(issue.severity))}>
+                              {issue.severity.toUpperCase()}
+                            </Badge>
+                            {issue.line && (
+                              <span className="text-xs text-on-surface-variant font-mono bg-surface-container px-2 py-1 rounded-md ring-1 ring-white/5">Line {issue.line}</span>
+                            )}
                           </div>
-                          <pre className="text-xs text-on-surface font-mono whitespace-pre-wrap leading-relaxed opacity-90">{issue.suggestion}</pre>
+                          
+                          <h4 className="text-base md:text-lg font-medium text-on-surface mb-6 leading-relaxed opacity-90">{issue.message}</h4>
+                          
+                          <div className="bg-[#050505] rounded-xl border border-white/[0.08] shadow-inner overflow-hidden">
+                            <div className="flex items-center gap-2 px-4 py-2.5 bg-white/[0.02] border-b border-white/[0.05]">
+                              <Lightbulb className="w-3.5 h-3.5 text-primary/80" />
+                              <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Recommended Fix</span>
+                            </div>
+                            <div className="p-4 md:p-5 overflow-x-auto custom-scrollbar">
+                              <pre className="text-sm font-mono text-on-surface/80 leading-loose whitespace-pre-wrap">{issue.suggestion}</pre>
+                            </div>
+                          </div>
                         </div>
                       </Card>
                     </motion.div>
