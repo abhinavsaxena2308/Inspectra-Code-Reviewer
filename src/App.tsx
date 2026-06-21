@@ -10,7 +10,8 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { Sidebar } from './components/layout/Sidebar';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import { ToastContainer } from './components/ui/Toast';
+import { Toaster } from 'sonner';
+import { CommandPalette } from './components/ui/CommandPalette';
 import { AuthProvider } from './hooks/useAuth';
 import { ToastProvider, useToast } from './hooks/useToast';
 import { ThemeProvider } from './hooks/useTheme';
@@ -21,7 +22,9 @@ const AppContent = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       {children}
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <Toaster theme="system" position="bottom-right" richColors toastOptions={{
+        style: { background: 'var(--color-surface)', border: '1px solid var(--color-outline)', color: 'var(--color-on-surface)' }
+      }} />
     </>
   );
 };
@@ -37,6 +40,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex h-screen bg-void text-on-surface overflow-hidden font-sans">
+      <CommandPalette />
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Cinematic Backdrop for internal pages */}

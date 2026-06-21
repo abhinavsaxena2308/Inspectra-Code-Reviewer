@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { useDebounce } from '../hooks/useDebounce';
 import { useAuth } from '@clerk/react';
+import { toast } from 'sonner';
 
 export const RepositoriesPage = () => {
   const { getToken } = useAuth();
@@ -26,6 +27,7 @@ export const RepositoriesPage = () => {
       setRepositories(reposData);
     } catch (error) {
       console.error('Failed to load repositories:', error);
+      toast.error('Failed to load repositories.');
     } finally {
       setIsLoading(false);
     }
@@ -42,10 +44,12 @@ export const RepositoriesPage = () => {
       const { analyzeRepository } = await import('../lib/api');
       const response = await analyzeRepository(url, token);
       if (response.status === 'success') {
+        toast.success(`Analysis started for ${url}`);
         navigate(`/analysis/${response.data.id}`);
       }
     } catch (error) {
       console.error('Failed to trigger analysis:', error);
+      toast.error('Failed to trigger analysis. Please check the URL and try again.');
     }
   };
 
@@ -67,8 +71,32 @@ export const RepositoriesPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="p-8 md:p-12 space-y-10 max-w-7xl mx-auto w-full">
+        {/* Skeleton Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4 border-b border-white/10">
+          <div className="space-y-2 flex-1">
+            <div className="h-8 w-48 bg-surface-container rounded-lg animate-pulse" />
+            <div className="h-4 w-96 bg-surface-container rounded-lg animate-pulse" />
+          </div>
+          <div className="h-10 w-full sm:w-80 bg-surface-container rounded-lg animate-pulse" />
+        </div>
+
+        {/* Skeleton Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+           <div className="h-32 glass-card rounded-xl border border-white/5 bg-surface-container-low animate-pulse" />
+           <div className="h-32 glass-card rounded-xl border border-white/5 bg-surface-container-low animate-pulse" />
+           <div className="h-32 glass-card rounded-xl border border-white/5 bg-surface-container-low animate-pulse" />
+        </div>
+
+        {/* Skeleton Table */}
+        <div className="glass-card rounded-xl border border-white/5 overflow-hidden">
+           <div className="h-16 border-b border-white/5 bg-surface-container animate-pulse" />
+           <div className="divide-y divide-white/5">
+             {[1,2,3,4,5].map(i => (
+               <div key={i} className="h-20 bg-surface-container-low animate-pulse" />
+             ))}
+           </div>
+        </div>
       </div>
     );
   }
