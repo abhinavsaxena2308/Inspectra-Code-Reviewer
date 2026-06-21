@@ -60,6 +60,11 @@ export const RepositoriesPage = () => {
     return 'text-error';
   };
 
+  const totalRepos = repositories.length;
+  const validScores = repositories.filter(r => r.score !== undefined && r.score !== null).map(r => r.score);
+  const avgScore = validScores.length > 0 ? Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length) : 0;
+  const needsAttentionCount = repositories.filter(r => r.status === 'failed' || (r.score !== undefined && r.score !== null && r.score < 80)).length;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
@@ -143,104 +148,63 @@ export const RepositoriesPage = () => {
         </div>
       ) : (
         <>
-          {/* Bento Featured Repos — top 2 */}
-          {filteredRepos.length >= 1 && !repoUrl.includes('github.com') && (
-            <div className="grid grid-cols-12 gap-6">
-              {/* Main featured repo */}
-              <div
-                onClick={() => filteredRepos[0].analysisId ? navigate(`/analysis/${filteredRepos[0].analysisId}`) : handleAnalyze(filteredRepos[0].url)}
-                className="col-span-12 lg:col-span-8 glass-card-premium rounded-xl relative overflow-hidden group cursor-pointer p-8"
-              >
-                <div className="flex justify-between items-start mb-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-surface-container-high rounded-lg shadow-lg">
-                      <Terminal className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-on-surface font-mono group-hover:text-primary transition-colors">{filteredRepos[0].name}</h3>
-                      <p className="text-sm text-on-surface-variant font-sans mt-1 line-clamp-1">
-                        {filteredRepos[0].description || 'Primary workspace repository'}
-                      </p>
-                    </div>
+          {/* Aggregate Stats Overview */}
+          {!repoUrl.includes('github.com') && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Stat Card 1 */}
+              <div className="glass-card rounded-xl p-6 border border-white/5 flex flex-col justify-between">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2.5 bg-surface-container-high rounded-lg shadow-lg">
+                    <Database className="w-5 h-5 text-secondary" />
                   </div>
-                  <span className="px-3 py-1 rounded-full text-[10px] font-mono bg-surface-container text-on-surface border border-outline/50 uppercase">
-                    {filteredRepos[0].isPrivate ? 'Private' : 'Public'}
-                  </span>
+                  <h3 className="font-bold text-on-surface-variant font-sans text-xs uppercase tracking-wider">Total Workspaces</h3>
                 </div>
-                <div className="grid grid-cols-3 gap-8 pt-4 border-t border-white/5">
-                  <div className="space-y-2">
-                    <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">Health Score</p>
-                    <div className="flex items-center gap-2">
-                      <span className={cn("text-4xl font-bold font-heading leading-none glow-text", getScoreColor(filteredRepos[0].score))}>
-                        {filteredRepos[0].score ?? '—'}
-                      </span>
-                      <span className="text-sm text-on-surface-variant font-mono">/ 100</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">Status</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className={cn("ghost-label", (filteredRepos[0].score ?? 0) >= 80 ? "text-primary border-primary/30" : (filteredRepos[0].score ?? 0) >= 60 ? "text-amber-500 border-amber-500/30" : "text-error border-error/30")}>
-                         {(filteredRepos[0].score ?? 0) >= 80 ? 'PASS' : (filteredRepos[0].score ?? 0) >= 60 ? 'WARN' : 'FAIL'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">Last Sync</p>
-                    <p className="text-sm font-medium text-on-surface font-mono leading-none pt-1">{filteredRepos[0].lastAnalyzed || 'Unknown'}</p>
-                  </div>
+                <div className="flex items-end justify-between">
+                  <span className="text-4xl font-bold font-heading text-on-surface">{totalRepos}</span>
+                  <span className="text-xs text-on-surface-variant font-mono pb-1">Connected</span>
                 </div>
               </div>
 
-              {/* Secondary repo or placeholder */}
-              {filteredRepos[1] ? (
-                <div
-                  onClick={() => filteredRepos[1].analysisId ? navigate(`/analysis/${filteredRepos[1].analysisId}`) : handleAnalyze(filteredRepos[1].url)}
-                  className="col-span-12 lg:col-span-4 glass-card rounded-xl relative overflow-hidden group cursor-pointer p-6 flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <Database className="w-5 h-5 text-secondary" />
-                        <h3 className="font-bold text-on-surface font-mono text-base truncate group-hover:text-primary transition-colors">{filteredRepos[1].name}</h3>
-                      </div>
-                    </div>
-                    <p className="text-xs text-on-surface-variant font-sans line-clamp-2 mb-6">
-                       {filteredRepos[1].description || 'Secondary workspace repository'}
-                    </p>
+              {/* Stat Card 2 */}
+              <div className="glass-card rounded-xl p-6 border border-white/5 flex flex-col justify-between">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2.5 bg-primary/10 rounded-lg shadow-lg border border-primary/20">
+                    <CheckCircle2 className="w-5 h-5 text-primary" />
                   </div>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-end">
-                      <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider leading-none">Health</span>
-                      <span className={cn("text-3xl font-bold font-heading leading-none", getScoreColor(filteredRepos[1].score))}>
-                        {filteredRepos[1].score ?? '—'}
-                      </span>
-                    </div>
-                    <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
-                      <div
-                        className={cn("h-full transition-all shadow-[0_0_10px_currentColor]",
-                          (filteredRepos[1].score ?? 0) >= 80 ? 'bg-primary' :
-                          (filteredRepos[1].score ?? 0) >= 60 ? 'bg-amber-500' : 'bg-error'
-                        )}
-                        style={{ width: `${filteredRepos[1].score ?? 0}%` }}
-                      />
-                    </div>
-                    <div className="pt-2 flex justify-between">
-                      <span className={cn("ghost-label text-[9px]", (filteredRepos[1].score ?? 0) >= 80 ? "text-primary border-primary/30" : "text-amber-500 border-amber-500/30")}>
-                        {(filteredRepos[1].score ?? 0) >= 80 ? 'PASS' : (filteredRepos[1].score ?? 0) >= 60 ? 'WARN' : 'FAIL'}
-                      </span>
-                      <span className="text-[10px] font-mono text-on-surface-variant">{filteredRepos[1].lastAnalyzed || 'Unknown'}</span>
-                    </div>
-                  </div>
+                  <h3 className="font-bold text-on-surface-variant font-sans text-xs uppercase tracking-wider">Avg Health Score</h3>
                 </div>
-              ) : (
-                <div className="col-span-12 lg:col-span-4 glass-card rounded-xl p-6 flex flex-col items-center justify-center gap-4 text-center border border-white/5">
-                  <div className="p-4 bg-surface-container-high rounded-full">
-                    <Plus className="w-6 h-6 text-outline/50" />
-                  </div>
-                  <p className="text-sm font-sans text-on-surface-variant">Analyze more repositories to populate this view.</p>
+                <div className="flex items-end justify-between">
+                  <span className={cn("text-4xl font-bold font-heading glow-text", getScoreColor(avgScore))}>
+                    {avgScore}
+                  </span>
+                  <span className="text-xs text-on-surface-variant font-mono pb-1">/ 100</span>
                 </div>
-              )}
+                {/* Visual Progress Bar */}
+                <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden mt-4">
+                  <div
+                    className={cn("h-full transition-all shadow-[0_0_10px_currentColor]",
+                      avgScore >= 80 ? 'bg-primary' : avgScore >= 60 ? 'bg-amber-500' : 'bg-error'
+                    )}
+                    style={{ width: `${avgScore}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Stat Card 3 */}
+              <div className="glass-card rounded-xl p-6 border border-white/5 flex flex-col justify-between">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2.5 bg-error/10 rounded-lg shadow-lg border border-error/20">
+                    <Settings className="w-5 h-5 text-error" />
+                  </div>
+                  <h3 className="font-bold text-on-surface-variant font-sans text-xs uppercase tracking-wider">Needs Attention</h3>
+                </div>
+                <div className="flex items-end justify-between">
+                  <span className={cn("text-4xl font-bold font-heading", needsAttentionCount > 0 ? "text-error glow-text" : "text-on-surface")}>
+                    {needsAttentionCount}
+                  </span>
+                  <span className="text-xs text-on-surface-variant font-mono pb-1">Repositories</span>
+                </div>
+              </div>
             </div>
           )}
 
