@@ -42,7 +42,7 @@ export interface HistoryListRow {
 }
 
 export const fetchRepositories = async (token: string): Promise<Repository[]> => {
-  const response = await axios.get('/api/dashboard/repos', {
+  const response = await axios.get('/api/repositories', {
     headers: { Authorization: `Bearer ${token}` }
   });
   return response.data.data;

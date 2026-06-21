@@ -189,51 +189,85 @@ export const getConnectedRepos = async (req: Request, res: Response, next: NextF
       return res.status(401).json({ status: 'error', message: 'Unauthorized' });
     }
 
-    // 1. Fetch OAuth token from Clerk
-    const oauthResponse = await clerkClient.users.getUserOauthAccessToken(userId, 'oauth_github');
-    const tokens = oauthResponse.data;
-    
-    if (!tokens || tokens.length === 0) {
-      return res.status(404).json({ status: 'error', message: 'GitHub account not connected' });
-    }
-
-    const githubToken = tokens[0].token;
-
-    // 2. Fetch repos from GitHub using the token
-    const { getGitHubRepositories } = await import('../services/githubService');
-    const githubRepos = await getGitHubRepositories(githubToken);
-
-    // 3. Fetch past analysis from our DB to join status
+    // Always fetch DB repos first
     const dbRepos = await getUserRepositories(userId);
     const dbRepoMap = new Map(dbRepos.map(r => [`${r.owner}/${r.repo_name}`.toLowerCase(), r]));
 
-    // 4. Merge
-    const mergedRepos = githubRepos.map(r => {
-      const fullName = r.full_name;
-      const dbInfo = dbRepoMap.get(fullName.toLowerCase());
-      
-      return {
-        id: r.id.toString(),
-        name: r.full_name,
-        description: r.description,
-        isPrivate: r.private,
-        language: r.language || 'Unknown',
-        url: r.html_url,
-        updatedAt: r.updated_at,
-        // Inspectra specific info
-        analysisId: dbInfo?.analysis_id,
-        score: dbInfo?.score,
-        status: dbInfo?.status || 'unscanned',
-        lastAnalyzed: dbInfo?.last_analyzed
-      };
-    });
+    let githubToken: string | undefined = undefined;
 
-    res.json({ status: 'success', data: mergedRepos });
+    // Try to get OAuth token
+    try {
+      const oauthResponse = await clerkClient.users.getUserOauthAccessToken(userId, 'github');
+      if (oauthResponse.data && oauthResponse.data.length > 0) {
+        githubToken = oauthResponse.data[0].token;
+      }
+    } catch (e) {
+      console.log('[getConnectedRepos] No OAuth token found.');
+    }
+
+    // Try to get PAT token fallback if no OAuth token
+    if (!githubToken) {
+      try {
+        const userObj = await clerkClient.users.getUser(userId);
+        githubToken = (userObj.publicMetadata?.github_token || userObj.privateMetadata?.github_token || userObj.unsafeMetadata?.github_token) as string | undefined;
+      } catch (e) {
+        console.log('[getConnectedRepos] Failed to fetch user metadata.');
+      }
+    }
+
+    // Try to fetch GitHub repos if token exists
+    let githubRepos: any[] = [];
+    if (githubToken) {
+      try {
+        const { getGitHubRepositories } = await import('../services/githubService');
+        githubRepos = await getGitHubRepositories(githubToken);
+      } catch (e: any) {
+        console.log('[getConnectedRepos] Failed to fetch from GitHub API:', e.message);
+      }
+    }
+
+    if (githubRepos.length > 0) {
+      // Merge GitHub repos with DB repos
+      const mergedRepos = githubRepos.map(r => {
+        const fullName = r.full_name;
+        const dbInfo = dbRepoMap.get(fullName.toLowerCase());
+        
+        return {
+          id: r.id.toString(),
+          name: r.full_name,
+          description: r.description,
+          isPrivate: r.private,
+          language: r.language || 'Unknown',
+          url: r.html_url,
+          updatedAt: r.updated_at,
+          // Inspectra specific info
+          analysisId: dbInfo?.analysis_id,
+          score: dbInfo?.score,
+          status: dbInfo?.status || 'unscanned',
+          lastAnalyzed: dbInfo?.last_analyzed
+        };
+      });
+      return res.json({ status: 'success', data: mergedRepos });
+    } else {
+      // Fallback: Just return DB repos
+      const fallbackRepos = dbRepos.map(r => ({
+          id: r.id.toString(),
+          name: `${r.owner}/${r.repo_name}`,
+          description: '',
+          isPrivate: false,
+          language: 'Unknown',
+          url: `https://github.com/${r.owner}/${r.repo_name}`,
+          updatedAt: r.last_analyzed || new Date().toISOString(),
+          analysisId: r.analysis_id,
+          score: r.score,
+          status: r.status,
+          lastAnalyzed: r.last_analyzed
+      }));
+      return res.json({ status: 'success', data: fallbackRepos });
+    }
+
   } catch (error: any) {
     console.error('[getConnectedRepos] Error:', error.message);
-    if (error.message.includes('No OAuth access token found') || error.message.includes('not connected')) {
-       return res.status(404).json({ status: 'error', message: 'GitHub account not connected' });
-    }
     next(error);
   }
 };
