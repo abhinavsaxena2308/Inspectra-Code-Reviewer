@@ -680,7 +680,11 @@ export const SettingsPage = () => {
                 <p className="text-sm text-on-surface-variant">Customize how Inspectra reviews your codebase</p>
               </div>
             </div>
-            <button onClick={handleSaveAiSettings} disabled={isSavingAi} className="gap-2">
+            <button 
+              onClick={handleSaveAiSettings} 
+              disabled={isSavingAi} 
+              className="px-4 py-2 bg-emerald-500 text-white rounded-md text-sm font-semibold flex items-center gap-2 hover:bg-emerald-600 transition-colors disabled:opacity-50"
+            >
               {isSavingAi ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               Save Rulesets
             </button>
