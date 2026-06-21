@@ -11,6 +11,7 @@ import { analyzeRepository } from '../lib/api';
 import { useToast } from '../hooks/useToast';
 import { motion } from 'framer-motion';
 import { useAuth } from '@clerk/react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export const DashboardPage = () => {
   const { getToken } = useAuth();
@@ -21,6 +22,7 @@ export const DashboardPage = () => {
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [stats, setStats] = useState<DashboardStats[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [historyList, setHistoryList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -29,14 +31,28 @@ export const DashboardPage = () => {
       try {
         const token = await getToken();
         if (!token) return;
-        const [reposData, statsData, activityData] = await Promise.all([
+        const [reposData, statsData, activityData, historyData] = await Promise.all([
           fetchRepositories(token),
           fetchDashboardStats(token),
           fetchRecentActivity(token),
+          import('../lib/dashboardService').then(m => m.fetchHistoryList(token))
         ]);
         setRepositories(reposData);
         setStats(statsData);
         setActivities(activityData);
+        
+        // Process history data for chart
+        const chartData = historyData
+          .filter((item: any) => item.score !== null)
+          .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+          .map((item: any) => ({
+            name: item.date.split('/').slice(0, 2).join('/'),
+            fullDate: item.date,
+            score: item.score,
+            repo: item.repoName
+          }));
+        
+        setHistoryList(chartData);
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
       } finally {
@@ -278,19 +294,91 @@ export const DashboardPage = () => {
         })}
       </section>
 
-      {/* Intelligence Timeline (Activities) */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between pb-2 border-b border-white/10">
-          <h2 className="text-sm font-semibold text-on-surface">System Ledger</h2>
-          <button 
-            onClick={() => navigate('/history')}
-            className="text-xs text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-1"
-          >
-            View all <ArrowUpRight className="w-3 h-3" />
-          </button>
+      {/* Intelligence Timeline & Trend Chart */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Quality Score Trend Chart */}
+        <div className="bg-surface border border-white/10 rounded-xl p-6 flex flex-col h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-sm font-semibold text-on-surface">Quality Score Trend</h2>
+            <div className="flex items-center gap-2">
+               <span className="w-2 h-2 rounded-full bg-primary" />
+               <span className="text-xs text-on-surface-variant">Global Avg</span>
+            </div>
+          </div>
+          
+          <div className="flex-grow w-full h-[300px]">
+            {historyList.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={historyList}
+                  margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-outline-variant)" vertical={false} opacity={0.3} />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="var(--color-on-surface-variant)" 
+                    fontSize={10} 
+                    tickLine={false} 
+                    axisLine={false}
+                    minTickGap={20}
+                  />
+                  <YAxis 
+                    stroke="var(--color-on-surface-variant)" 
+                    fontSize={10} 
+                    tickLine={false} 
+                    axisLine={false}
+                    domain={[0, 100]}
+                    ticks={[0, 25, 50, 75, 100]}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'var(--color-surface-container)', borderColor: 'var(--color-outline-variant)', borderRadius: '8px' }}
+                    itemStyle={{ color: 'var(--color-on-surface)' }}
+                    labelStyle={{ color: 'var(--color-on-surface-variant)', fontSize: '12px', marginBottom: '4px' }}
+                    formatter={(value: number, name: string, props: any) => [
+                      <span key="val" className="font-semibold text-primary">{value}</span>, 
+                      <span key="lbl" className="text-on-surface-variant ml-2 text-xs">{props.payload.repo}</span>
+                    ]}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="score" 
+                    stroke="var(--color-primary)" 
+                    strokeWidth={2}
+                    fillOpacity={1} 
+                    fill="url(#colorScore)" 
+                    activeDot={{ r: 6, fill: 'var(--color-magenta)', stroke: 'var(--color-surface)', strokeWidth: 2 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center text-center">
+                 <Box className="w-8 h-8 text-white/10 mb-3" />
+                 <p className="text-sm text-on-surface-variant">Not enough data to plot trend.</p>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="bg-surface border border-white/10 rounded-xl overflow-hidden">
+        {/* System Ledger */}
+        <div className="flex flex-col h-full space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-white/10">
+            <h2 className="text-sm font-semibold text-on-surface">System Ledger</h2>
+            <button 
+              onClick={() => navigate('/history')}
+              className="text-xs text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-1"
+            >
+              View all <ArrowUpRight className="w-3 h-3" />
+            </button>
+          </div>
+
+          <div className="bg-surface border border-white/10 rounded-xl overflow-hidden flex-grow">
           <div className="divide-y divide-white/10">
             {activities.length > 0 ? activities.slice(0, 4).map((activity, i) => (
               <motion.div 
@@ -329,6 +417,7 @@ export const DashboardPage = () => {
               </div>
             )}
           </div>
+        </div>
         </div>
       </section>
 
