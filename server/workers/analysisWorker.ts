@@ -3,6 +3,7 @@ import { analyzeMultipleFiles } from '../services/analysisService';
 import { updateAnalysisStatus, saveAnalysisIssues } from '../services/storageService';
 import { calculateScore } from '../services/scoringService';
 import { addAnalysisLog } from '../services/logService';
+import { clerkClient } from '@clerk/express';
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -10,7 +11,8 @@ export const processRepositoryAnalysis = async (
   analysisId: string,
   repoUrl: string,
   owner: string,
-  repo: string
+  repo: string,
+  userId: string
 ) => {
   try {
     // 1. Mark as processing
@@ -19,9 +21,32 @@ export const processRepositoryAnalysis = async (
     addAnalysisLog(analysisId, `Initializing virtual environment for code extraction...`);
     await sleep(1000);
 
+    // Fetch GitHub token from Clerk if available
+    let githubToken: string | undefined;
+    try {
+        addAnalysisLog(analysisId, `Checking for user's connected GitHub account...`);
+        // We use the new clerkClient API to get OAuth tokens
+        const response = await clerkClient.users.getUserOauthAccessToken(userId, 'oauth_github');
+        if (response && response.data && response.data.length > 0) {
+            githubToken = response.data[0].token;
+            addAnalysisLog(analysisId, `Successfully acquired GitHub OAuth token.`);
+        } else {
+            // Fallback to checking user metadata if they pasted a PAT manually
+            const user = await clerkClient.users.getUser(userId);
+            githubToken = (user.publicMetadata?.github_token as string) || (user.privateMetadata?.github_token as string);
+            if (githubToken) {
+                addAnalysisLog(analysisId, `Using manually configured GitHub Personal Access Token.`);
+            } else {
+                addAnalysisLog(analysisId, `No GitHub token found. Attempting public repository access...`);
+            }
+        }
+    } catch (err) {
+        addAnalysisLog(analysisId, `Notice: Proceeding without GitHub token (public repos only).`);
+    }
+
     // 2. Fetch all file metadata
     addAnalysisLog(analysisId, `Fetching repository tree metadata from GitHub...`);
-    const fileMetadata = await getRepositoryContents(owner, repo);
+    const fileMetadata = await getRepositoryContents(owner, repo, '', githubToken);
     addAnalysisLog(analysisId, `Successfully indexed ${fileMetadata.length} files in the repository structure.`);
     await sleep(800);
     
@@ -32,7 +57,7 @@ export const processRepositoryAnalysis = async (
         const file = fileMetadata[i];
         filesWithContent.push({
             name: file.path,
-            content: await fetchFileContent(file.download_url!)
+            content: await fetchFileContent(file.download_url!, githubToken)
         });
         if (i % 3 === 0) {
            addAnalysisLog(analysisId, `  -> Extracted ${file.path}`);

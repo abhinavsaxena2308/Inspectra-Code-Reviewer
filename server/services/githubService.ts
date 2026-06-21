@@ -32,29 +32,12 @@ export const parseRepoUrl = (url: string): { owner: string; repo: string } | nul
   }
 };
 
-export const getGitHubRepositories = async (token: string): Promise<any[]> => {
-  try {
-    // We get repositories for the authenticated user, sort by updated
-    const response = await axios.get(`${GITHUB_API_BASE}/user/repos?sort=updated&per_page=100`, {
-      headers: {
-        'Authorization': `token ${token}`,
-        'User-Agent': 'Inspectra-App',
-        'Accept': 'application/vnd.github.v3+json'
-      }
-    });
-    return response.data;
-  } catch (error: any) {
-    console.error('[GitHubService] Failed to fetch repositories:', error.message);
-    throw new Error(`Failed to fetch repositories: ${error.message}`);
-  }
-};
-
 export const getRepositoryContents = async (owner: string, repo: string, path: string = '', userToken?: string): Promise<GitHubFile[]> => {
   const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/contents/${path}`;
-  const tokenToUse = userToken || GITHUB_TOKEN;
+  const activeToken = userToken || GITHUB_TOKEN;
   const headers: any = {
     'User-Agent': 'Inspectra-App',
-    ...(tokenToUse ? { Authorization: `token ${tokenToUse}` } : {}),
+    ...(activeToken ? { Authorization: `token ${activeToken}` } : {}),
   };
 
   try {
@@ -64,7 +47,7 @@ export const getRepositoryContents = async (owner: string, repo: string, path: s
 
     for (const item of items) {
       if (item.type === 'dir' && !IGNORED_DIRS.includes(item.name)) {
-        const subFiles = await getRepositoryContents(owner, repo, item.path);
+        const subFiles = await getRepositoryContents(owner, repo, item.path, userToken);
         files = [...files, ...subFiles];
       } else if (item.type === 'file') {
         const parts = item.name.split('.');
@@ -86,10 +69,14 @@ export const getRepositoryContents = async (owner: string, repo: string, path: s
   }
 };
 
-export const fetchFileContent = async (downloadUrl: string): Promise<string> => {
+export const fetchFileContent = async (downloadUrl: string, userToken?: string): Promise<string> => {
   try {
+    const activeToken = userToken || GITHUB_TOKEN;
     const response = await axios.get(downloadUrl, {
-      headers: { 'User-Agent': 'Inspectra-App' }
+      headers: { 
+        'User-Agent': 'Inspectra-App',
+        ...(activeToken ? { Authorization: `token ${activeToken}` } : {}),
+      }
     });
     return typeof response.data === 'string' ? response.data : JSON.stringify(response.data, null, 2);
   } catch (error: any) {

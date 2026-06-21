@@ -193,8 +193,16 @@ export const SettingsPage = () => {
                 <div>
                   <h4 className="text-sm font-semibold text-on-surface">GitHub Integration</h4>
                   <p className="text-[10px] text-on-surface-variant font-mono uppercase">
-                    Status: <span className={isGithubConnected ? "text-emerald-500" : "text-amber-500"}>
-                      {isGithubConnected ? "CONNECTED" : "DISCONNECTED"}
+                    Status: <span className={
+                      user?.externalAccounts?.some(acc => acc.provider === 'oauth_github') || user?.profile?.github_token || user?.metadata?.github_token 
+                      ? "text-emerald-500" 
+                      : "text-amber-500"
+                    }>
+                      {user?.externalAccounts?.some(acc => acc.provider === 'oauth_github') 
+                        ? "CONNECTED (OAUTH)" 
+                        : (user?.profile?.github_token || user?.metadata?.github_token) 
+                        ? "CONNECTED (PAT)" 
+                        : "DISCONNECTED"}
                     </span>
                   </p>
                 </div>
