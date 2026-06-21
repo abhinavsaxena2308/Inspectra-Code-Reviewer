@@ -121,7 +121,8 @@ export const getUserRepositories = async (userId: string) => {
   try {
     const res = await pool.query(
       `SELECT r.id, r.repo_url, r.owner, r.repo_name, r.created_at, 
-              a.id as analysis_id, a.score, a.status, a.created_at as last_analyzed
+              a.id as analysis_id, a.score, a.status, a.created_at as last_analyzed,
+              (r.architecture_diagram IS NOT NULL) as has_architecture
        FROM repositories r
        LEFT JOIN analyses a ON r.id = a.repo_id
        WHERE r.clerk_user_id = $1
@@ -260,5 +261,40 @@ export const deleteUserHistory = async (userId: string) => {
     throw new Error('Failed to clear history');
   } finally {
     client.release();
+  }
+};
+
+export const saveArchitecture = async (repoUrl: string, userId: string, mermaidDiagram: string, threatModel: string) => {
+  try {
+    await pool.query(
+      `UPDATE repositories 
+       SET architecture_diagram = $1, architecture_report = $2 
+       WHERE repo_url = $3 AND clerk_user_id = $4`,
+      [mermaidDiagram, threatModel, repoUrl, userId]
+    );
+    console.log(`[Storage] Saved architecture for ${repoUrl}`);
+  } catch (error) {
+    console.error('[Storage] Error saving architecture:', error);
+  }
+};
+
+export const getSavedArchitecture = async (repoUrl: string, userId: string) => {
+  try {
+    const res = await pool.query(
+      `SELECT architecture_diagram, architecture_report 
+       FROM repositories 
+       WHERE repo_url = $1 AND clerk_user_id = $2`,
+      [repoUrl, userId]
+    );
+    if (res.rows.length === 0) return null;
+    const row = res.rows[0];
+    if (!row.architecture_diagram && !row.architecture_report) return null;
+    return {
+      mermaid: row.architecture_diagram,
+      report: row.architecture_report
+    };
+  } catch (error) {
+    console.error('[Storage] Error fetching saved architecture:', error);
+    return null;
   }
 };

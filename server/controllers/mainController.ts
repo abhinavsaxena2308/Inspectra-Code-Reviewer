@@ -244,7 +244,8 @@ export const getConnectedRepos = async (req: Request, res: Response, next: NextF
           analysisId: dbInfo?.analysis_id,
           score: dbInfo?.score,
           status: dbInfo?.status || 'unscanned',
-          lastAnalyzed: dbInfo?.last_analyzed
+          lastAnalyzed: dbInfo?.last_analyzed,
+          has_architecture: dbInfo?.has_architecture
         };
       });
       return res.json({ status: 'success', data: mergedRepos });
@@ -261,7 +262,8 @@ export const getConnectedRepos = async (req: Request, res: Response, next: NextF
           analysisId: r.analysis_id,
           score: r.score,
           status: r.status,
-          lastAnalyzed: r.last_analyzed
+          lastAnalyzed: r.last_analyzed,
+          has_architecture: r.has_architecture
       }));
       return res.json({ status: 'success', data: fallbackRepos });
     }
@@ -406,6 +408,47 @@ export const chatController = async (req: Request, res: Response, next: NextFunc
     responseText = responseText.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
 
     res.json({ status: 'success', data: { response: responseText } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAiSettings = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = getAuth(req).userId;
+    if (!userId) return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+
+    const userObj = await clerkClient.users.getUser(userId);
+    const aiSettings = userObj.publicMetadata?.aiSettings || {
+      strictness: 'standard',
+      focusArea: 'general',
+      customInstructions: ''
+    };
+
+    res.json({ status: 'success', data: aiSettings });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateAiSettings = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = getAuth(req).userId;
+    if (!userId) return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+
+    const { strictness, focusArea, customInstructions } = req.body;
+
+    await clerkClient.users.updateUserMetadata(userId, {
+      publicMetadata: {
+        aiSettings: {
+          strictness: strictness || 'standard',
+          focusArea: focusArea || 'general',
+          customInstructions: customInstructions || ''
+        }
+      }
+    });
+
+    res.json({ status: 'success', message: 'AI Settings updated' });
   } catch (error) {
     next(error);
   }

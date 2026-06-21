@@ -7,6 +7,7 @@ export interface Repository {
   score: number;
   lastAnalyzed: string;
   status: 'pending' | 'processing' | 'completed' | 'failed' | 'unscanned';
+  has_architecture?: boolean;
   analysisId?: string;
   description?: string;
   isPrivate?: boolean;

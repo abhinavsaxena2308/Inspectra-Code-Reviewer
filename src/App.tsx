@@ -4,6 +4,7 @@ import { LandingPage } from './pages/LandingPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { AnalysisPage } from './pages/AnalysisPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { ArchitecturePage } from './pages/ArchitecturePage';
 import { HistoryPage } from './pages/HistoryPage';
 import { RepositoriesPage } from './pages/RepositoriesPage';
 import { LoginPage } from './pages/LoginPage';
@@ -87,6 +88,7 @@ export default function App() {
                   <Route element={<ProtectedRoute />}>
                     <Route path="/dashboard" element={<DashboardPage />} />
                     <Route path="/analysis/:id" element={<AnalysisPage />} />
+                    <Route path="/architecture" element={<ArchitecturePage />} />
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/repos" element={<RepositoriesPage />} />
                     <Route path="/history" element={<HistoryPage />} />

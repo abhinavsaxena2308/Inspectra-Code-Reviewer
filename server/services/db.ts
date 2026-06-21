@@ -22,6 +22,8 @@ export const initDb = async () => {
         owner VARCHAR(255) NOT NULL,
         repo_name VARCHAR(255) NOT NULL,
         clerk_user_id VARCHAR(255) NOT NULL,
+        architecture_diagram TEXT,
+        architecture_report TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 

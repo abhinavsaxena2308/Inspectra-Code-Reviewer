@@ -11,9 +11,10 @@ export const FloatingNavbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { name: 'Features', href: '#features' },
-    { name: 'Use Cases', href: '#use-cases' },
-    { name: 'Pricing', href: '#pricing' },
+    { name: 'Dashboard', path: '/dashboard' },
+    { name: 'Repositories', path: '/repos' },
+    { name: 'Architecture', path: '/architecture' },
+    { name: 'History', path: '/history' },
   ];
 
   return (
@@ -38,8 +39,8 @@ export const FloatingNavbar = () => {
             {navLinks.map((link) => (
               <a
                 key={link.name}
-                href={link.href}
-                className="text-sm font-medium text-on-surface-variant hover:text-cyan transition-colors relative group"
+                onClick={() => navigate(link.path)}
+                className="text-sm font-medium text-on-surface-variant hover:text-cyan transition-colors relative group cursor-pointer"
               >
                 {link.name}
                 <span className="absolute bottom-[-4px] left-0 w-full h-0.5 bg-cyan shadow-[0_0_10px_rgba(0,240,255,0.8)] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
@@ -110,9 +111,8 @@ export const FloatingNavbar = () => {
                 {navLinks.map((link) => (
                   <a
                     key={link.name}
-                    href={link.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-base font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-md transition-all px-4 py-3"
+                    onClick={() => { navigate(link.path); setIsMobileMenuOpen(false); }}
+                    className="text-base font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-md transition-all px-4 py-3 cursor-pointer"
                   >
                     {link.name}
                   </a>
