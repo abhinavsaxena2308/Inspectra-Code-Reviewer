@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { 
+  Home,
   LayoutDashboard, 
   Github, 
   History, 
@@ -21,6 +22,7 @@ export const Sidebar = () => {
   const navigate = useNavigate();
 
   const navItems = [
+    { name: 'Home', icon: Home, path: '/' },
     { name: 'Intelligence Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { name: 'Repositories', icon: Github, path: '/repos' },
     { name: 'Sequence History', icon: History, path: '/history' },
