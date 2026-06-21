@@ -4,7 +4,9 @@ import {
   getAnalysisResult, 
   getDashboardRepositories, 
   getDashboardStats, 
-  getDashboardActivity 
+  getDashboardActivity,
+  getHistoryStatsController,
+  getHistoryListController
 } from '../controllers/mainController';
 
 const router = Router();
@@ -16,5 +18,8 @@ router.get('/status/:id', getAnalysisResult);
 router.get('/repositories', getDashboardRepositories);
 router.get('/stats', getDashboardStats);
 router.get('/activity', getDashboardActivity);
+
+router.get('/history/stats', getHistoryStatsController);
+router.get('/history/list', getHistoryListController);
 
 export default router;
