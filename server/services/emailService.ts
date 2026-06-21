@@ -1,21 +1,27 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import { config } from '../config';
 
-// Initialize Resend with the API Key
-const resend = new Resend(config.resendApiKey);
+// Initialize Nodemailer transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: config.emailUser,
+    pass: config.emailPass,
+  },
+});
 
 export const sendAnalysisCompletionEmail = async (toEmail: string, repoName: string, score: number) => {
-  if (!config.resendApiKey) {
-    console.warn('[EmailService] RESEND_API_KEY is not set. Skipping email notification.');
+  if (!config.emailUser || !config.emailPass) {
+    console.warn('[EmailService] EMAIL_USER or EMAIL_PASS is not set. Skipping email notification.');
     return;
   }
 
   const scoreColor = score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : '#ef4444';
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: 'Inspectra Notifications <onboarding@resend.dev>',
-      to: [toEmail],
+    const info = await transporter.sendMail({
+      from: `"Inspectra Notifications" <${config.emailUser}>`,
+      to: toEmail,
       subject: `Scan Completed: ${repoName}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
@@ -41,13 +47,8 @@ export const sendAnalysisCompletionEmail = async (toEmail: string, repoName: str
       `,
     });
 
-    if (error) {
-      console.error(`[EmailService] Resend API Error for ${toEmail}:`, error);
-      return;
-    }
-
-    console.log(`[EmailService] Sent completion email for ${repoName} to ${toEmail}. ID: ${data?.id}`);
-  } catch (err: any) {
-    console.error(`[EmailService] Failed to send email to ${toEmail}:`, err.message);
+    console.log(`[EmailService] Sent completion email for ${repoName} to ${toEmail}. Message ID: ${info.messageId}`);
+  } catch (error: any) {
+    console.error(`[EmailService] Failed to send email to ${toEmail}:`, error);
   }
 };
