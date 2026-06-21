@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   User, Palette, Key, Shield, Moon, Monitor, Eye, EyeOff,
-  ChevronRight, LogOut, AlertTriangle, Loader2, Save, Github, Link, Unlink, Bell, Database, Download, Trash2
+  ChevronRight, LogOut, AlertTriangle, Loader2, Save, Github, Link, Unlink, Bell, Database, Download, Trash2, Upload
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
@@ -25,6 +25,7 @@ export const SettingsPage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   
   // Data Management states
@@ -70,6 +71,21 @@ export const SettingsPage = () => {
       addToast(err.message || 'Failed to update profile', 'error');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingAvatar(true);
+      await user?.setProfileImage({ file });
+      addToast('Profile picture updated successfully', 'success');
+    } catch (err: any) {
+      addToast(err.errors?.[0]?.message || 'Failed to update avatar', 'error');
+    } finally {
+      setIsUploadingAvatar(false);
     }
   };
 
@@ -187,11 +203,29 @@ export const SettingsPage = () => {
         {/* Profile — col-span-8 */}
         <section className="lg:col-span-8 bg-surface border border-white/10 rounded-xl overflow-hidden">
           <div className="p-4 md:p-6">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-6">
               <User className="w-4 h-4 text-on-surface-variant" />
               <h3 className="text-sm font-semibold tracking-tight text-on-surface">Profile</h3>
             </div>
-            <div className="grid md:grid-cols-2 gap-4">
+            
+            <div className="flex flex-col md:flex-row gap-6 mb-2 items-start">
+              {/* Avatar Upload */}
+              <div className="relative group shrink-0">
+                <div className="w-20 h-20 rounded-full overflow-hidden bg-surface-container border border-outline-variant/50">
+                  <img src={user?.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                </div>
+                <label className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 cursor-pointer rounded-full transition-opacity duration-200">
+                  <Upload className="w-5 h-5" />
+                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={isUploadingAvatar} />
+                </label>
+                {isUploadingAvatar && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                    <Loader2 className="w-5 h-5 text-white animate-spin" />
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex-1 w-full grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="block text-[10px] font-mono uppercase tracking-widest text-on-surface-variant">
                   Full Name
@@ -213,6 +247,7 @@ export const SettingsPage = () => {
                   onChange={e => setEmail(e.target.value)}
                   className="w-full bg-surface-container-low border border-outline-variant/30 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-outline text-on-surface transition-colors"
                 />
+              </div>
               </div>
             </div>
             <div className="mt-8 flex justify-end pt-6 border-t border-white/10">
