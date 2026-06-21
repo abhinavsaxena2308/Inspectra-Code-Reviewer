@@ -11,6 +11,7 @@ import { analyzeRepository } from '../lib/api';
 import { useToast } from '../hooks/useToast';
 import { motion } from 'framer-motion';
 import { useAuth } from '@clerk/react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export const DashboardPage = () => {
   const { getToken } = useAuth();
@@ -21,6 +22,7 @@ export const DashboardPage = () => {
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [stats, setStats] = useState<DashboardStats[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [historyList, setHistoryList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -29,14 +31,28 @@ export const DashboardPage = () => {
       try {
         const token = await getToken();
         if (!token) return;
-        const [reposData, statsData, activityData] = await Promise.all([
+        const [reposData, statsData, activityData, historyData] = await Promise.all([
           fetchRepositories(token),
           fetchDashboardStats(token),
           fetchRecentActivity(token),
+          import('../lib/dashboardService').then(m => m.fetchHistoryList(token))
         ]);
         setRepositories(reposData);
         setStats(statsData);
         setActivities(activityData);
+        
+        // Process history data for chart
+        const chartData = historyData
+          .filter((item: any) => item.score !== null)
+          .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+          .map((item: any) => ({
+            name: item.date.split('/').slice(0, 2).join('/'),
+            fullDate: item.date,
+            score: item.score,
+            repo: item.repoName
+          }));
+        
+        setHistoryList(chartData);
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
       } finally {
@@ -145,122 +161,7 @@ export const DashboardPage = () => {
         </div>
       </header>
 
-      {/* Main Command Center & Key Metric Grid */}
-      <section className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        
-        {/* Command Center (Analysis Input) */}
-        <motion.div 
-           initial={{ opacity: 0, scale: 0.99 }}
-           animate={{ opacity: 1, scale: 1 }}
-           className="xl:col-span-8 bg-surface border border-white/10 rounded-xl p-6 md:p-8 relative overflow-hidden flex flex-col justify-between"
-        >
-          <div className="relative z-10 max-w-xl">
-            <h2 className="text-xl font-semibold tracking-tight text-on-surface mb-1">
-               Structural Analysis
-            </h2>
-            <p className="text-sm text-on-surface-variant mb-6">Enter a public GitHub repository to initiate a deep-scan sequence.</p>
-            
-            {/* Input Group */}
-            <div className="relative mt-2">
-               <div className="relative flex flex-col sm:flex-row gap-2">
-                  <div className="relative flex-grow flex items-center">
-                    <Github className="absolute left-3 w-4 h-4 text-on-surface-variant" />
-                    <input
-                      className="w-full bg-surface-container-low border border-outline-variant/30 hover:border-outline-variant rounded-md py-2.5 pl-9 pr-4 text-sm focus:outline-none focus:border-outline text-on-surface placeholder:text-on-surface-variant/50 font-mono transition-colors"
-                      placeholder="github.com/org/repo"
-                      type="text"
-                      value={repoUrl}
-                      onChange={e => setRepoUrl(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      spellCheck={false}
-                    />
-                  </div>
-                  <button
-                    onClick={handleAnalyze}
-                    disabled={isAnalyzing || !repoUrl.trim()}
-                    className="bg-white text-black hover:bg-zinc-200 px-5 py-2.5 rounded-md flex items-center justify-center gap-2 shrink-0 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isAnalyzing ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-black" />
-                    ) : (
-                      <Rocket className="w-4 h-4 text-black" />
-                    )}
-                    <span className="text-xs font-semibold text-black">Trigger Sequence</span>
-                  </button>
-               </div>
-            </div>
-            
-            {error && (
-              <motion.div 
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-4 px-3 py-2 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs"
-              >
-                {error}
-              </motion.div>
-            )}
-          </div>
-          
-          <div className="mt-8 flex items-center gap-6 pt-6 border-t border-white/10">
-             {[
-               { icon: Terminal, label: 'CLI Sync' },
-               { icon: BrainCircuit, label: 'LLM-v4.2' },
-               { icon: Shield, label: 'SOC2 Ready' }
-             ].map((feature, i) => (
-                <div key={i} className="flex items-center gap-1.5 text-on-surface-variant">
-                   <feature.icon className="w-3.5 h-3.5" />
-                   <span className="text-[10px] font-medium tracking-wide uppercase">{feature.label}</span>
-                </div>
-             ))}
-          </div>
-        </motion.div>
-
-        {/* Global Health Score Card */}
-        <motion.div 
-           initial={{ opacity: 0, x: 10 }}
-           animate={{ opacity: 1, x: 0 }}
-           className="xl:col-span-4 bg-surface border border-white/10 rounded-xl p-6 flex flex-col justify-between relative overflow-hidden"
-        >
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-medium text-on-surface-variant">Global Integrity</span>
-              <TrendingUp className="w-4 h-4 text-on-surface-variant" />
-            </div>
-            <div className="space-y-2">
-               <div className="text-3xl font-semibold tracking-tight text-on-surface">
-                 {stats.find(s => s.label === 'Average Score')?.value ?? '—'}
-               </div>
-               <div className="h-1 w-full bg-white/10 overflow-hidden">
-                 <motion.div 
-                   initial={{ width: 0 }}
-                   animate={{ width: `${stats.find(s => s.label === 'Average Score')?.value ?? 0}%` }}
-                   transition={{ duration: 1.5, ease: "easeOut" }}
-                   className="h-full bg-white"
-                 />
-               </div>
-            </div>
-            <p className="text-xs text-on-surface-variant leading-relaxed">
-              System health computed across {repositories.length} analyzed repositories.
-            </p>
-          </div>
-          
-          <div className="pt-6 border-t border-white/10 flex items-center justify-between">
-             <div className="flex flex-col">
-                <span className="text-base font-semibold text-on-surface">{repositories.length}</span>
-                <span className="text-[10px] text-on-surface-variant uppercase tracking-wide">Repositories</span>
-             </div>
-             <div className="flex -space-x-1.5">
-                {[...Array(Math.min(5, repositories.length || 1))].map((_, i) => (
-                   <div key={i} className="w-6 h-6 rounded-md border border-white/10 bg-surface-container flex items-center justify-center overflow-hidden">
-                      <Github className="w-3 h-3 text-on-surface-variant" />
-                   </div>
-                ))}
-             </div>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Stats Bento Grid */}
+      {/* 1. Stats Bento Grid */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {bentoStats.map((stat, i) => {
           return (
@@ -278,56 +179,252 @@ export const DashboardPage = () => {
         })}
       </section>
 
-      {/* Intelligence Timeline (Activities) */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between pb-2 border-b border-white/10">
-          <h2 className="text-sm font-semibold text-on-surface">System Ledger</h2>
-          <button 
-            onClick={() => navigate('/history')}
-            className="text-xs text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-1"
-          >
-            View all <ArrowUpRight className="w-3 h-3" />
-          </button>
-        </div>
-
-        <div className="bg-surface border border-white/10 rounded-xl overflow-hidden">
-          <div className="divide-y divide-white/10">
-            {activities.length > 0 ? activities.slice(0, 4).map((activity, i) => (
-              <motion.div 
-                key={activity.id} 
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                onClick={() => navigate(`/analysis/${activity.id}`)}
-                className="p-4 flex items-center justify-between hover:bg-surface-container transition-colors cursor-pointer"
+      {/* 2. Action Row (Command Center) */}
+      <section className="w-full">
+        <motion.div 
+           initial={{ opacity: 0, scale: 0.99 }}
+           animate={{ opacity: 1, scale: 1 }}
+           className="w-full bg-surface border border-white/10 rounded-xl p-5 md:p-6 relative overflow-hidden flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6"
+        >
+          <div className="flex-grow w-full max-w-2xl">
+            <h2 className="text-base font-semibold tracking-tight text-on-surface mb-1">
+               Structural Analysis
+            </h2>
+            <p className="text-xs text-on-surface-variant mb-4">Enter a public GitHub repository to initiate a deep-scan sequence.</p>
+            
+            {/* Input Group */}
+            <div className="relative flex flex-col sm:flex-row gap-2 w-full">
+              <div className="relative flex-grow flex items-center">
+                <Github className="absolute left-3 w-4 h-4 text-on-surface-variant" />
+                <input
+                  className="w-full bg-surface-container-low border border-outline-variant/30 hover:border-outline-variant rounded-md py-2.5 pl-9 pr-4 text-sm focus:outline-none focus:border-outline text-on-surface placeholder:text-on-surface-variant/50 font-mono transition-colors"
+                  placeholder="github.com/org/repo"
+                  type="text"
+                  value={repoUrl}
+                  onChange={e => setRepoUrl(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  spellCheck={false}
+                />
+              </div>
+              <button
+                onClick={handleAnalyze}
+                disabled={isAnalyzing || !repoUrl.trim()}
+                className="bg-white text-black hover:bg-zinc-200 px-6 py-2.5 rounded-md flex items-center justify-center gap-2 shrink-0 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 w-24 shrink-0">
-                    <div className={cn("w-1.5 h-1.5 rounded-full", activity.type === 'analysis-completed' ? "bg-emerald-500" : "bg-amber-500 animate-pulse")} />
-                    <span className="text-xs text-on-surface-variant font-mono">
-                      {activity.type === 'analysis-completed' ? 'PASS' : 'SYNC'}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-on-surface hover:underline underline-offset-4">
-                      {activity.repoName}
-                    </p>
-                    <p className="text-[10px] text-on-surface-variant mt-0.5 font-mono">{activity.timestamp} • ID:{activity.id.slice(0, 8)}</p>
-                  </div>
-                </div>
-                <ArrowUpRight className="w-4 h-4 text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity" />
+                {isAnalyzing ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-black" />
+                ) : (
+                  <Rocket className="w-4 h-4 text-black" />
+                )}
+                <span className="text-xs font-semibold text-black">Analyze</span>
+              </button>
+            </div>
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-3 px-3 py-2 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs"
+              >
+                {error}
               </motion.div>
-            )) : (
-              <div className="p-12 text-center border-t border-white/10">
-                <p className="text-sm text-on-surface-variant mb-2">No sequences recorded yet.</p>
-                <button 
-                   onClick={() => document.querySelector('input')?.focus()}
-                   className="text-xs text-on-surface font-medium hover:underline underline-offset-4"
+            )}
+          </div>
+          
+          <div className="hidden lg:flex flex-col gap-3 pl-8 border-l border-white/10 shrink-0">
+             {[
+               { icon: Terminal, label: 'CLI Sync Ready' },
+               { icon: BrainCircuit, label: 'Powered by LLM-v4.2' },
+               { icon: Shield, label: 'SOC2 Compliant Scans' }
+             ].map((feature, i) => (
+                <div key={i} className="flex items-center gap-2 text-on-surface-variant">
+                   <feature.icon className="w-3.5 h-3.5" />
+                   <span className="text-[10px] font-medium tracking-wide uppercase">{feature.label}</span>
+                </div>
+             ))}
+          </div>
+        </motion.div>
+      </section>
+
+      {/* 3. Insights (Chart & Global Score) */}
+      <section className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        {/* Quality Score Trend Chart */}
+        <div className="xl:col-span-8 bg-surface border border-white/10 rounded-xl p-6 flex flex-col h-full min-h-[350px]">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-sm font-semibold text-on-surface">Quality Score Trend</h2>
+            <div className="flex items-center gap-2">
+               <span className="w-2 h-2 rounded-full bg-primary" />
+               <span className="text-xs text-on-surface-variant">Global Avg</span>
+            </div>
+          </div>
+          
+          <div className="flex-grow w-full h-full">
+            {historyList.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={historyList}
+                  margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
                 >
-                   Initiate your first scan
-                </button>
+                  <defs>
+                    <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-outline-variant)" vertical={false} opacity={0.3} />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="var(--color-on-surface-variant)" 
+                    fontSize={10} 
+                    tickLine={false} 
+                    axisLine={false}
+                    minTickGap={20}
+                  />
+                  <YAxis 
+                    stroke="var(--color-on-surface-variant)" 
+                    fontSize={10} 
+                    tickLine={false} 
+                    axisLine={false}
+                    domain={[0, 100]}
+                    ticks={[0, 25, 50, 75, 100]}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'var(--color-surface-container)', borderColor: 'var(--color-outline-variant)', borderRadius: '8px' }}
+                    itemStyle={{ color: 'var(--color-on-surface)' }}
+                    labelStyle={{ color: 'var(--color-on-surface-variant)', fontSize: '12px', marginBottom: '4px' }}
+                    formatter={(value: number, name: string, props: any) => [
+                      <span key="val" className="font-semibold text-primary">{value}</span>, 
+                      <span key="lbl" className="text-on-surface-variant ml-2 text-xs">{props.payload.repo}</span>
+                    ]}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="score" 
+                    stroke="var(--color-primary)" 
+                    strokeWidth={2}
+                    fillOpacity={1} 
+                    fill="url(#colorScore)" 
+                    activeDot={{ r: 6, fill: 'var(--color-magenta)', stroke: 'var(--color-surface)', strokeWidth: 2 }}
+                    isAnimationActive={true}
+                    animationBegin={200}
+                    animationDuration={2500}
+                    animationEasing="ease-out"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center text-center">
+                 <Box className="w-8 h-8 text-white/10 mb-3" />
+                 <p className="text-sm text-on-surface-variant">Not enough data to plot trend.</p>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Global Health Score Card */}
+        <motion.div 
+           initial={{ opacity: 0, x: 10 }}
+           animate={{ opacity: 1, x: 0 }}
+           className="xl:col-span-4 bg-surface border border-white/10 rounded-xl p-6 flex flex-col justify-between relative overflow-hidden h-full min-h-[350px]"
+        >
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-medium text-on-surface-variant">Global Integrity</span>
+              <TrendingUp className="w-4 h-4 text-on-surface-variant" />
+            </div>
+            <div className="space-y-2">
+               <div className="text-4xl font-semibold tracking-tight text-on-surface">
+                 {stats.find(s => s.label === 'Average Score')?.value ?? '—'}
+               </div>
+               <div className="h-1.5 w-full bg-white/10 overflow-hidden rounded-full mt-4">
+                 <motion.div 
+                   initial={{ width: 0 }}
+                   animate={{ width: `${stats.find(s => s.label === 'Average Score')?.value ?? 0}%` }}
+                   transition={{ duration: 1.5, ease: "easeOut" }}
+                   className="h-full bg-primary"
+                 />
+               </div>
+            </div>
+            <p className="text-xs text-on-surface-variant leading-relaxed pt-2">
+              System health computed across {repositories.length} analyzed repositories. Optimal performance is maintained when the global integrity score is above 85.
+            </p>
+          </div>
+          
+          <div className="pt-6 border-t border-white/10 flex items-center justify-between">
+             <div className="flex flex-col">
+                <span className="text-lg font-semibold text-on-surface">{repositories.length}</span>
+                <span className="text-[10px] text-on-surface-variant uppercase tracking-wide">Repositories</span>
+             </div>
+             <div className="flex -space-x-1.5">
+                {[...Array(Math.min(5, repositories.length || 1))].map((_, i) => (
+                   <div key={i} className="w-8 h-8 rounded-md border border-white/10 bg-surface-container flex items-center justify-center overflow-hidden z-10">
+                      <Github className="w-4 h-4 text-on-surface-variant" />
+                   </div>
+                ))}
+             </div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* 4. Activity (System Ledger) */}
+      <section className="w-full">
+        <div className="flex flex-col w-full space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-white/10">
+            <h2 className="text-sm font-semibold text-on-surface">System Ledger</h2>
+            <button 
+              onClick={() => navigate('/history')}
+              className="text-xs text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-1"
+            >
+              View all <ArrowUpRight className="w-3 h-3" />
+            </button>
+          </div>
+
+          <div className="bg-surface border border-white/10 rounded-xl overflow-hidden w-full">
+            <div className="divide-y divide-white/10">
+              {activities.length > 0 ? activities.slice(0, 5).map((activity, i) => (
+                <motion.div 
+                  key={activity.id} 
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  onClick={() => navigate(`/analysis/${activity.id}`)}
+                  className="p-4 md:px-6 flex items-center justify-between hover:bg-surface-container transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2 w-24 shrink-0">
+                      <div className={cn("w-1.5 h-1.5 rounded-full", activity.type === 'analysis-completed' ? "bg-emerald-500" : "bg-amber-500 animate-pulse")} />
+                      <span className="text-xs text-on-surface-variant font-mono">
+                        {activity.type === 'analysis-completed' ? 'PASS' : 'SYNC'}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-on-surface hover:underline underline-offset-4">
+                        {activity.repoName}
+                      </p>
+                      <p className="text-[10px] text-on-surface-variant mt-0.5 font-mono">{activity.timestamp} • ID:{activity.id.slice(0, 8)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                     {activity.type === 'analysis-completed' && (
+                        <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded bg-primary/10 text-primary text-[10px] font-medium border border-primary/20">
+                           <CheckCircle2 className="w-3 h-3" />
+                           Completed
+                        </span>
+                     )}
+                     <ArrowUpRight className="w-4 h-4 text-on-surface-variant opacity-50 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </motion.div>
+              )) : (
+                <div className="p-12 text-center border-t border-white/10">
+                  <p className="text-sm text-on-surface-variant mb-2">No sequences recorded yet.</p>
+                  <button 
+                     onClick={() => document.querySelector('input')?.focus()}
+                     className="text-xs text-on-surface font-medium hover:underline underline-offset-4"
+                  >
+                     Initiate your first scan
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>

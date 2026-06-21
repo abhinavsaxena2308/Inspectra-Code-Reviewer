@@ -117,7 +117,7 @@ export const fetchHistoryList = async (token: string): Promise<HistoryListRow[]>
       return {
         id: row.id,
         repoName: `${row.owner}/${row.repo_name}`,
-        commitHash: 'HEAD', // Mocked or not stored yet
+        commitHash: 'HEAD',
         date: dateObj.toLocaleDateString(),
         time: dateObj.toLocaleTimeString(),
         status: row.status,
