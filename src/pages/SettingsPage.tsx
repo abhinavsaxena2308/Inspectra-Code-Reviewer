@@ -100,26 +100,51 @@ export const SettingsPage = () => {
     }
   };
 
-  const handleExportData = async () => {
+  const handleExportData = async (format: 'json' | 'csv' = 'json') => {
     try {
       setIsExporting(true);
       const token = await getToken();
       if (!token) return;
       
       const data = await exportUserData(token);
+      let content = '';
+      let type = '';
+      let ext = '';
+
+      if (format === 'csv') {
+        const headers = ['Analysis ID', 'Date', 'Owner', 'Repository', 'Status', 'Score', 'Total Issues'];
+        const rows = data.map((row: any) => [
+          row.analysis_id,
+          new Date(row.analysis_date).toISOString(),
+          row.owner,
+          row.repo_name,
+          row.status,
+          row.score,
+          row.issues ? row.issues.length : 0
+        ]);
+        content = [headers.join(',')]
+          .concat(rows.map((row: any[]) => row.join(',')))
+          .join('\n');
+        type = 'text/csv';
+        ext = 'csv';
+      } else {
+        content = JSON.stringify(data, null, 2);
+        type = 'application/json';
+        ext = 'json';
+      }
       
       // Create and trigger download
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const blob = new Blob([content], { type });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `inspectra_data_export_${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `inspectra_data_export_${new Date().toISOString().split('T')[0]}.${ext}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       
-      addToast('Data exported successfully', 'success');
+      addToast(`Data exported successfully as ${ext.toUpperCase()}`, 'success');
     } catch (err: any) {
       addToast('Failed to export data', 'error');
     } finally {
@@ -268,16 +293,25 @@ export const SettingsPage = () => {
                     <Download className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                     Export Historical Data
                   </h3>
-                  <p className="text-sm text-on-surface-variant">Download a complete JSON archive of all your past repository analysis results, scores, and detected issues.</p>
+                  <p className="text-sm text-on-surface-variant">Download a complete archive of all your past repository analysis results, scores, and detected issues.</p>
                 </div>
-                <button 
-                  onClick={handleExportData}
-                  disabled={isExporting}
-                  className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-400 font-medium rounded-lg transition-colors border border-purple-500/20 hover:border-purple-500/40 shrink-0"
-                >
-                  {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                  Export Data
-                </button>
+                <div className="flex gap-2 shrink-0">
+                  <button 
+                    onClick={() => handleExportData('csv')}
+                    disabled={isExporting}
+                    className="flex items-center gap-2 px-3 py-2 bg-surface hover:bg-surface-container text-on-surface font-medium rounded-lg transition-colors border border-outline-variant text-sm"
+                  >
+                    CSV
+                  </button>
+                  <button 
+                    onClick={() => handleExportData('json')}
+                    disabled={isExporting}
+                    className="flex items-center gap-2 px-3 py-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-400 font-medium rounded-lg transition-colors border border-purple-500/20 hover:border-purple-500/40 text-sm"
+                  >
+                    {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                    JSON
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-start justify-between gap-4 p-4 rounded-lg bg-red-500/5 border border-red-500/20 transition-colors relative overflow-hidden">
