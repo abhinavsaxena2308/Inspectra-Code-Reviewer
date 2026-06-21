@@ -37,13 +37,12 @@ export const AnalysisPage = () => {
   const logsEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!id || (!isLoading && analysis)) return;
+    if (!id || !isLoading) return;
 
     const eventSource = new EventSource(`/api/analysis/${id}/logs`);
     eventSource.onmessage = (event) => {
       setLogs((prev) => {
-        // Prevent duplicates if React StrictMode fires twice or event repeats
-        if (prev[prev.length - 1] === event.data) return prev;
+        if (prev.includes(event.data)) return prev;
         return [...prev, event.data];
       });
     };
@@ -51,7 +50,7 @@ export const AnalysisPage = () => {
     return () => {
       eventSource.close();
     };
-  }, [id, isLoading, analysis]);
+  }, [id, isLoading]);
 
   useEffect(() => {
     if (logsEndRef.current) {
