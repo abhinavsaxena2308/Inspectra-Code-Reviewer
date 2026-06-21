@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { parseRepoUrl } from '../services/githubService';
-import { createPendingAnalysis, getAnalysis, getUserActivity, getUserRepositories, getUserStats } from '../services/storageService';
+import { createPendingAnalysis, getAnalysis, getUserActivity, getUserRepositories, getUserStats, getHistoryStats, getHistoryList } from '../services/storageService';
 import { processRepositoryAnalysis } from '../workers/analysisWorker';
 import { calculateScore } from '../services/scoringService';
 import { getAuth } from '@clerk/express';
@@ -212,3 +212,24 @@ export const getDashboardActivity = async (req: Request, res: Response, next: Ne
   } catch (error) { next(error); }
 };
 
+export const getHistoryStatsController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = getAuth(req).userId;
+    if (!userId) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+    const stats = await getHistoryStats(userId);
+    res.json({ status: 'success', data: stats });
+  } catch (error) { next(error); }
+};
+
+export const getHistoryListController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = getAuth(req).userId;
+    if (!userId) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+    const list = await getHistoryList(userId);
+    res.json({ status: 'success', data: list });
+  } catch (error) { next(error); }
+};

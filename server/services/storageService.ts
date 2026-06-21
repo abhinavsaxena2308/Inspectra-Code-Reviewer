@@ -179,3 +179,45 @@ export const getUserActivity = async (userId: string) => {
     return [];
   }
 };
+
+export const getHistoryStats = async (userId: string) => {
+  try {
+    const res = await pool.query(
+      `SELECT 
+         COUNT(*) as total_runs,
+         SUM(CASE WHEN status = 'completed' AND score >= 60 THEN 1 ELSE 0 END) as successful_runs,
+         AVG(score) as avg_score
+       FROM analyses
+       WHERE clerk_user_id = $1`,
+      [userId]
+    );
+    
+    const row = res.rows[0];
+    const totalRuns = parseInt(row.total_runs) || 0;
+    const successfulRuns = parseInt(row.successful_runs) || 0;
+    const avgScore = Math.round(parseFloat(row.avg_score)) || 0;
+    const successRate = totalRuns > 0 ? Math.round((successfulRuns / totalRuns) * 100) : 0;
+
+    return { totalRuns, successRate, avgScore };
+  } catch (error) {
+    console.error('[Storage] Error fetching history stats:', error);
+    return { totalRuns: 0, successRate: 0, avgScore: 0 };
+  }
+};
+
+export const getHistoryList = async (userId: string) => {
+  try {
+    const res = await pool.query(
+      `SELECT a.id, a.status, a.score, a.created_at, r.owner, r.repo_name
+       FROM analyses a
+       JOIN repositories r ON a.repo_id = r.id
+       WHERE a.clerk_user_id = $1
+       ORDER BY a.created_at DESC`,
+      [userId]
+    );
+    return res.rows;
+  } catch (error) {
+    console.error('[Storage] Error fetching history list:', error);
+    return [];
+  }
+};
