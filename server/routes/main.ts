@@ -7,7 +7,8 @@ import {
   getDashboardActivity,
   getHistoryStatsController,
   getHistoryListController,
-  streamAnalysisLogs
+  streamAnalysisLogs,
+  getConnectedRepos
 } from '../controllers/mainController';
 
 const router = Router();
@@ -23,5 +24,6 @@ router.get('/activity', getDashboardActivity);
 
 router.get('/history/stats', getHistoryStatsController);
 router.get('/history/list', getHistoryListController);
+router.get('/github/repos', getConnectedRepos);
 
 export default router;

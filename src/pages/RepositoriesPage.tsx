@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, Filter, ChevronRight, ChevronLeft, RefreshCw, Trash2, 
-  Settings, Terminal, Database, Loader2, Rocket, CheckCircle2, Github, Folder
+  Settings, Terminal, Database, Loader2, Rocket, CheckCircle2, Github, Folder, ExternalLink
 } from 'lucide-react';
-import { fetchRepositories, Repository } from '../lib/dashboardService';
+import { fetchConnectedRepos, Repository } from '../lib/dashboardService';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { useDebounce } from '../hooks/useDebounce';
@@ -13,25 +13,41 @@ export const RepositoriesPage = () => {
   const { getToken } = useAuth();
   const [repoUrl, setRepoUrl] = useState('');
   const debouncedFilter = useDebounce(repoUrl, 300);
-  const [repositories, setRepositories] = useState<Repository[]>([]);
+  const [repositories, setRepositories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const reposData = await fetchConnectedRepos(token);
+      setRepositories(reposData);
+    } catch (error) {
+      console.error('Failed to load repositories:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const token = await getToken();
-        if (!token) return;
-        const reposData = await fetchRepositories(token);
-        setRepositories(reposData);
-      } catch (error) {
-        console.error('Failed to load repositories:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     loadData();
   }, []);
+
+  const handleAnalyze = async (url: string) => {
+    try {
+      const token = await getToken();
+      if (!token) throw new Error("Authentication required");
+      const { analyzeRepository } = await import('../lib/api');
+      const response = await analyzeRepository(url, token);
+      if (response.status === 'success') {
+        navigate(`/analysis/${response.data.id}`);
+      }
+    } catch (error) {
+      console.error('Failed to trigger analysis:', error);
+    }
+  };
 
   const filteredRepos = repositories.filter(repo =>
     repo.name.toLowerCase().includes(debouncedFilter.toLowerCase())
@@ -72,7 +88,7 @@ export const RepositoriesPage = () => {
               <Filter className="w-3.5 h-3.5 opacity-70" />
               Filter
            </button>
-           <button className="px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 bg-white text-black hover:bg-zinc-200 transition-colors">
+           <button onClick={loadData} className="px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 bg-white text-black hover:bg-zinc-200 transition-colors">
               <RefreshCw className="w-3.5 h-3.5" />
               Sync GitHub
            </button>
@@ -112,7 +128,7 @@ export const RepositoriesPage = () => {
             <div className="grid grid-cols-12 gap-6">
               {/* Main featured repo */}
               <div
-                onClick={() => navigate(`/analysis/${filteredRepos[0].id}`)}
+                onClick={() => filteredRepos[0].analysisId ? navigate(`/analysis/${filteredRepos[0].analysisId}`) : handleAnalyze(filteredRepos[0].url)}
                 className="col-span-12 lg:col-span-8 bg-surface border border-white/10 rounded-xl relative overflow-hidden group cursor-pointer hover:border-white/20 transition-all p-6"
               >
                 <div className="flex justify-between items-start mb-6">
@@ -154,7 +170,7 @@ export const RepositoriesPage = () => {
               {/* Secondary repo or placeholder */}
               {filteredRepos[1] ? (
                 <div
-                  onClick={() => navigate(`/analysis/${filteredRepos[1].id}`)}
+                  onClick={() => filteredRepos[1].analysisId ? navigate(`/analysis/${filteredRepos[1].analysisId}`) : handleAnalyze(filteredRepos[1].url)}
                   className="col-span-12 lg:col-span-4 bg-surface border border-white/10 rounded-xl relative overflow-hidden group cursor-pointer hover:border-white/20 transition-all p-6"
                 >
                   <div className="flex items-center gap-2 mb-4">
@@ -240,7 +256,7 @@ export const RepositoriesPage = () => {
                   <div
                     key={repo.id}
                     className="grid grid-cols-12 px-6 py-3.5 items-center hover:bg-surface-container transition-colors group cursor-pointer"
-                    onClick={() => navigate(`/analysis/${repo.id}`)}
+                    onClick={() => repo.analysisId ? navigate(`/analysis/${repo.analysisId}`) : handleAnalyze(repo.url)}
                   >
                     {/* Name & Visibility */}
                     <div className="col-span-4 flex items-center gap-4">
@@ -249,8 +265,8 @@ export const RepositoriesPage = () => {
                         <span className="text-sm font-medium text-on-surface hover:underline underline-offset-4 font-mono">
                           {repo.name}
                         </span>
-                        <p className="text-[10px] text-on-surface-variant mt-0.5 font-mono">
-                          PUBLIC • {repo.language}
+                        <p className="text-[10px] text-on-surface-variant mt-0.5 font-mono uppercase">
+                          {repo.isPrivate ? 'PRIVATE' : 'PUBLIC'} • {repo.language}
                         </p>
                       </div>
                     </div>
@@ -299,7 +315,7 @@ export const RepositoriesPage = () => {
                     {/* Last Analyzed */}
                     <div className="col-span-2">
                       <span className="text-xs text-on-surface-variant font-mono">
-                        {isAnalyzing ? 'Running...' : repo.lastAnalyzed}
+                        {isAnalyzing ? 'Running...' : repo.lastAnalyzed ? new Date(repo.lastAnalyzed).toLocaleDateString() : 'Unscanned'}
                       </span>
                     </div>
 
@@ -318,24 +334,23 @@ export const RepositoriesPage = () => {
                       ) : (
                         <>
                           <button
-                            title="Re-analyze"
-                            onClick={() => navigate(`/analysis/${repo.id}`)}
-                            className="p-1.5 hover:bg-surface-container-highest rounded-lg text-outline hover:text-primary transition-colors"
+                            title={repo.analysisId ? "Re-analyze" : "Analyze"}
+                            onClick={(e) => { e.stopPropagation(); handleAnalyze(repo.url); }}
+                            className="p-1.5 hover:bg-surface-container-highest rounded-lg text-outline hover:text-primary transition-colors flex items-center gap-1"
                           >
-                            <RefreshCw className="w-4 h-4" />
+                            <Rocket className="w-4 h-4" />
+                            <span className="text-[10px] font-semibold">{repo.analysisId ? "SCAN" : "SCAN"}</span>
                           </button>
-                          <button
-                            title="Settings"
-                            className="p-1.5 hover:bg-surface-container-highest rounded-lg text-outline hover:text-primary transition-colors"
+                          <a
+                            href={repo.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Open in GitHub"
+                            onClick={(e) => e.stopPropagation()}
+                            className="p-1.5 hover:bg-surface-container-highest rounded-lg text-outline hover:text-on-surface transition-colors"
                           >
-                            <Settings className="w-4 h-4" />
-                          </button>
-                          <button
-                            title="Delete"
-                            className="p-1.5 hover:bg-surface-container-highest rounded-lg text-outline hover:text-error transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
                         </>
                       )}
                     </div>

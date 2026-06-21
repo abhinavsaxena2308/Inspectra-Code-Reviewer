@@ -32,11 +32,29 @@ export const parseRepoUrl = (url: string): { owner: string; repo: string } | nul
   }
 };
 
-export const getRepositoryContents = async (owner: string, repo: string, path: string = ''): Promise<GitHubFile[]> => {
+export const getGitHubRepositories = async (token: string): Promise<any[]> => {
+  try {
+    // We get repositories for the authenticated user, sort by updated
+    const response = await axios.get(`${GITHUB_API_BASE}/user/repos?sort=updated&per_page=100`, {
+      headers: {
+        'Authorization': `token ${token}`,
+        'User-Agent': 'Inspectra-App',
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('[GitHubService] Failed to fetch repositories:', error.message);
+    throw new Error(`Failed to fetch repositories: ${error.message}`);
+  }
+};
+
+export const getRepositoryContents = async (owner: string, repo: string, path: string = '', userToken?: string): Promise<GitHubFile[]> => {
   const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/contents/${path}`;
+  const tokenToUse = userToken || GITHUB_TOKEN;
   const headers: any = {
     'User-Agent': 'Inspectra-App',
-    ...(GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}),
+    ...(tokenToUse ? { Authorization: `token ${tokenToUse}` } : {}),
   };
 
   try {
