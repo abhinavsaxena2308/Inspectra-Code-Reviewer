@@ -221,3 +221,44 @@ export const getHistoryList = async (userId: string) => {
     return [];
   }
 };
+
+export const exportUserData = async (userId: string) => {
+  try {
+    const res = await pool.query(
+      `SELECT a.id as analysis_id, a.status, a.score, a.created_at as analysis_date,
+              r.owner, r.repo_name, r.repo_url,
+              COALESCE(
+                (SELECT json_agg(i.*) FROM issues i WHERE i.analysis_id = a.id),
+                '[]'::json
+              ) as issues
+       FROM analyses a
+       JOIN repositories r ON a.repo_id = r.id
+       WHERE a.clerk_user_id = $1
+       ORDER BY a.created_at DESC`,
+      [userId]
+    );
+    return res.rows;
+  } catch (error) {
+    console.error('[Storage] Error exporting user data:', error);
+    throw new Error('Failed to export data');
+  }
+};
+
+export const deleteUserHistory = async (userId: string) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    // Delete analyses first (which cascades to issues)
+    await client.query(`DELETE FROM analyses WHERE clerk_user_id = $1`, [userId]);
+    // Delete repositories
+    await client.query(`DELETE FROM repositories WHERE clerk_user_id = $1`, [userId]);
+    await client.query('COMMIT');
+    console.log(`[Storage] Deleted history for user: ${userId}`);
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('[Storage] Error deleting user history:', error);
+    throw new Error('Failed to clear history');
+  } finally {
+    client.release();
+  }
+};
