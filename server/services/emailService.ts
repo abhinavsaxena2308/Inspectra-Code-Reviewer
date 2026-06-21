@@ -13,7 +13,7 @@ export const sendAnalysisCompletionEmail = async (toEmail: string, repoName: str
   const scoreColor = score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : '#ef4444';
 
   try {
-    const data = await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: 'Inspectra Notifications <onboarding@resend.dev>',
       to: [toEmail],
       subject: `Scan Completed: ${repoName}`,
@@ -41,8 +41,13 @@ export const sendAnalysisCompletionEmail = async (toEmail: string, repoName: str
       `,
     });
 
-    console.log(`[EmailService] Sent completion email for ${repoName} to ${toEmail}. ID: ${data.data?.id}`);
-  } catch (error: any) {
-    console.error(`[EmailService] Failed to send email to ${toEmail}:`, error.message);
+    if (error) {
+      console.error(`[EmailService] Resend API Error for ${toEmail}:`, error);
+      return;
+    }
+
+    console.log(`[EmailService] Sent completion email for ${repoName} to ${toEmail}. ID: ${data?.id}`);
+  } catch (err: any) {
+    console.error(`[EmailService] Failed to send email to ${toEmail}:`, err.message);
   }
 };
