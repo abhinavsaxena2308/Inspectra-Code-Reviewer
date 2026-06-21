@@ -4,7 +4,9 @@ import {
   ChevronRight, LogOut, AlertTriangle, Loader2, Save,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { useToast } from '../hooks/useToast'; // Force re-resolution
+import { useToast } from '../hooks/useToast';
+import { UserProfile } from '@clerk/react';
+import { dark } from '@clerk/themes';
 
 export const SettingsPage = () => {
   const { user, signOut, updateProfile } = useAuth();
@@ -16,6 +18,7 @@ export const SettingsPage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -238,11 +241,17 @@ export const SettingsPage = () => {
               </div>
               {/* Action buttons */}
               <div className="space-y-1">
-                <button className="w-full flex items-center justify-between p-3 text-xs font-medium hover:bg-surface-container rounded-md transition-colors group">
-                  <span className="text-on-surface">Change Password</span>
+                <button 
+                  onClick={() => setShowUserProfile(true)}
+                  className="w-full flex items-center justify-between p-3 text-xs font-medium hover:bg-surface-container rounded-md transition-colors group"
+                >
+                  <span className="text-on-surface">Manage Password & Security</span>
                   <ChevronRight className="w-3.5 h-3.5 text-on-surface-variant group-hover:text-on-surface transition-colors" />
                 </button>
-                <button className="w-full flex items-center justify-between p-3 text-xs font-medium hover:bg-surface-container rounded-md transition-colors group text-red-500">
+                <button 
+                  onClick={() => setShowUserProfile(true)}
+                  className="w-full flex items-center justify-between p-3 text-xs font-medium hover:bg-surface-container rounded-md transition-colors group text-red-500"
+                >
                   <span>Deactivate Account</span>
                   <AlertTriangle className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100 transition-opacity" />
                 </button>
@@ -273,6 +282,32 @@ export const SettingsPage = () => {
           © 2024 Inspectra AI Labs.
         </p>
       </footer>
+
+      {/* Clerk UserProfile Modal */}
+      {showUserProfile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar rounded-xl shadow-2xl border border-white/10">
+             <button 
+               onClick={() => setShowUserProfile(false)}
+               className="absolute top-4 right-4 z-10 p-2 bg-surface border border-white/10 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant"
+             >
+               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+             </button>
+             <div className="flex justify-center bg-surface w-full py-4">
+               <UserProfile 
+                 appearance={{
+                   baseTheme: dark,
+                   elements: {
+                     rootBox: "w-full mx-auto",
+                     card: "bg-surface shadow-none w-full border-none",
+                     navbar: "hidden", // We can hide navbar if we just want security section, but let's show all
+                   }
+                 }}
+               />
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
