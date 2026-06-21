@@ -218,17 +218,20 @@ export const HistoryPage = () => {
                   className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" 
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuAM0O_4_wfgSHuXy8fRQhORYAs9PoWvzW7CJqnord-RtkqrFNQbPFJ2TcN5DFokLICAqC-Cv0NyttPNAk4q1qoagXR1Lk0KEgT6VbSExwTLAV39ZA_9DggcBgrWfcytjnQe9FSBUziISfnkipvyd_yi8NSE0Bm0fysKZKt43s_8qqYD8P8SNU_BQGB2dzeidbbVwLQUj_8W5xrdHcLrTUU91qwreTxWje5v0rA36Bw2FkuGdCY1Q5rC3kt0LnqL2FOHZUmFuEVRoKKd"
                 />
-                {/* Visual placeholder for a line chart */}
-                <div className="flex-1 h-1/4 bg-primary/20 rounded-t relative overflow-hidden"><div className="absolute bottom-0 left-0 w-full h-1/2 bg-primary"></div></div>
-                <div className="flex-1 h-2/4 bg-primary/20 rounded-t relative overflow-hidden"><div className="absolute bottom-0 left-0 w-full h-1/3 bg-primary"></div></div>
-                <div className="flex-1 h-1/3 bg-primary/20 rounded-t relative overflow-hidden"><div className="absolute bottom-0 left-0 w-full h-3/4 bg-primary"></div></div>
-                <div className="flex-1 h-3/4 bg-primary/20 rounded-t relative overflow-hidden"><div className="absolute bottom-0 left-0 w-full h-1/2 bg-primary"></div></div>
-                <div className="flex-1 h-2/3 bg-primary/20 rounded-t relative overflow-hidden"><div className="absolute bottom-0 left-0 w-full h-2/3 bg-primary"></div></div>
-                <div className="flex-1 h-4/5 bg-primary/20 rounded-t relative overflow-hidden"><div className="absolute bottom-0 left-0 w-full h-3/4 bg-primary"></div></div>
-                <div className="flex-1 h-1/2 bg-primary/20 rounded-t relative overflow-hidden"><div className="absolute bottom-0 left-0 w-full h-1/4 bg-primary"></div></div>
-                <div className="flex-1 h-2/3 bg-primary/20 rounded-t relative overflow-hidden"><div className="absolute bottom-0 left-0 w-full h-2/3 bg-primary"></div></div>
-                <div className="flex-1 h-1/3 bg-primary/20 rounded-t relative overflow-hidden"><div className="absolute bottom-0 left-0 w-full h-1/2 bg-primary"></div></div>
-                <div className="flex-1 h-3/4 bg-primary/20 rounded-t relative overflow-hidden"><div className="absolute bottom-0 left-0 w-full h-3/4 bg-primary"></div></div>
+                {/* Dynamic Bar Chart */}
+                {history.slice(0, 10).reverse().map((run, i) => {
+                  const score = run.score || 0;
+                  const heightPercent = Math.max(10, score); // minimum 10% height to show it exists
+                  const innerHeight = Math.max(5, score - 10);
+                  return (
+                    <div key={i} className="flex-1 bg-primary/20 rounded-t relative overflow-hidden transition-all group-hover:bg-primary/30" style={{ height: `${heightPercent}%` }} title={`Score: ${score}`}>
+                      <div className="absolute bottom-0 left-0 w-full bg-primary transition-all" style={{ height: `${innerHeight}%` }}></div>
+                    </div>
+                  );
+                })}
+                {history.length === 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center text-[#8b949e] text-sm">No data to display</div>
+                )}
               </div>
             </div>
           </div>

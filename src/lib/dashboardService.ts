@@ -62,33 +62,63 @@ export const fetchRecentActivity = async (token: string): Promise<ActivityItem[]
   return response.data.data;
 };
 
-// We will mock history stats for now, or you can implement an endpoint later
 export const fetchHistoryStats = async (token: string): Promise<HistoryStat[]> => {
-  return [
-    {
-      label: 'Total Runs',
-      value: '-',
-      subtext: 'Current workspace',
-      trend: 'neutral',
-      colorClass: 'bg-primary'
-    },
-    {
-      label: 'Success Rate',
-      value: '-',
-      subtext: 'Optimal Performance',
-      trend: 'up',
-      colorClass: 'bg-secondary'
-    },
-    {
-      label: 'Avg Health Score',
-      value: '-',
-      subtext: 'Stable',
-      trend: 'neutral',
-      colorClass: 'bg-tertiary'
-    }
-  ];
+  try {
+    const response = await axios.get('/api/history/stats', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    const { totalRuns, successRate, avgScore } = response.data.data;
+    
+    return [
+      {
+        label: 'Total Runs',
+        value: totalRuns.toString(),
+        subtext: 'Current workspace',
+        trend: 'neutral',
+        colorClass: 'bg-primary'
+      },
+      {
+        label: 'Success Rate',
+        value: `${successRate}%`,
+        subtext: 'Optimal Performance',
+        trend: successRate >= 90 ? 'up' : 'down',
+        colorClass: 'bg-secondary'
+      },
+      {
+        label: 'Avg Health Score',
+        value: avgScore.toString(),
+        subtext: 'Stable',
+        trend: 'neutral',
+        colorClass: 'bg-tertiary'
+      }
+    ];
+  } catch (error) {
+    console.error('Failed to fetch history stats:', error);
+    return [];
+  }
 };
 
 export const fetchHistoryList = async (token: string): Promise<HistoryListRow[]> => {
-  return [];
+  try {
+    const response = await axios.get('/api/history/list', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    return response.data.data.map((row: any) => {
+      const dateObj = new Date(row.created_at);
+      return {
+        id: row.id,
+        repoName: `${row.owner}/${row.repo_name}`,
+        commitHash: 'HEAD', // Mocked or not stored yet
+        date: dateObj.toLocaleDateString(),
+        time: dateObj.toLocaleTimeString(),
+        status: row.status,
+        score: row.score
+      };
+    });
+  } catch (error) {
+    console.error('Failed to fetch history list:', error);
+    return [];
+  }
 };
