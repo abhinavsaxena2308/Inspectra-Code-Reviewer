@@ -5,6 +5,7 @@ export interface AnalysisIssue {
   severity: 'low' | 'medium' | 'high' | 'critical';
   message: string;
   suggestion: string;
+  line?: number;
 }
 
 export interface FileAnalysis {

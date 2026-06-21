@@ -6,7 +6,12 @@ export interface Repository {
   language: string;
   score: number;
   lastAnalyzed: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'unscanned';
+  analysisId?: string;
+  description?: string;
+  isPrivate?: boolean;
+  url?: string;
+  updatedAt?: string;
 }
 
 export interface DashboardStats {

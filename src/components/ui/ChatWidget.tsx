@@ -3,6 +3,7 @@ import { MessageSquare, X, Send, Bot, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useAuth } from '@clerk/react';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   id: string;
@@ -122,12 +123,16 @@ export const ChatWidget = () => {
                     {msg.role === 'assistant' ? <Bot className="w-3 h-3" /> : <User className="w-3 h-3" />}
                   </div>
                   <div className={cn(
-                    "p-3 rounded-2xl text-sm",
+                    "p-3 rounded-2xl text-sm prose prose-sm prose-invert max-w-none leading-relaxed",
                     msg.role === 'user' 
                       ? "bg-primary text-on-primary rounded-tr-sm" 
                       : "bg-surface-container border border-white/5 text-on-surface rounded-tl-sm"
                   )}>
-                    {msg.content}
+                    {msg.role === 'assistant' ? (
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    ) : (
+                      msg.content
+                    )}
                   </div>
                 </div>
               ))}
