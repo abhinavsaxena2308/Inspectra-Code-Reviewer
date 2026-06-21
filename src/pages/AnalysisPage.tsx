@@ -23,6 +23,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { getAnalysisStatus, AnalysisResult } from '../lib/api';
 import { useAuth } from '@clerk/react';
+import { useReactToPrint } from 'react-to-print';
+import { fetchHistoryList } from '../lib/dashboardService';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 export const AnalysisPage = () => {
   const { getToken } = useAuth();
@@ -34,7 +37,14 @@ export const AnalysisPage = () => {
   const [activeTab, setActiveTab] = useState<'issues' | 'suggestions' | 'security' | 'performance'>('issues');
   const [selectedFile, setSelectedFile] = useState('');
   const [logs, setLogs] = useState<string[]>([]);
+  const [historyData, setHistoryData] = useState<any[]>([]);
   const logsEndRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef,
+    documentTitle: `Inspectra-Report-${analysis?.repo.replace('/', '-')}`,
+  });
 
   useEffect(() => {
     if (!id || !isLoading) return;
@@ -95,6 +105,27 @@ export const AnalysisPage = () => {
     pollInterval = setInterval(fetchStatus, 3000);
     return () => clearInterval(pollInterval);
   }, [id, selectedFile]);
+
+  useEffect(() => {
+    if (!analysis || !getToken) return;
+    const fetchHistory = async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const allHistory = await fetchHistoryList(token);
+        
+        const repoHistory = allHistory
+          .filter(h => h.repoName === analysis.repo && h.score != null)
+          .sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+          .slice(-10); // Last 10 scans
+        
+        setHistoryData(repoHistory);
+      } catch (err) {
+        console.error('Failed to fetch repo history:', err);
+      }
+    };
+    fetchHistory();
+  }, [analysis?.repo, getToken]);
 
   const typeMap: Record<string, string> = {
     'issues': 'bug',
@@ -244,15 +275,16 @@ export const AnalysisPage = () => {
                 <button className="px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 bg-white text-black hover:bg-zinc-200 transition-colors">
                   <RefreshCw className="w-3.5 h-3.5" /> Sync
                 </button>
-                <button className="px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-2 bg-surface hover:bg-surface-container text-on-surface border border-white/10">
-                  <Download className="w-3.5 h-3.5 opacity-70" /> Export
+                <button onClick={handlePrint as any} className="px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-2 bg-surface hover:bg-surface-container text-on-surface border border-white/10">
+                  <Download className="w-3.5 h-3.5 opacity-70" /> Export PDF
                 </button>
               </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto p-8">
+            <div className="flex-1 overflow-y-auto p-8" ref={contentRef}>
               <div className="max-w-5xl mx-auto space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Score Overview */}
                   <div className="col-span-1 lg:col-span-2 bg-surface border border-white/10 rounded-xl p-6">
                     <h3 className="text-sm font-semibold text-on-surface mb-1">Integrity Score</h3>
                     <div className="mt-6 flex flex-col gap-2">
@@ -262,6 +294,7 @@ export const AnalysisPage = () => {
                       </div>
                     </div>
                   </div>
+                  {/* Analysis Metadata */}
                   <div className="bg-surface border border-white/10 rounded-xl p-6 flex flex-col gap-4 justify-center">
                     <div className="flex items-center gap-3">
                       <Clock className="w-4 h-4 text-on-surface-variant" />
@@ -273,6 +306,25 @@ export const AnalysisPage = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Phase 3: Historical Trend Chart */}
+                {historyData.length > 1 && (
+                  <div className="bg-surface border border-white/10 rounded-xl p-6 h-[250px]">
+                    <h3 className="text-sm font-semibold text-on-surface mb-4">Historical Trend</h3>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={historyData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-outline-variant)" vertical={false} opacity={0.3} />
+                        <XAxis dataKey="date" stroke="var(--color-on-surface-variant)" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis stroke="var(--color-on-surface-variant)" fontSize={10} tickLine={false} axisLine={false} domain={[0, 100]} />
+                        <RechartsTooltip 
+                          contentStyle={{ backgroundColor: 'var(--color-surface-container)', borderColor: 'var(--color-outline-variant)', borderRadius: '8px' }}
+                          cursor={{ stroke: 'var(--color-outline-variant)', strokeWidth: 1 }}
+                        />
+                        <Line type="monotone" dataKey="score" stroke="var(--color-primary)" strokeWidth={2} dot={{ r: 4, fill: 'var(--color-primary)' }} activeDot={{ r: 6 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
 
                 <AnimatePresence mode="popLayout">
                   {filteredIssues.length === 0 ? (
