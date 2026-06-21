@@ -1,23 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import {
   User, Palette, Key, Shield, Moon, Monitor, Eye, EyeOff,
-  ChevronRight, LogOut, AlertTriangle, Loader2, Save,
+  ChevronRight, LogOut, AlertTriangle, Loader2, Save, Github, Link, Unlink,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { useTheme } from '../hooks/useTheme';
-import { UserProfile } from '@clerk/react';
+import { UserProfile, useUser } from '@clerk/react';
 import { dark } from '@clerk/themes';
 
 export const SettingsPage = () => {
-  const { user, signOut, updateProfile } = useAuth();
+  const { signOut, updateProfile } = useAuth();
+  const { user } = useUser();
   const { addToast } = useToast();
   const { theme, setTheme, isHighContrast, setIsHighContrast } = useTheme();
   const isDarkMode = theme === 'dark';
   const setIsDarkMode = (dark: boolean) => setTheme(dark ? 'dark' : 'light');
 
-  const [showToken, setShowToken] = useState(false);
-  const [githubToken, setGithubToken] = useState('');
+  const isGithubConnected = user?.externalAccounts.some(acc => acc.provider === 'github');
+  const githubAccount = user?.externalAccounts.find(acc => acc.provider === 'github');
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
@@ -25,18 +27,15 @@ export const SettingsPage = () => {
 
   useEffect(() => {
     if (user) {
-      setName(user.profile?.name || user.email?.split('@')[0] || 'User');
-      setEmail(user.email || '');
-      // Try profile first, then metadata as fallback
-      setGithubToken(user.profile?.github_token || user.metadata?.github_token || '');
+      setName(user.fullName || '');
+      setEmail(user.primaryEmailAddress?.emailAddress || '');
     }
   }, [user]);
 
   const handleUpdateProfile = async () => {
     try {
       setIsUpdating(true);
-      // 'name' is the standard field in InsForge profile schema
-      await updateProfile({ name: name });
+      await user?.update({ firstName: name.split(' ')[0], lastName: name.split(' ').slice(1).join(' ') });
       addToast('Profile updated successfully', 'success');
     } catch (err: any) {
       addToast(err.message || 'Failed to update profile', 'error');
@@ -45,13 +44,28 @@ export const SettingsPage = () => {
     }
   };
 
-  const handleSaveToken = async () => {
+  const handleConnectGithub = async () => {
     try {
       setIsUpdating(true);
-      await updateProfile({ github_token: githubToken });
-      addToast('GitHub token saved securely', 'success');
+      await user?.createExternalAccount({
+        strategy: 'oauth_github',
+        redirectUrl: window.location.href,
+      });
     } catch (err: any) {
-      addToast(err.message || 'Failed to save token', 'error');
+      addToast(err.errors?.[0]?.message || 'Failed to connect GitHub', 'error');
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDisconnectGithub = async () => {
+    try {
+      setIsUpdating(true);
+      if (githubAccount) {
+        await githubAccount.destroy();
+        addToast('GitHub disconnected successfully', 'success');
+      }
+    } catch (err: any) {
+      addToast(err.errors?.[0]?.message || 'Failed to disconnect GitHub', 'error');
     } finally {
       setIsUpdating(false);
     }
@@ -174,9 +188,7 @@ export const SettingsPage = () => {
               {/* GitHub header */}
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-8 h-8 bg-[#24292f] rounded flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
-                  </svg>
+                  <Github className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-on-surface">GitHub Integration</h4>
@@ -195,41 +207,48 @@ export const SettingsPage = () => {
                   </p>
                 </div>
               </div>
-              {/* Token input */}
-              <div className="space-y-4 pt-4 border-t border-white/5">
-                <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-widest text-on-surface-variant mb-2">
-                    GitHub Personal Access Token
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showToken ? 'text' : 'password'}
-                      value={githubToken}
-                      onChange={e => setGithubToken(e.target.value)}
-                      placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                      className="w-full bg-surface-container-low border border-outline-variant/30 rounded-md py-2.5 pl-4 pr-10 text-sm focus:outline-none focus:border-outline text-on-surface font-mono placeholder:text-on-surface-variant/50 transition-colors"
-                    />
-                    <button
-                      onClick={() => setShowToken(!showToken)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors"
+              
+              {/* Connection Actions */}
+              <div className="space-y-4 pt-4 border-t border-outline-variant/30">
+                {isGithubConnected ? (
+                  <div className="flex items-center justify-between bg-surface-container-low p-4 rounded-md border border-outline-variant/30">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full overflow-hidden bg-surface flex items-center justify-center">
+                        {githubAccount?.imageUrl ? (
+                          <img src={githubAccount.imageUrl} alt="GitHub avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <Github className="w-4 h-4 text-on-surface-variant" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-on-surface">{githubAccount?.username || 'GitHub Account'}</p>
+                        <p className="text-xs text-on-surface-variant">Connected</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={handleDisconnectGithub}
+                      disabled={isUpdating}
+                      className="px-4 py-2 border border-error/50 text-error hover:bg-error/10 text-xs font-semibold rounded-md transition-colors flex items-center gap-2 disabled:opacity-50"
                     >
-                      {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {isUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Unlink className="w-3 h-3" />}
+                      Disconnect
                     </button>
                   </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] text-on-surface-variant italic">
-                    Required for automated repo scanning.
-                  </p>
-                  <button 
-                    onClick={handleSaveToken}
-                    disabled={isUpdating}
-                    className="px-4 py-2 bg-white text-black hover:bg-zinc-200 text-xs font-semibold rounded-md transition-colors flex items-center gap-2 disabled:opacity-50"
-                  >
-                    {isUpdating ? <Loader2 className="w-3 h-3 animate-spin text-black" /> : <Save className="w-3 h-3 text-black" />}
-                    Save Token
-                  </button>
-                </div>
+                ) : (
+                  <div>
+                    <p className="text-sm text-on-surface-variant mb-4">
+                      Connect your GitHub account to automatically sync your repositories and enable one-click scanning.
+                    </p>
+                    <button 
+                      onClick={handleConnectGithub}
+                      disabled={isUpdating}
+                      className="px-5 py-2.5 bg-[#24292f] hover:bg-[#24292f]/80 text-white text-xs font-semibold rounded-md transition-colors flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link className="w-4 h-4" />}
+                      Connect GitHub
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

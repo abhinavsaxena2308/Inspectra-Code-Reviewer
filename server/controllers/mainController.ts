@@ -5,7 +5,7 @@ import { createPendingAnalysis, getAnalysis, getUserActivity, getUserRepositorie
 import { logEmitter, getAnalysisLogs } from '../services/logService';
 import { processRepositoryAnalysis } from '../workers/analysisWorker';
 import { calculateScore } from '../services/scoringService';
-import { getAuth } from '@clerk/express';
+import { getAuth, clerkClient } from '@clerk/express';
 
 const analyzeBodySchema = z.object({
   repoUrl: z.string().url('Must provide a valid URL string'),
@@ -180,6 +180,62 @@ export const getDashboardRepositories = async (req: Request, res: Response, next
       status: r.status || 'pending'
     })) });
   } catch (error) { next(error); }
+};
+
+export const getConnectedRepos = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = getAuth(req).userId;
+    if (!userId) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+
+    // 1. Fetch OAuth token from Clerk
+    const oauthResponse = await clerkClient.users.getUserOauthAccessToken(userId, 'oauth_github');
+    const tokens = oauthResponse.data;
+    
+    if (!tokens || tokens.length === 0) {
+      return res.status(404).json({ status: 'error', message: 'GitHub account not connected' });
+    }
+
+    const githubToken = tokens[0].token;
+
+    // 2. Fetch repos from GitHub using the token
+    const { getGitHubRepositories } = await import('../services/githubService');
+    const githubRepos = await getGitHubRepositories(githubToken);
+
+    // 3. Fetch past analysis from our DB to join status
+    const dbRepos = await getUserRepositories(userId);
+    const dbRepoMap = new Map(dbRepos.map(r => [`${r.owner}/${r.repo_name}`.toLowerCase(), r]));
+
+    // 4. Merge
+    const mergedRepos = githubRepos.map(r => {
+      const fullName = r.full_name;
+      const dbInfo = dbRepoMap.get(fullName.toLowerCase());
+      
+      return {
+        id: r.id.toString(),
+        name: r.full_name,
+        description: r.description,
+        isPrivate: r.private,
+        language: r.language || 'Unknown',
+        url: r.html_url,
+        updatedAt: r.updated_at,
+        // Inspectra specific info
+        analysisId: dbInfo?.analysis_id,
+        score: dbInfo?.score,
+        status: dbInfo?.status || 'unscanned',
+        lastAnalyzed: dbInfo?.last_analyzed
+      };
+    });
+
+    res.json({ status: 'success', data: mergedRepos });
+  } catch (error: any) {
+    console.error('[getConnectedRepos] Error:', error.message);
+    if (error.message.includes('No OAuth access token found') || error.message.includes('not connected')) {
+       return res.status(404).json({ status: 'error', message: 'GitHub account not connected' });
+    }
+    next(error);
+  }
 };
 
 export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
