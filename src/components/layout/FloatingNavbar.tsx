@@ -19,7 +19,7 @@ export const FloatingNavbar = () => {
   return (
     <>
       <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-6xl z-50">
-        <nav className="bg-surface-container/70 backdrop-blur-xl border border-outline-variant/20 rounded-full h-14 flex items-center justify-between px-4 md:px-6">
+        <nav className="glass-card rounded-full h-14 flex items-center justify-between px-4 md:px-6">
           
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
             <div className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center p-1.5 bg-gradient-to-br from-surface-container-high to-surface-container">
@@ -39,10 +39,10 @@ export const FloatingNavbar = () => {
               <a
                 key={link.name}
                 href={link.href}
-                className="text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors relative group"
+                className="text-sm font-medium text-on-surface-variant hover:text-cyan transition-colors relative group"
               >
                 {link.name}
-                <span className="absolute bottom-[-4px] left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
+                <span className="absolute bottom-[-4px] left-0 w-full h-0.5 bg-cyan shadow-[0_0_10px_rgba(0,240,255,0.8)] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
               </a>
             ))}
           </div>
@@ -81,7 +81,7 @@ export const FloatingNavbar = () => {
                 </button>
                 <button 
                   onClick={() => navigate('/register')}
-                  className="px-5 py-2 bg-primary text-on-primary rounded-full text-sm font-semibold hover:bg-primary-container transition-colors shadow-sm"
+                  className="px-5 py-2 ethereal-btn rounded-full text-sm font-semibold transition-all shadow-sm hover:shadow-[0_0_15px_rgba(139,92,246,0.5)]"
                 >
                   Sign Up
                 </button>

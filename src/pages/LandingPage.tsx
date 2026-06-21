@@ -120,7 +120,7 @@ export function LandingPage() {
               className="text-5xl md:text-7xl font-bold tracking-tight mb-6 text-black dark:text-white leading-tight"
             >
               Code Review, <br className="hidden md:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-magenta">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-cyan to-magenta animate-text-shimmer glow-text">
                 Automated by AI.
               </span>
             </motion.h1>
@@ -141,7 +141,7 @@ export function LandingPage() {
               transition={{ delay: 0.3 }}
               className="w-full max-w-2xl mx-auto flex flex-col items-center gap-4"
             >
-              <div className="relative w-full group flex flex-col sm:flex-row shadow-2xl shadow-black/5 dark:shadow-black/50 rounded-2xl md:rounded-full bg-white/60 dark:bg-white/5 border border-black/10 dark:border-white/10 p-2 transition-all focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/20 backdrop-blur-xl">
+              <div className="relative w-full group flex flex-col sm:flex-row shadow-[0_0_40px_rgba(139,92,246,0.1)] rounded-2xl md:rounded-full bg-surface/40 border border-white/10 p-2 transition-all duration-500 hover:border-primary/50 focus-within:border-cyan/50 focus-within:ring-4 focus-within:ring-cyan/20 backdrop-blur-2xl glass-card">
                 <div className="relative flex-grow flex items-center">
                   <Terminal className="absolute left-4 w-5 h-5 text-black/40 dark:text-white/40" />
                   <input
@@ -157,7 +157,7 @@ export function LandingPage() {
                 <button 
                   onClick={handleAnalyze} 
                   disabled={isAnalyzing} 
-                  className="w-full sm:w-auto mt-2 sm:mt-0 px-6 py-3 rounded-xl md:rounded-full bg-primary hover:bg-primary/90 text-white text-sm font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-70 disabled:cursor-not-allowed shrink-0"
+                  className="w-full sm:w-auto mt-2 sm:mt-0 px-8 py-3 rounded-xl md:rounded-full ethereal-btn text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shrink-0"
                 >
                   {isAnalyzing ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -214,12 +214,13 @@ export function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="p-8 rounded-2xl bg-surface-container border border-outline-variant/30 hover:border-outline-variant transition-colors shadow-sm hover:shadow-md"
+                whileHover={{ scale: 1.02, y: -5 }}
+                className="p-8 rounded-2xl glass-card border border-white/5 hover:border-primary/50 transition-all duration-300 group"
               >
-                <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center mb-6">
+                <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 group-hover:shadow-[0_0_20px_rgba(139,92,246,0.4)]">
                   {feature.icon}
                 </div>
-                <h3 className="text-lg font-semibold text-on-surface mb-3">{feature.title}</h3>
+                <h3 className="text-lg font-semibold text-white mb-3 group-hover:text-primary transition-colors">{feature.title}</h3>
                 <p className="text-on-surface-variant leading-relaxed">
                   {feature.description}
                 </p>
@@ -234,23 +235,35 @@ export function LandingPage() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-on-surface mb-12 tracking-tight">Trusted by modern engineering teams</h2>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-             <div className="text-xl font-bold font-heading text-on-surface flex items-center justify-center gap-2">
-               <div className="w-6 h-6 rounded bg-on-surface"></div>
-               Acme Corp
-             </div>
-             <div className="text-xl font-bold font-mono text-on-surface flex items-center justify-center gap-2">
-               <div className="w-6 h-6 rounded-full border-2 border-on-surface"></div>
-               GlobalTech
-             </div>
-             <div className="text-xl font-bold font-sans text-on-surface flex items-center justify-center gap-1">
-               <Code2 className="w-6 h-6" />
-               DevScale
-             </div>
-             <div className="text-xl font-bold font-serif text-on-surface flex items-center justify-center gap-2">
-               <div className="w-6 h-6 rounded-sm rotate-45 bg-on-surface"></div>
-               Nexus
-             </div>
+          <div className="relative w-full overflow-hidden mt-8">
+            <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-surface-container-low to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-surface-container-low to-transparent z-10 pointer-events-none"></div>
+            <motion.div 
+              animate={{ x: ["0%", "-50%"] }}
+              transition={{ repeat: Infinity, ease: "linear", duration: 25 }}
+              className="flex items-center gap-24 w-max opacity-60 hover:opacity-100 transition-opacity duration-500"
+            >
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="flex gap-24 items-center">
+                  <div className="text-2xl font-bold font-heading text-white flex items-center justify-center gap-3">
+                    <div className="w-8 h-8 rounded bg-primary"></div>
+                    Acme Corp
+                  </div>
+                  <div className="text-2xl font-bold font-mono text-white flex items-center justify-center gap-3">
+                    <div className="w-8 h-8 rounded-full border-2 border-cyan shadow-[0_0_15px_rgba(0,240,255,0.5)]"></div>
+                    GlobalTech
+                  </div>
+                  <div className="text-2xl font-bold font-sans text-white flex items-center justify-center gap-2">
+                    <Code2 className="w-8 h-8 text-magenta" />
+                    DevScale
+                  </div>
+                  <div className="text-2xl font-bold font-serif text-white flex items-center justify-center gap-3">
+                    <div className="w-8 h-8 rounded-sm rotate-45 bg-indigo"></div>
+                    Nexus
+                  </div>
+                </div>
+              ))}
+            </motion.div>
           </div>
         </div>
       </section>
