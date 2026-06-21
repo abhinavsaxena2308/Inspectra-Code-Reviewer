@@ -12,8 +12,10 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@clerk/react';
 
 export const HistoryPage = () => {
+  const { getToken } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState<HistoryStat[]>([]);
   const [history, setHistory] = useState<HistoryListRow[]>([]);
@@ -23,9 +25,11 @@ export const HistoryPage = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        const token = await getToken();
+        if (!token) return;
         const [statsData, listData] = await Promise.all([
-          fetchHistoryStats(),
-          fetchHistoryList()
+          fetchHistoryStats(token),
+          fetchHistoryList(token)
         ]);
         setStats(statsData);
         setHistory(listData);

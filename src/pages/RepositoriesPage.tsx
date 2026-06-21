@@ -7,8 +7,10 @@ import { fetchRepositories, Repository } from '../lib/dashboardService';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { useDebounce } from '../hooks/useDebounce';
+import { useAuth } from '@clerk/react';
 
 export const RepositoriesPage = () => {
+  const { getToken } = useAuth();
   const [repoUrl, setRepoUrl] = useState('');
   const debouncedFilter = useDebounce(repoUrl, 300);
   const [repositories, setRepositories] = useState<Repository[]>([]);
@@ -18,7 +20,9 @@ export const RepositoriesPage = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const reposData = await fetchRepositories();
+        const token = await getToken();
+        if (!token) return;
+        const reposData = await fetchRepositories(token);
         setRepositories(reposData);
       } catch (error) {
         console.error('Failed to load repositories:', error);

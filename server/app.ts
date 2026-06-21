@@ -26,13 +26,21 @@ const limiter = rateLimit({
 // Apply limiting to all API requests
 app.use('/api', limiter);
 
+import { clerkMiddleware, requireAuth } from '@clerk/express';
+
 // Global Middleware
 app.use(cors());
 app.use(express.json());
 app.use(logger);
 
-// API Routes
-app.use('/api', routes);
+// Public API Routes (unprotected)
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+
+// Protected API Routes
+app.use('/api', clerkMiddleware({
+  publishableKey: process.env.CLERK_PUBLISHABLE_KEY || process.env.VITE_CLERK_PUBLISHABLE_KEY,
+  secretKey: process.env.CLERK_SECRET_KEY,
+}), requireAuth(), routes);
 
 // 404 Handler for API
 app.use((req, res) => {

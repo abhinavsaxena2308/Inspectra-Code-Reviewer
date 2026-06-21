@@ -17,8 +17,10 @@ import { Badge } from '../components/ui/Badge';
 import { useNavigate, useParams } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { getAnalysisStatus, AnalysisResult } from '../lib/api';
+import { useAuth } from '@clerk/react';
 
 export const AnalysisPage = () => {
+  const { getToken } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
@@ -34,7 +36,9 @@ export const AnalysisPage = () => {
 
     const fetchStatus = async () => {
       try {
-        const result = await getAnalysisStatus(id);
+        const token = await getToken();
+        if (!token) return;
+        const result = await getAnalysisStatus(id, token);
         if (result.status === 'success') {
           setAnalysis(result.data);
           

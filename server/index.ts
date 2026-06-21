@@ -3,10 +3,13 @@ dotenv.config();
 
 import app from './app';
 import { config } from './config';
+import { initDb } from './services/db';
 
 const PORT = config.port;
 
-app.listen(PORT, () => {
-    console.log(`[Server] Running in ${config.nodeEnv} mode on port ${PORT}`);
-    console.log(`[Health] http://localhost:${PORT}/api/health`);
+initDb().then(() => {
+  app.listen(PORT, () => {
+      console.log(`[Server] Running in ${config.nodeEnv} mode on port ${PORT}`);
+      console.log(`[Health] http://localhost:${PORT}/api/health`);
+  });
 });
