@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { parseRepoUrl } from '../services/githubService';
 import { createPendingAnalysis, getAnalysis, getUserActivity, getUserRepositories, getUserStats, getHistoryStats, getHistoryList } from '../services/storageService';
+import { logEmitter, getAnalysisLogs } from '../services/logService';
 import { processRepositoryAnalysis } from '../workers/analysisWorker';
 import { calculateScore } from '../services/scoringService';
 import { getAuth } from '@clerk/express';
@@ -232,4 +233,31 @@ export const getHistoryListController = async (req: Request, res: Response, next
     const list = await getHistoryList(userId);
     res.json({ status: 'success', data: list });
   } catch (error) { next(error); }
+};
+
+export const streamAnalysisLogs = (req: Request, res: Response) => {
+  const { id } = req.params;
+  
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+  });
+
+  // Send any existing logs immediately
+  const existingLogs = getAnalysisLogs(id);
+  for (const log of existingLogs) {
+    res.write(`data: ${log}\n\n`);
+  }
+
+  // Listen for new logs
+  const listener = (msg: string) => {
+    res.write(`data: ${msg}\n\n`);
+  };
+  
+  logEmitter.on(`log:${id}`, listener);
+
+  req.on('close', () => {
+    logEmitter.off(`log:${id}`, listener);
+  });
 };

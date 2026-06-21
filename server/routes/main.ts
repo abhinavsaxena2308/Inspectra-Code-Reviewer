@@ -6,7 +6,8 @@ import {
   getDashboardStats, 
   getDashboardActivity,
   getHistoryStatsController,
-  getHistoryListController
+  getHistoryListController,
+  streamAnalysisLogs
 } from '../controllers/mainController';
 
 const router = Router();
@@ -14,6 +15,7 @@ const router = Router();
 router.post('/analyze', analyzeRepository);
 router.get('/analysis/:id', getAnalysisResult);
 router.get('/status/:id', getAnalysisResult);
+router.get('/analysis/:id/logs', streamAnalysisLogs);
 
 router.get('/repositories', getDashboardRepositories);
 router.get('/stats', getDashboardStats);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   FileCode,
@@ -33,6 +33,31 @@ export const AnalysisPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'issues' | 'suggestions' | 'security' | 'performance'>('issues');
   const [selectedFile, setSelectedFile] = useState('');
+  const [logs, setLogs] = useState<string[]>([]);
+  const logsEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!id || (!isLoading && analysis)) return;
+
+    const eventSource = new EventSource(`/api/analysis/${id}/logs`);
+    eventSource.onmessage = (event) => {
+      setLogs((prev) => {
+        // Prevent duplicates if React StrictMode fires twice or event repeats
+        if (prev[prev.length - 1] === event.data) return prev;
+        return [...prev, event.data];
+      });
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, [id, isLoading, analysis]);
+
+  useEffect(() => {
+    if (logsEndRef.current) {
+      logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [logs]);
 
   useEffect(() => {
     if (!id) return;
@@ -114,24 +139,43 @@ export const AnalysisPage = () => {
 
   if (isLoading || !analysis) {
     return (
-      <div className="p-8 flex flex-col items-center justify-center min-h-screen bg-surface">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-          className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full mb-8"
-        />
-        <h2 className="text-2xl font-bold text-on-surface mb-2">Analyzing Repository...</h2>
-        <p className="text-on-surface-variant text-sm max-w-sm text-center mb-12">
-          We're performing a deep scan of the codebase to identify bugs, security vulnerabilities, and quality improvements.
-        </p>
-        <div className="flex gap-8">
-          <div className="flex flex-col items-center gap-2 opacity-100">
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Scanning</span>
+      <div className="p-8 flex flex-col min-h-screen bg-background">
+        <div className="flex-1 max-w-4xl w-full mx-auto flex flex-col">
+          <div className="flex items-center justify-between mb-4 mt-8">
+            <h2 className="text-xl font-semibold text-on-surface flex items-center gap-2">
+              <Terminal className="w-5 h-5" /> 
+              Analysis Console
+            </h2>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+              <span className="text-xs font-mono text-emerald-500 uppercase tracking-widest">Running</span>
+            </div>
           </div>
-          <div className="flex flex-col items-center gap-2 opacity-50">
-            <div className="w-2 h-2 rounded-full bg-slate-700" />
-            <span className="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant">Scoring</span>
+          
+          <div className="h-[600px] bg-[#050505] border border-white/10 rounded-xl font-mono text-sm p-6 overflow-y-auto flex flex-col shadow-2xl relative">
+            <div className="flex-1 space-y-2 text-[#8b949e]">
+              {logs.length === 0 ? (
+                <div className="animate-pulse text-on-surface-variant">Connecting to analysis worker...</div>
+              ) : (
+                logs.map((log, i) => (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    key={i} 
+                    className={cn(
+                      "break-words",
+                      log.includes('[ERROR]') ? 'text-red-400' : 'text-[#c9d1d9]'
+                    )}
+                  >
+                    {log}
+                  </motion.div>
+                ))
+              )}
+              <div ref={logsEndRef} />
+            </div>
+            
+            {/* Terminal decorative overlay */}
+            <div className="pointer-events-none sticky bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#050505] to-transparent"></div>
           </div>
         </div>
       </div>
