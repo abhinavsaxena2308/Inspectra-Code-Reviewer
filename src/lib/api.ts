@@ -46,3 +46,16 @@ export const getAnalysisStatus = async (id: string, token: string): Promise<{ st
   });
   return response.data;
 };
+
+export const exportUserData = async (token: string): Promise<any> => {
+  const response = await axios.get('/api/data/export', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data.data;
+};
+
+export const clearUserHistory = async (token: string): Promise<void> => {
+  await axios.delete('/api/data/history', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+};

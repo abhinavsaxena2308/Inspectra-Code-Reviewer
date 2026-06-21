@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { parseRepoUrl } from '../services/githubService';
-import { createPendingAnalysis, getAnalysis, getUserActivity, getUserRepositories, getUserStats, getHistoryStats, getHistoryList } from '../services/storageService';
+import { createPendingAnalysis, getAnalysis, getUserActivity, getUserRepositories, getUserStats, getHistoryStats, getHistoryList, exportUserData, deleteUserHistory } from '../services/storageService';
 import { logEmitter, getAnalysisLogs } from '../services/logService';
 import { processRepositoryAnalysis } from '../workers/analysisWorker';
 import { calculateScore } from '../services/scoringService';
@@ -314,15 +314,40 @@ export const getHistoryStatsController = async (req: Request, res: Response, nex
   } catch (error) { next(error); }
 };
 
-export const getHistoryListController = async (req: Request, res: Response, next: NextFunction) => {
+export const getHistoryListController = async (req: Request, res: Response) => {
   try {
     const userId = getAuth(req).userId;
-    if (!userId) {
-      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
-    }
+    if (!userId) return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+
     const list = await getHistoryList(userId);
     res.json({ status: 'success', data: list });
-  } catch (error) { next(error); }
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Failed to fetch history list' });
+  }
+};
+
+export const exportDataController = async (req: Request, res: Response) => {
+  try {
+    const userId = getAuth(req).userId;
+    if (!userId) return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+
+    const data = await exportUserData(userId);
+    res.json({ status: 'success', data });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Failed to export data' });
+  }
+};
+
+export const clearHistoryController = async (req: Request, res: Response) => {
+  try {
+    const userId = getAuth(req).userId;
+    if (!userId) return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+
+    await deleteUserHistory(userId);
+    res.json({ status: 'success', message: 'History cleared successfully' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Failed to clear history' });
+  }
 };
 
 export const streamAnalysisLogs = (req: Request, res: Response) => {

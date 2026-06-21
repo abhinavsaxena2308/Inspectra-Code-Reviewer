@@ -66,15 +66,15 @@
     --color-void: #f8fafc;
     --color-void-surface: #ffffff;
     --color-background: #ffffff;
-    --color-surface: #f4f4f5;
-    --color-surface-container-low: #e4e4e7;
-    --color-surface-container: #d4d4d8;
-    --color-surface-container-high: #a1a1aa;
-    --color-surface-container-highest: #71717a;
+    --color-surface: #ffffff;
+    --color-surface-container-low: #fafafa;
+    --color-surface-container: #f4f4f5;
+    --color-surface-container-high: #e4e4e7;
+    --color-surface-container-highest: #d4d4d8;
     --color-on-surface: #18181b;
-    --color-on-surface-variant: #3f3f46;
+    --color-on-surface-variant: #52525b;
     --color-outline: #e4e4e7;
-    --color-outline-variant: #d4d4d8;
+    --color-outline-variant: #e4e4e7;
     
     --color-gh-bg: #ffffff;
     --color-gh-border: #d0d7de;
