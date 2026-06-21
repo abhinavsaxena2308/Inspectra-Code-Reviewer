@@ -376,3 +376,17 @@ export const streamAnalysisLogs = (req: Request, res: Response) => {
     logEmitter.off(`log:${id}`, listener);
   });
 };
+
+export const chatController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { prompt } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ status: 'error', message: 'Prompt is required' });
+    }
+    const { chatWithOllama } = await import('../services/ollamaService');
+    const responseText = await chatWithOllama(prompt);
+    res.json({ status: 'success', data: { response: responseText } });
+  } catch (error) {
+    next(error);
+  }
+};

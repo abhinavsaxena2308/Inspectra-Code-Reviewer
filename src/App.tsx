@@ -16,6 +16,7 @@ import { AuthProvider } from './hooks/useAuth';
 import { ToastProvider, useToast } from './hooks/useToast';
 import { ThemeProvider } from './hooks/useTheme';
 import { AnimatePresence, motion } from 'motion/react';
+import { ChatWidget } from './components/ui/ChatWidget';
 
 const AppContent = ({ children }: { children: React.ReactNode }) => {
   const { toasts, removeToast } = useToast();
@@ -60,6 +61,9 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
             </motion.div>
           </AnimatePresence>
         </main>
+        
+        {/* Global Chat Widget */}
+        {!isPublicPage && <ChatWidget />}
       </div>
     </div>
   );

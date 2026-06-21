@@ -97,3 +97,29 @@ Do not include any other text, markdown blocks are fine if they are inside the s
     }];
   }
 };
+
+export const chatWithOllama = async (prompt: string): Promise<string> => {
+  try {
+    const response = await fetch("http://127.0.0.1:11434/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: config.ollamaModel,
+        prompt: prompt,
+        stream: false,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama API returned status ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.response || "No response generated.";
+  } catch (error) {
+    console.error("Ollama Chat Error:", error);
+    throw new Error("Failed to communicate with local Ollama instance.");
+  }
+};

@@ -10,7 +10,8 @@ import {
   streamAnalysisLogs,
   getConnectedRepos,
   exportDataController,
-  clearHistoryController
+  clearHistoryController,
+  chatController
 } from '../controllers/mainController';
 
 const router = Router();
@@ -30,5 +31,7 @@ router.get('/github/repos', getConnectedRepos);
 
 router.get('/data/export', exportDataController);
 router.delete('/data/history', clearHistoryController);
+
+router.post('/chat', chatController);
 
 export default router;

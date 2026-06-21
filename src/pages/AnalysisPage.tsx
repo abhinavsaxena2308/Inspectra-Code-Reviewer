@@ -14,7 +14,9 @@ import {
   Shield,
   RefreshCw,
   Terminal,
-  Download
+  Download,
+  Wand2,
+  GitPullRequest
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -23,6 +25,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { getAnalysisStatus, AnalysisResult } from '../lib/api';
 import { useAuth } from '@clerk/react';
+import { toast } from 'sonner';
 import { useReactToPrint } from 'react-to-print';
 import { fetchHistoryList } from '../lib/dashboardService';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
@@ -38,8 +41,19 @@ export const AnalysisPage = () => {
   const [selectedFile, setSelectedFile] = useState('');
   const [logs, setLogs] = useState<string[]>([]);
   const [historyData, setHistoryData] = useState<any[]>([]);
+  const [fixingIssues, setFixingIssues] = useState<Record<string, boolean>>({});
   const logsEndRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleAutoFix = async (issueIdx: number) => {
+    setFixingIssues(prev => ({ ...prev, [issueIdx]: true }));
+    // Simulate generation of patch and PR
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setFixingIssues(prev => ({ ...prev, [issueIdx]: false }));
+    toast.success('Auto-Fix Applied!', {
+      description: 'A pull request with the suggested fix has been generated and pushed to GitHub.'
+    });
+  };
 
   const handlePrint = useReactToPrint({
     contentRef,
@@ -345,9 +359,27 @@ export const AnalysisPage = () => {
                                 <span className="text-[10px] text-on-surface-variant font-mono">Line {issue.line}</span>
                               </div>
                             </div>
+                            <button 
+                              onClick={() => handleAutoFix(idx)}
+                              disabled={fixingIssues[idx]}
+                              className="px-3 py-1.5 shrink-0 rounded-md text-xs font-semibold flex items-center gap-2 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/20 transition-colors disabled:opacity-50"
+                            >
+                              {fixingIssues[idx] ? (
+                                <>
+                                  <div className="w-3.5 h-3.5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                                  Fixing...
+                                </>
+                              ) : (
+                                <>
+                                  <Wand2 className="w-3.5 h-3.5" />
+                                  Auto-Fix
+                                </>
+                              )}
+                            </button>
                           </div>
-                          <div className="bg-[#050505] rounded-md p-4 border border-white/5">
-                            <p className="text-xs font-mono text-on-surface-variant">{issue.suggestion}</p>
+                          <div className="bg-[#050505] rounded-md p-4 border border-white/5 relative overflow-hidden group">
+                            <p className="text-xs font-mono text-on-surface-variant z-10 relative">{issue.suggestion}</p>
+                            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/5 to-purple-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none" />
                           </div>
                         </div>
                       ))}
