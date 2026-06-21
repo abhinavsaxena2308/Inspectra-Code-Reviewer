@@ -3,9 +3,11 @@ import { Network, ShieldAlert, Code2, Loader2, Play } from 'lucide-react';
 import { useAuth } from '@clerk/react';
 import { fetchConnectedRepos, Repository } from '../lib/dashboardService';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import mermaid from 'mermaid';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
+import { useTheme } from '../hooks/useTheme';
 
 export const ArchitecturePage = () => {
   const { getToken } = useAuth();
@@ -14,12 +16,24 @@ export const ArchitecturePage = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [mermaidCode, setMermaidCode] = useState<string | null>(null);
   const [threatModel, setThreatModel] = useState<string | null>(null);
+  const { theme } = useTheme();
   
   const mermaidRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose' });
-  }, []);
+    mermaid.initialize({ startOnLoad: false, theme: theme === 'dark' ? 'dark' : 'default', securityLevel: 'loose' });
+    // Force a re-render if the diagram is already present when theme toggles
+    if (mermaidCode && mermaidRef.current) {
+      mermaidRef.current.innerHTML = '';
+      mermaid.render(`architecture-diagram-${theme}`, mermaidCode).then((result) => {
+        if (mermaidRef.current) {
+          mermaidRef.current.innerHTML = result.svg;
+        }
+      }).catch(err => {
+        console.error("Mermaid Render Error", err);
+      });
+    }
+  }, [theme]);
 
   useEffect(() => {
     const loadRepos = async () => {
@@ -36,10 +50,34 @@ export const ArchitecturePage = () => {
     loadRepos();
   }, [getToken]);
 
+  // Fetch saved architecture when repo changes
+  useEffect(() => {
+    const fetchSaved = async () => {
+      if (!selectedRepo) return;
+      try {
+        const token = await getToken();
+        const res = await fetch(`/api/architecture/saved?repoUrl=${encodeURIComponent(selectedRepo)}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.status === 'success' && data.data) {
+          setMermaidCode(data.data.mermaid);
+          setThreatModel(data.data.report);
+        } else {
+          setMermaidCode(null);
+          setThreatModel(null);
+        }
+      } catch (err) {
+        console.error("Failed to fetch saved architecture", err);
+      }
+    };
+    fetchSaved();
+  }, [selectedRepo, getToken]);
+
   useEffect(() => {
     if (mermaidCode && mermaidRef.current) {
       mermaidRef.current.innerHTML = '';
-      mermaid.render('architecture-diagram', mermaidCode).then((result) => {
+      mermaid.render(`architecture-diagram-${theme}-${Date.now()}`, mermaidCode).then((result) => {
         if (mermaidRef.current) {
           mermaidRef.current.innerHTML = result.svg;
         }
@@ -116,6 +154,8 @@ export const ArchitecturePage = () => {
             >
               {isAnalyzing ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Scanning...</>
+              ) : (mermaidCode || threatModel) ? (
+                <><Play className="w-4 h-4 fill-current" /> Re-Analyze Architecture</>
               ) : (
                 <><Play className="w-4 h-4 fill-current" /> Analyze Architecture</>
               )}
@@ -142,7 +182,13 @@ export const ArchitecturePage = () => {
                 <Code2 className="w-4 h-4 text-emerald-400" />
                 <h3 className="font-semibold text-sm text-on-surface">System Diagram</h3>
               </div>
-              <div className="p-6 flex-1 overflow-auto bg-[#0a0a0a] flex items-center justify-center" ref={mermaidRef}>
+              <div 
+                className={cn(
+                  "p-6 flex-1 overflow-auto [&>svg]:w-full [&>svg]:h-full [&>svg]:min-w-[600px] [&>svg]:min-h-[400px]",
+                  theme === 'dark' ? "bg-[#0a0a0a]" : "bg-white"
+                )} 
+                ref={mermaidRef}
+              >
                 {/* Mermaid renders here */}
               </div>
             </div>
@@ -153,9 +199,9 @@ export const ArchitecturePage = () => {
                 <ShieldAlert className="w-4 h-4" />
                 <h3 className="font-semibold text-sm">Threat Model Report</h3>
               </div>
-              <div className="p-6 flex-1 overflow-y-auto prose prose-sm prose-invert max-w-none">
+              <div className="p-6 flex-1 overflow-y-auto prose prose-sm prose-invert max-w-none prose-tables:border prose-tables:border-white/10 prose-th:bg-white/5 prose-th:p-2 prose-td:p-2 prose-tr:border-b prose-tr:border-white/10">
                 {threatModel ? (
-                  <ReactMarkdown>{threatModel}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{threatModel}</ReactMarkdown>
                 ) : (
                   <p className="text-on-surface-variant italic">No threat model generated.</p>
                 )}

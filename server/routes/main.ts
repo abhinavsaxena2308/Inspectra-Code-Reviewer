@@ -15,12 +15,13 @@ import {
   getAiSettings,
   updateAiSettings
 } from '../controllers/mainController';
-import { analyzeArchitectureController } from '../controllers/architectureController';
+import { analyzeArchitectureController, getSavedArchitectureController } from '../controllers/architectureController';
 
 const router = Router();
 
 router.post('/analyze', analyzeRepository);
 router.post('/architecture/analyze', analyzeArchitectureController);
+router.get('/architecture/saved', getSavedArchitectureController);
 router.get('/analysis/:id', getAnalysisResult);
 router.get('/status/:id', getAnalysisResult);
 router.get('/analysis/:id/logs', streamAnalysisLogs);

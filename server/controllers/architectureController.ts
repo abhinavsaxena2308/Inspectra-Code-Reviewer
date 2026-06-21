@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { getAuth, clerkClient } from '@clerk/express';
 import { getRepositoryContents, fetchFileContent } from '../services/githubService';
+import { saveArchitecture, getSavedArchitecture } from '../services/storageService';
 
 const TARGET_FILES = [
   'package.json',
@@ -68,7 +69,7 @@ export const analyzeArchitectureController = async (req: Request, res: Response,
 I am providing you with the core configuration, infrastructure, and entrypoint files for a software repository.
 Your task is to:
 1. Understand the high-level architecture (services, databases, frameworks, ports).
-2. Generate a valid Mermaid.js graph TD flowchart that maps out these components and how they interact. Enclose the mermaid code strictly in \`\`\`mermaid ... \`\`\` block.
+2. Generate a valid Mermaid.js graph TD flowchart that maps out these components and how they interact. Enclose the mermaid code strictly in \`\`\`mermaid ... \`\`\` block. CRITICAL: You MUST use double quotes for all node labels (e.g. \`NodeID["My Label (Info)"]\`) to prevent parse errors from special characters like brackets or parentheses.
 3. Below the diagram, provide a "Threat Model & Architecture Report" in Markdown format, detailing potential macro-level security risks (e.g. exposed ports, missing rate limiting, vulnerable architecture patterns).
 
 Here are the files:
@@ -89,6 +90,9 @@ Provide the response with the Mermaid diagram first, followed by the Markdown re
       report = responseText.replace(mermaidMatch[0], '').trim();
     }
 
+    // Save to database
+    await saveArchitecture(repoUrl, userId, mermaidCode, report);
+
     res.json({
       status: 'success',
       data: {
@@ -97,6 +101,28 @@ Provide the response with the Mermaid diagram first, followed by the Markdown re
       }
     });
 
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getSavedArchitectureController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = getAuth(req).userId;
+    if (!userId) return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+
+    const { repoUrl } = req.query;
+    if (!repoUrl || typeof repoUrl !== 'string') {
+      return res.status(400).json({ status: 'error', message: 'repoUrl is required' });
+    }
+
+    const saved = await getSavedArchitecture(repoUrl, userId);
+    
+    if (saved) {
+      return res.json({ status: 'success', data: saved });
+    } else {
+      return res.json({ status: 'success', data: null });
+    }
   } catch (error) {
     next(error);
   }

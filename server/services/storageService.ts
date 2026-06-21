@@ -262,3 +262,38 @@ export const deleteUserHistory = async (userId: string) => {
     client.release();
   }
 };
+
+export const saveArchitecture = async (repoUrl: string, userId: string, mermaidDiagram: string, threatModel: string) => {
+  try {
+    await pool.query(
+      `UPDATE repositories 
+       SET architecture_diagram = $1, architecture_report = $2 
+       WHERE repo_url = $3 AND clerk_user_id = $4`,
+      [mermaidDiagram, threatModel, repoUrl, userId]
+    );
+    console.log(`[Storage] Saved architecture for ${repoUrl}`);
+  } catch (error) {
+    console.error('[Storage] Error saving architecture:', error);
+  }
+};
+
+export const getSavedArchitecture = async (repoUrl: string, userId: string) => {
+  try {
+    const res = await pool.query(
+      `SELECT architecture_diagram, architecture_report 
+       FROM repositories 
+       WHERE repo_url = $1 AND clerk_user_id = $2`,
+      [repoUrl, userId]
+    );
+    if (res.rows.length === 0) return null;
+    const row = res.rows[0];
+    if (!row.architecture_diagram && !row.architecture_report) return null;
+    return {
+      mermaid: row.architecture_diagram,
+      report: row.architecture_report
+    };
+  } catch (error) {
+    console.error('[Storage] Error fetching saved architecture:', error);
+    return null;
+  }
+};
