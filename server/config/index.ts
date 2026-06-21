@@ -26,8 +26,10 @@ if (!_env.success) {
 }
 
 export const config = {
-  port: parseInt(_env.data.PORT, 10),
-  nodeEnv: _env.data.NODE_ENV,
-  githubToken: _env.data.GITHUB_TOKEN,
-  geminiApiKey: _env.data.GEMINI_API_KEY,
+  port: process.env.PORT || 3000,
+  geminiApiKey: process.env.GEMINI_API_KEY,
+  githubToken: process.env.GITHUB_TOKEN,
+  nodeEnv: process.env.NODE_ENV || 'development',
+  clerkSecretKey: process.env.CLERK_SECRET_KEY,
+  resendApiKey: process.env.RESEND_API_KEY,
 };

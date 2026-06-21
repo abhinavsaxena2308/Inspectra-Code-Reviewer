@@ -1,4 +1,5 @@
 import { getRepositoryContents, fetchFileContent } from '../services/githubService';
+import { sendAnalysisCompletionEmail } from '../services/emailService';
 import { analyzeMultipleFiles } from '../services/analysisService';
 import { updateAnalysisStatus, saveAnalysisIssues } from '../services/storageService';
 import { calculateScore } from '../services/scoringService';
@@ -86,6 +87,25 @@ export const processRepositoryAnalysis = async (
     // 7. Mark as completed
     addAnalysisLog(analysisId, `Analysis job [${analysisId}] completed successfully.`);
     await updateAnalysisStatus(analysisId, 'completed');
+
+    // 8. Send Email Notification
+    try {
+      const userObj = await clerkClient.users.getUser(userId);
+      const notifications = userObj.unsafeMetadata?.notifications as any;
+      // Default is true if not explicitly set to false
+      if (notifications?.scanCompletion !== false) {
+        const emailAddress = userObj.primaryEmailAddressId 
+          ? userObj.emailAddresses.find(e => e.id === userObj.primaryEmailAddressId)?.emailAddress 
+          : userObj.emailAddresses[0]?.emailAddress;
+
+        if (emailAddress) {
+          addAnalysisLog(analysisId, `Triggering completion email to ${emailAddress}...`);
+          await sendAnalysisCompletionEmail(emailAddress, `${owner}/${repo}`, score);
+        }
+      }
+    } catch (err: any) {
+      console.error(`[Worker] Failed to send email for ${analysisId}:`, err);
+    }
 
   } catch (error: any) {
     addAnalysisLog(analysisId, `[ERROR] Analysis failed: ${error.message || String(error)}`);
