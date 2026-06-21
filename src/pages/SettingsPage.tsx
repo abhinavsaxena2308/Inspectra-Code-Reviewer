@@ -564,6 +564,61 @@ export const SettingsPage = () => {
                   </div>
                 )}
               </div>
+
+              {/* Webhooks Section (Phase 4) */}
+              <div className="mt-8 pt-6 border-t border-outline-variant/30">
+                <h4 className="text-sm font-semibold text-on-surface mb-4">Webhook Integration (CI/CD)</h4>
+                <p className="text-sm text-on-surface-variant mb-4">
+                  Configure a webhook in your GitHub repository to automatically trigger an Inspectra scan whenever a new Pull Request is opened.
+                </p>
+                <div className="bg-surface-container-low border border-white/5 rounded-md p-4 space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-on-surface-variant mb-1">Payload URL</label>
+                    <div className="flex items-center bg-surface border border-outline-variant/30 rounded-md overflow-hidden">
+                      <input type="text" readOnly value="https://api.inspectra.ai/webhooks/github" className="flex-1 bg-transparent px-3 py-2 text-sm text-on-surface outline-none" />
+                      <button className="px-4 py-2 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-semibold transition-colors">Copy</button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest text-on-surface-variant mb-1">Webhook Secret</label>
+                    <div className="flex items-center bg-surface border border-outline-variant/30 rounded-md overflow-hidden">
+                      <input type="password" readOnly value="whsec_1234567890abcdef" className="flex-1 bg-transparent px-3 py-2 text-sm text-on-surface outline-none" />
+                      <button className="px-4 py-2 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-semibold transition-colors">Copy</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 space-y-4">
+                  {/* Auto-Scan on PR */}
+                  <div className="flex items-center justify-between p-4 bg-surface-container border border-white/5 rounded-md">
+                    <div>
+                      <h4 className="text-sm font-medium text-on-surface mb-1">Auto-Scan Pull Requests</h4>
+                      <p className="text-xs text-on-surface-variant">Automatically trigger a deep-scan when a PR is opened or updated.</p>
+                    </div>
+                    <button
+                      role="switch"
+                      aria-checked={true}
+                      className="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus:outline-none bg-primary"
+                    >
+                      <span className="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform translate-x-[18px]" />
+                    </button>
+                  </div>
+                  {/* Post PR Comments */}
+                  <div className="flex items-center justify-between p-4 bg-surface-container border border-white/5 rounded-md">
+                    <div>
+                      <h4 className="text-sm font-medium text-on-surface mb-1">Post PR Comments</h4>
+                      <p className="text-xs text-on-surface-variant">Inspectra will comment directly on your PR with its findings.</p>
+                    </div>
+                    <button
+                      role="switch"
+                      aria-checked={true}
+                      className="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus:outline-none bg-primary"
+                    >
+                      <span className="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform translate-x-[18px]" />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>

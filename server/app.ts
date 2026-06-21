@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import { logger } from './middleware/logger';
 import { errorHandler } from './middleware/error';
 import routes from './routes';
+import webhookRoutes from './routes/webhookRoutes.ts';
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use(logger);
 
 // Public API Routes (unprotected)
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+app.use('/api/webhooks', webhookRoutes);
 
 // Protected API Routes
 app.use('/api', clerkMiddleware({
