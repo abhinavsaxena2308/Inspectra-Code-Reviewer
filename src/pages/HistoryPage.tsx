@@ -219,19 +219,40 @@ export const HistoryPage = () => {
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuAM0O_4_wfgSHuXy8fRQhORYAs9PoWvzW7CJqnord-RtkqrFNQbPFJ2TcN5DFokLICAqC-Cv0NyttPNAk4q1qoagXR1Lk0KEgT6VbSExwTLAV39ZA_9DggcBgrWfcytjnQe9FSBUziISfnkipvyd_yi8NSE0Bm0fysKZKt43s_8qqYD8P8SNU_BQGB2dzeidbbVwLQUj_8W5xrdHcLrTUU91qwreTxWje5v0rA36Bw2FkuGdCY1Q5rC3kt0LnqL2FOHZUmFuEVRoKKd"
                 />
                 {/* Dynamic Bar Chart */}
-                {history.slice(0, 10).reverse().map((run, i) => {
-                  const score = run.score || 0;
-                  const heightPercent = Math.max(10, score); // minimum 10% height to show it exists
-                  const innerHeight = Math.max(5, score - 10);
-                  return (
-                    <div key={i} className="flex-1 bg-primary/20 rounded-t relative overflow-hidden transition-all group-hover:bg-primary/30" style={{ height: `${heightPercent}%` }} title={`Score: ${score}`}>
-                      <div className="absolute bottom-0 left-0 w-full bg-primary transition-all" style={{ height: `${innerHeight}%` }}></div>
-                    </div>
-                  );
-                })}
-                {history.length === 0 && (
-                  <div className="absolute inset-0 flex items-center justify-center text-[#8b949e] text-sm">No data to display</div>
-                )}
+                <div className="absolute inset-0 w-full h-full flex items-end p-6 gap-3 z-10">
+                  {history.slice(0, 10).reverse().map((run, i) => {
+                    const score = run.score || 0;
+                    const heightPercent = Math.max(10, score);
+                    
+                    // Determine color based on score (matching table logic)
+                    const isSuccess = score >= 60;
+                    const isWarning = score > 0 && score < 60;
+                    
+                    const barColor = isSuccess ? 'bg-secondary' : isWarning ? 'bg-tertiary' : 'bg-error';
+                    const glowColor = isSuccess ? 'shadow-[0_0_20px_rgba(16,185,129,0.4)]' : isWarning ? 'shadow-[0_0_20px_rgba(245,158,11,0.4)]' : 'shadow-[0_0_20px_rgba(239,68,68,0.4)]';
+                    const gradientFrom = isSuccess ? 'from-secondary/20' : isWarning ? 'from-tertiary/20' : 'from-error/20';
+
+                    return (
+                      <div key={i} className="flex-1 flex flex-col justify-end items-center group h-full relative cursor-pointer" title={`${run.repoName} - Score: ${score}`}>
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 text-xs font-mono font-bold text-white bg-[#262a31] border border-white/10 px-2 py-1 rounded pointer-events-none z-20 shadow-xl">
+                          {score}
+                        </div>
+                        <div 
+                          className={`w-full rounded-t-md transition-all duration-300 relative overflow-hidden bg-gradient-to-t ${gradientFrom} to-transparent group-hover:brightness-125`} 
+                          style={{ height: `${heightPercent}%` }}
+                        >
+                          <div className={`absolute top-0 left-0 w-full h-1.5 ${barColor} ${glowColor}`}></div>
+                        </div>
+                        <div className="mt-2 text-[9px] uppercase tracking-wider text-[#8b949e] font-semibold truncate w-full text-center group-hover:text-[#c9d1d9] transition-colors">
+                          {run.repoName.split('/').pop() || 'Run'}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {history.length === 0 && (
+                    <div className="w-full h-full flex items-center justify-center text-[#8b949e] text-sm">No historical data to display</div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
