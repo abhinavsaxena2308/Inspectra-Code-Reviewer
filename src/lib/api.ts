@@ -33,12 +33,16 @@ export interface AnalyzeResponse {
   };
 }
 
-export const analyzeRepository = async (repoUrl: string): Promise<AnalyzeResponse> => {
-  const response = await axios.post<AnalyzeResponse>('/api/analyze', { repoUrl });
+export const analyzeRepository = async (repoUrl: string, token: string): Promise<AnalyzeResponse> => {
+  const response = await axios.post<AnalyzeResponse>('/api/analyze', { repoUrl }, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
   return response.data;
 };
 
-export const getAnalysisStatus = async (id: string): Promise<{ status: 'success'; data: AnalysisResult }> => {
-  const response = await axios.get<{ status: 'success'; data: AnalysisResult }>(`/api/status/${id}`);
+export const getAnalysisStatus = async (id: string, token: string): Promise<{ status: 'success'; data: AnalysisResult }> => {
+  const response = await axios.get<{ status: 'success'; data: AnalysisResult }>(`/api/status/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
   return response.data;
 };

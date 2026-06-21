@@ -10,8 +10,10 @@ import { cn } from '../lib/utils';
 import { analyzeRepository } from '../lib/api';
 import { useToast } from '../hooks/useToast';
 import { motion } from 'framer-motion';
+import { useAuth } from '@clerk/react';
 
 export const DashboardPage = () => {
+  const { getToken } = useAuth();
   const { addToast } = useToast();
   const [repoUrl, setRepoUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -25,10 +27,12 @@ export const DashboardPage = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        const token = await getToken();
+        if (!token) return;
         const [reposData, statsData, activityData] = await Promise.all([
-          fetchRepositories(),
-          fetchDashboardStats(),
-          fetchRecentActivity(),
+          fetchRepositories(token),
+          fetchDashboardStats(token),
+          fetchRecentActivity(token),
         ]);
         setRepositories(reposData);
         setStats(statsData);
@@ -47,7 +51,9 @@ export const DashboardPage = () => {
     setIsAnalyzing(true);
     setError(null);
     try {
-      const result = await analyzeRepository(repoUrl);
+      const token = await getToken();
+      if (!token) throw new Error('Not authenticated');
+      const result = await analyzeRepository(repoUrl, token);
       if (result.status === 'success') {
         addToast('Intelligence sequence triggered. Syncing...', 'success');
         navigate(`/analysis/${result.data.id}`);

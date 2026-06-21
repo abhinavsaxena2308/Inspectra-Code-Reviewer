@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { parseRepoUrl } from '../services/githubService';
-import { createPendingAnalysis, getAnalysis } from '../services/storageService';
+import { createPendingAnalysis, getAnalysis, getUserActivity, getUserRepositories, getUserStats } from '../services/storageService';
 import { processRepositoryAnalysis } from '../workers/analysisWorker';
 import { calculateScore } from '../services/scoringService';
+import { getAuth } from '@clerk/express';
 
 const analyzeBodySchema = z.object({
   repoUrl: z.string().url('Must provide a valid URL string'),
@@ -40,7 +41,11 @@ export const analyzeRepository = async (req: Request, res: Response, next: NextF
     const { owner, repo } = parsed;
 
     // 1. Create a pending job in the DB
-    const analysisId = await createPendingAnalysis(repoUrl, owner, repo);
+    const userId = getAuth(req).userId;
+    if (!userId) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+    const analysisId = await createPendingAnalysis(repoUrl, owner, repo, userId);
 
     if (!analysisId) {
        return res.status(500).json({
@@ -86,7 +91,11 @@ export const getAnalysisResult = async (req: Request, res: Response, next: NextF
   console.log(`[Main] Fetching status for job: ${id}`);
 
   try {
-    const result = await getAnalysis(id);
+    const userId = getAuth(req).userId;
+    if (!userId) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+    const result = await getAnalysis(id, userId);
 
     if (!result) {
       console.warn(`[Main] Job ${id} was not found in database.`);
@@ -153,3 +162,53 @@ export const getAnalysisResult = async (req: Request, res: Response, next: NextF
     next(error);
   }
 };
+
+export const getDashboardRepositories = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = getAuth(req).userId;
+    if (!userId) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+    const repos = await getUserRepositories(userId);
+    res.json({ status: 'success', data: repos.map(r => ({
+      id: r.id,
+      name: `${r.owner}/${r.repo_name}`,
+      language: 'Unknown',
+      score: r.score || 0,
+      lastAnalyzed: r.last_analyzed ? new Date(r.last_analyzed).toLocaleDateString() : 'Never',
+      status: r.score >= 90 ? 'good' : (r.score >= 70 ? 'needs-improvement' : 'critical')
+    })) });
+  } catch (error) { next(error); }
+};
+
+export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = getAuth(req).userId;
+    if (!userId) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+    const stats = await getUserStats(userId);
+    res.json({ status: 'success', data: [
+      { label: 'Total Analyses', value: stats.total.toString(), color: 'text-gh-blue' },
+      { label: 'Average Score', value: stats.avg_score.toString(), color: 'text-gh-orange' },
+      { label: 'Issues Detected', value: stats.issues.toString(), color: 'text-error' },
+    ] });
+  } catch (error) { next(error); }
+};
+
+export const getDashboardActivity = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = getAuth(req).userId;
+    if (!userId) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+    const activities = await getUserActivity(userId);
+    res.json({ status: 'success', data: activities.map(a => ({
+      id: a.id,
+      type: a.status === 'completed' ? 'analysis-completed' : 'new-issues',
+      repoName: a.repo_name,
+      timestamp: new Date(a.created_at).toLocaleTimeString() + ' ' + new Date(a.created_at).toLocaleDateString(),
+    })) });
+  } catch (error) { next(error); }
+};
+

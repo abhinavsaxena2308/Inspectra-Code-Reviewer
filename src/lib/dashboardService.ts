@@ -1,4 +1,4 @@
-// Mock Dashboard Service (InsForge removed)
+import axios from 'axios';
 
 export interface Repository {
   id: string;
@@ -41,75 +41,47 @@ export interface HistoryListRow {
   score: number | null;
 }
 
-export const fetchRepositories = async (): Promise<Repository[]> => {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return [
-    {
-      id: '1',
-      name: 'facebook/react',
-      language: 'TypeScript',
-      score: 92,
-      lastAnalyzed: new Date().toLocaleDateString(),
-      status: 'good'
-    },
-    {
-      id: '2',
-      name: 'vercel/next.js',
-      language: 'JavaScript',
-      score: 78,
-      lastAnalyzed: new Date().toLocaleDateString(),
-      status: 'needs-improvement'
-    }
-  ];
+export const fetchRepositories = async (token: string): Promise<Repository[]> => {
+  const response = await axios.get('/api/repositories', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data.data;
 };
 
-export const fetchDashboardStats = async (): Promise<DashboardStats[]> => {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  return [
-    { label: 'Total Analyses', value: '12', color: 'text-gh-blue' },
-    { label: 'Average Score', value: '85', color: 'text-gh-orange' },
-    { label: 'Issues Detected', value: '43', color: 'text-gh-green' },
-  ];
+export const fetchDashboardStats = async (token: string): Promise<DashboardStats[]> => {
+  const response = await axios.get('/api/stats', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data.data;
 };
 
-export const fetchRecentActivity = async (): Promise<ActivityItem[]> => {
-  await new Promise(resolve => setTimeout(resolve, 400));
-  return [
-    {
-      id: 'a1',
-      type: 'analysis-completed',
-      repoName: 'facebook/react',
-      timestamp: '2h ago',
-    },
-    {
-      id: 'a2',
-      type: 'new-issues',
-      repoName: 'vercel/next.js',
-      timestamp: '5h ago',
-      description: '3 security vulnerabilities found'
-    }
-  ];
+export const fetchRecentActivity = async (token: string): Promise<ActivityItem[]> => {
+  const response = await axios.get('/api/activity', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data.data;
 };
 
-export const fetchHistoryStats = async (): Promise<HistoryStat[]> => {
+// We will mock history stats for now, or you can implement an endpoint later
+export const fetchHistoryStats = async (token: string): Promise<HistoryStat[]> => {
   return [
     {
       label: 'Total Runs',
-      value: '48',
+      value: '-',
       subtext: 'Current workspace',
       trend: 'neutral',
       colorClass: 'bg-primary'
     },
     {
       label: 'Success Rate',
-      value: '94.2%',
+      value: '-',
       subtext: 'Optimal Performance',
       trend: 'up',
       colorClass: 'bg-secondary'
     },
     {
       label: 'Avg Health Score',
-      value: '82',
+      value: '-',
       subtext: 'Stable',
       trend: 'neutral',
       colorClass: 'bg-tertiary'
@@ -117,25 +89,6 @@ export const fetchHistoryStats = async (): Promise<HistoryStat[]> => {
   ];
 };
 
-export const fetchHistoryList = async (): Promise<HistoryListRow[]> => {
-  return [
-    {
-      id: 'h1',
-      repoName: 'Inspectra',
-      commitHash: '7a2b5c1',
-      date: 'Oct 24, 2023',
-      time: '14:30 UTC',
-      status: 'completed',
-      score: 88
-    },
-    {
-      id: 'h2',
-      repoName: 'Inspectra',
-      commitHash: '3f9e2d1',
-      date: 'Oct 23, 2023',
-      time: '09:15 UTC',
-      status: 'completed',
-      score: 82
-    }
-  ];
+export const fetchHistoryList = async (token: string): Promise<HistoryListRow[]> => {
+  return [];
 };

@@ -91,6 +91,10 @@ Do not include any other text, markdown blocks are fine if they are inside the s
       text = text.replace(/^```/, '').replace(/```$/, '').trim();
     }
 
+    // Sanitize literal control characters (like raw newlines/tabs inside strings) that break JSON.parse
+    // Structural whitespace (like newlines) is safe to replace with spaces in JSON.
+    text = text.replace(/[\u0000-\u001F]+/g, ' ');
+
     const jsonIssues = JSON.parse(text);
     const issues: AnalysisIssue[] = jsonIssues.map((i: any) => ({
       ...i,
