@@ -200,78 +200,42 @@ export const RepositoriesPage = () => {
           {/* Aggregate Stats Overview */}
           {!repoUrl.includes('github.com') && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Stat Card 1 */}
-                <div className="group relative bg-gradient-to-br from-surface to-surface-container rounded-2xl p-6 border border-outline-variant/30 hover:border-primary/30 transition-all duration-500 overflow-hidden shadow-sm hover:shadow-primary/5">
-                  <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all duration-500" />
-                  <div className="relative z-10 flex flex-col justify-between h-full">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="p-3 bg-surface-container-high rounded-xl shadow-sm border border-outline-variant/20 group-hover:scale-110 transition-transform duration-500">
-                        <Database className="w-5 h-5 text-secondary" />
-                      </div>
-                      <h3 className="font-bold text-on-surface-variant font-sans text-xs uppercase tracking-widest">Total Workspaces</h3>
+              <div className="glass-card rounded-2xl p-6 border border-outline-variant/30 relative overflow-visible">
+                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-error via-amber-500 to-primary opacity-30" />
+                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                    <div>
+                      <h3 className="font-bold text-on-surface font-sans text-sm tracking-wider uppercase">Workspace Health Map</h3>
+                      <p className="text-xs text-on-surface-variant mt-1">A high-level view of all {repositories.length} connected repositories.</p>
                     </div>
-                    <div className="flex items-end justify-between">
-                      <span className="text-5xl font-bold font-heading text-on-surface tracking-tight group-hover:text-primary transition-colors duration-500">{totalRepos}</span>
-                      <span className="text-xs text-on-surface-variant font-mono pb-2 uppercase tracking-wider">Connected</span>
+                    <div className="flex items-center gap-2 text-[10px] text-on-surface-variant font-mono uppercase bg-surface-container-low px-3 py-1.5 rounded-lg border border-white/5">
+                       <span>No Data</span>
+                       <div className="flex gap-1.5 px-2">
+                          <div className="w-3 h-3 rounded-[3px] bg-surface-container-high border border-outline-variant/30" />
+                          <div className="w-3 h-3 rounded-[3px] bg-error/80 border border-error/50" />
+                          <div className="w-3 h-3 rounded-[3px] bg-amber-500/80 border border-amber-500/50" />
+                          <div className="w-3 h-3 rounded-[3px] bg-primary/80 border border-primary/50" />
+                       </div>
+                       <span>Healthy</span>
                     </div>
-                  </div>
-                </div>
-
-                {/* Stat Card 2 */}
-                <div className="group relative bg-gradient-to-br from-surface to-surface-container rounded-2xl p-6 border border-outline-variant/30 hover:border-primary/30 transition-all duration-500 overflow-hidden shadow-sm hover:shadow-primary/5">
-                  <div className={cn("absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 rounded-full blur-2xl transition-all duration-500", 
-                    avgScore >= 80 ? 'bg-primary/10 group-hover:bg-primary/20' : 
-                    avgScore >= 60 ? 'bg-amber-500/10 group-hover:bg-amber-500/20' : 
-                    'bg-error/10 group-hover:bg-error/20')} 
-                  />
-                  <div className="relative z-10 flex flex-col justify-between h-full">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className={cn("p-3 rounded-xl shadow-sm border group-hover:scale-110 transition-transform duration-500", 
-                        avgScore >= 80 ? 'bg-primary/10 border-primary/20' : 
-                        avgScore >= 60 ? 'bg-amber-500/10 border-amber-500/20' : 
-                        'bg-error/10 border-error/20')}
-                      >
-                        <CheckCircle2 className={cn("w-5 h-5", getScoreColor(avgScore))} />
-                      </div>
-                      <h3 className="font-bold text-on-surface-variant font-sans text-xs uppercase tracking-widest">Avg Health Score</h3>
-                    </div>
-                    <div className="flex items-end justify-between">
-                      <span className={cn("text-5xl font-bold font-heading tracking-tight glow-text", getScoreColor(avgScore))}>
-                        {avgScore}
-                      </span>
-                      <span className="text-xs text-on-surface-variant font-mono pb-2">/ 100</span>
-                    </div>
-                    {/* Visual Progress Bar */}
-                    <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden mt-5">
-                      <div
-                        className={cn("h-full transition-all duration-1000 ease-out shadow-[0_0_10px_currentColor]",
-                          avgScore >= 80 ? 'bg-primary' : avgScore >= 60 ? 'bg-amber-500' : 'bg-error'
-                        )}
-                        style={{ width: `${avgScore}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Stat Card 3 */}
-                <div className="group relative bg-gradient-to-br from-surface to-surface-container rounded-2xl p-6 border border-outline-variant/30 hover:border-error/30 transition-all duration-500 overflow-hidden shadow-sm hover:shadow-error/5">
-                  <div className={cn("absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 rounded-full blur-2xl transition-all duration-500", needsAttentionCount > 0 ? "bg-error/10 group-hover:bg-error/20" : "bg-primary/5")} />
-                  <div className="relative z-10 flex flex-col justify-between h-full">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className={cn("p-3 rounded-xl shadow-sm border group-hover:scale-110 transition-transform duration-500", needsAttentionCount > 0 ? "bg-error/10 border-error/20" : "bg-surface-container-high border-outline-variant/20")}>
-                        <Settings className={cn("w-5 h-5", needsAttentionCount > 0 ? "text-error" : "text-on-surface-variant")} />
-                      </div>
-                      <h3 className="font-bold text-on-surface-variant font-sans text-xs uppercase tracking-widest">Needs Attention</h3>
-                    </div>
-                    <div className="flex items-end justify-between">
-                      <span className={cn("text-5xl font-bold font-heading tracking-tight", needsAttentionCount > 0 ? "text-error glow-text" : "text-on-surface")}>
-                        {needsAttentionCount}
-                      </span>
-                      <span className="text-xs text-on-surface-variant font-mono pb-2 uppercase tracking-wider">Repositories</span>
-                    </div>
-                  </div>
-                </div>
+                 </div>
+                 <div className="flex flex-wrap gap-2">
+                    {repositories.map(repo => {
+                       let bgColor = 'bg-surface-container-high border-outline-variant/30 hover:border-outline-variant';
+                       if (repo.score != null) {
+                          if (repo.score >= 80) bgColor = 'bg-primary/80 border-primary/50 shadow-[0_0_8px_rgba(16,185,129,0.2)] hover:shadow-[0_0_12px_rgba(16,185,129,0.6)] hover:bg-primary z-10';
+                          else if (repo.score >= 60) bgColor = 'bg-amber-500/80 border-amber-500/50 shadow-[0_0_8px_rgba(245,158,11,0.2)] hover:shadow-[0_0_12px_rgba(245,158,11,0.6)] hover:bg-amber-500 z-10';
+                          else bgColor = 'bg-error/80 border-error/50 shadow-[0_0_8px_rgba(239,68,68,0.2)] hover:shadow-[0_0_12px_rgba(239,68,68,0.6)] hover:bg-error z-10';
+                       }
+                       return (
+                          <div 
+                             key={repo.id}
+                             title={`${repo.name}\nScore: ${repo.score ?? 'Not Scanned'}`}
+                             className={cn("w-5 h-5 sm:w-6 sm:h-6 rounded-[4px] border cursor-pointer hover:scale-125 transition-all duration-200", bgColor)}
+                             onClick={() => repo.analysisId ? navigate(`/analysis/${repo.analysisId}`) : handleAnalyze(repo.url)}
+                          />
+                       );
+                    })}
+                 </div>
               </div>
 
               {/* Controls Bar */}
