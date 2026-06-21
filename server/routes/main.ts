@@ -43,4 +43,7 @@ router.post('/autofix', autoFixIssueController);
 router.get('/settings/ai', getAiSettings);
 router.post('/settings/ai', updateAiSettings);
 
+router.get('/settings/ai', getAiSettings);
+router.post('/settings/ai', updateAiSettings);
+
 export default router;

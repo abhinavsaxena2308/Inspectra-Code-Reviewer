@@ -32,13 +32,14 @@ const getLanguageFromExtension = (filename: string): string => {
 export const analyzeFile = async (
   filename: string, 
   content: string, 
-  repoName: string = 'Unknown Repository'
+  repoName: string = 'Unknown Repository',
+  aiSettings: any = {}
 ): Promise<FileAnalysis> => {
   const language = getLanguageFromExtension(filename);
   console.log(`[AnalysisService] Analyzing file: ${filename} (Language: ${language}) via Ollama Local Engine`);
   
   try {
-    const issues = await analyzeCodeWithOllama(repoName, filename, language, content);
+    const issues = await analyzeCodeWithOllama(repoName, filename, language, content, aiSettings);
 
     console.log(`[AnalysisService] Found ${issues.length} issues in ${filename}`);
     
@@ -62,12 +63,13 @@ export const analyzeFile = async (
 
 export const analyzeMultipleFiles = async (
   files: { name: string; content: string }[],
-  repoName: string = 'Unknown Repository'
+  repoName: string = 'Unknown Repository',
+  aiSettings: any = {}
 ): Promise<FileAnalysis[]> => {
   // Use sequential processing or limited concurrency to avoid Gemini rate limits
   const results: FileAnalysis[] = [];
   for (const file of files) {
-    results.push(await analyzeFile(file.name, file.content, repoName));
+    results.push(await analyzeFile(file.name, file.content, repoName, aiSettings));
     // Small delay between files to be safe
     await new Promise(resolve => setTimeout(resolve, 500));
   }

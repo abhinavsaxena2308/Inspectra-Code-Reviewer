@@ -45,6 +45,16 @@ export const processRepositoryAnalysis = async (
         addAnalysisLog(analysisId, `Notice: Proceeding without GitHub token (public repos only).`);
     }
 
+    // 1.5 Fetch AI Settings
+    addAnalysisLog(analysisId, `Loading team AI rulesets and strictness profiles...`);
+    let aiSettings = {};
+    try {
+        const userObj = await clerkClient.users.getUser(userId);
+        aiSettings = userObj.publicMetadata?.aiSettings || {};
+    } catch (e) {
+        console.warn('Failed to load AI settings');
+    }
+
     // 2. Fetch all file metadata
     addAnalysisLog(analysisId, `Fetching repository tree metadata from GitHub...`);
     const fileMetadata = await getRepositoryContents(owner, repo, '', githubToken);
@@ -70,8 +80,8 @@ export const processRepositoryAnalysis = async (
     // 4. Run Analysis
     addAnalysisLog(analysisId, `Connecting to Gemini AI Engine for heuristic scanning...`);
     await sleep(500);
-    addAnalysisLog(analysisId, `Executing semantic code analysis in batches...`);
-    const analysisResults = await analyzeMultipleFiles(filesWithContent, `${owner}/${repo}`);
+    addAnalysisLog(analysisId, `Executing semantic code analysis in batches with custom rulesets...`);
+    const analysisResults = await analyzeMultipleFiles(filesWithContent, `${owner}/${repo}`, aiSettings);
     addAnalysisLog(analysisId, `AI Engine analysis complete. Detected issues in ${analysisResults.filter(r => r.issues.length > 0).length} files.`);
 
     // 5. Calculate Score

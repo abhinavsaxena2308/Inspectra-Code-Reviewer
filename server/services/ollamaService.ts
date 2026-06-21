@@ -12,11 +12,19 @@ export const analyzeCodeWithOllama = async (
   repoName: string,
   fileName: string,
   language: string,
-  codeSnippet: string
+  codeSnippet: string,
+  aiSettings: any = {}
 ): Promise<AnalysisIssue[]> => {
+  const strictnessStr = aiSettings.strictness || 'standard';
+  const focusAreaStr = aiSettings.focusArea || 'general best practices';
+  const customInstr = aiSettings.customInstructions ? `\nCRITICAL CUSTOM INSTRUCTIONS FROM TEAM:\n${aiSettings.customInstructions}\n` : '';
+
   const prompt = `You are an expert software engineer and code reviewer.
 
-Analyze the following code from a GitHub repository and provide suggestions.
+Review Strictness Level: ${strictnessStr.toUpperCase()}
+Focus Area: ${focusAreaStr.toUpperCase()}
+${customInstr}
+Analyze the following code from a GitHub repository and provide suggestions based strictly on the configured rules above.
 
 Context:
 - Repository Name: ${repoName}
