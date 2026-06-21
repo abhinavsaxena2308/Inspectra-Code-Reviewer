@@ -5,14 +5,17 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
+import { useTheme } from '../hooks/useTheme';
 import { UserProfile } from '@clerk/react';
 import { dark } from '@clerk/themes';
 
 export const SettingsPage = () => {
   const { user, signOut, updateProfile } = useAuth();
   const { addToast } = useToast();
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  const [isHighContrast, setIsHighContrast] = useState(false);
+  const { theme, setTheme, isHighContrast, setIsHighContrast } = useTheme();
+  const isDarkMode = theme === 'dark';
+  const setIsDarkMode = (dark: boolean) => setTheme(dark ? 'dark' : 'light');
+
   const [showToken, setShowToken] = useState(false);
   const [githubToken, setGithubToken] = useState('');
   const [name, setName] = useState('');
