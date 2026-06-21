@@ -1,4 +1,4 @@
-import { analyzeCodeWithGemini, AnalysisIssue } from './geminiService';
+import { analyzeCodeWithOllama, AnalysisIssue } from './ollamaService';
 
 export type { AnalysisIssue };
 
@@ -35,10 +35,11 @@ export const analyzeFile = async (
   repoName: string = 'Unknown Repository'
 ): Promise<FileAnalysis> => {
   const language = getLanguageFromExtension(filename);
-  console.log(`[AnalysisService] Analyzing file: ${filename} (Language: ${language})`);
+  console.log(`[AnalysisService] Analyzing file: ${filename} (Language: ${language}) via Ollama Local Engine`);
   
   try {
-    const issues = await analyzeCodeWithGemini(repoName, filename, language, content);
+    const issues = await analyzeCodeWithOllama(repoName, filename, language, content);
+
     console.log(`[AnalysisService] Found ${issues.length} issues in ${filename}`);
     
     return {

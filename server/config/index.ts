@@ -14,7 +14,7 @@ const envSchema = z.object({
   PORT: z.string().default('5000'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   GITHUB_TOKEN: z.string().min(1, 'GitHub Token is required for API requests'),
-  GEMINI_API_KEY: z.string().min(1, 'Gemini API Key is required'),
+  OLLAMA_MODEL: z.string().default('minimax-m2.5:cloud'),
 });
 
 // Validate environment variables
@@ -27,10 +27,10 @@ if (!_env.success) {
 
 export const config = {
   port: process.env.PORT || 3000,
-  geminiApiKey: process.env.GEMINI_API_KEY,
   githubToken: process.env.GITHUB_TOKEN,
   nodeEnv: process.env.NODE_ENV || 'development',
   clerkSecretKey: process.env.CLERK_SECRET_KEY,
   emailUser: process.env.EMAIL_USER,
   emailPass: process.env.EMAIL_PASS,
+  ollamaModel: process.env.OLLAMA_MODEL || 'minimax-m2.5:cloud',
 };

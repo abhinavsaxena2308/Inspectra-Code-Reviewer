@@ -1,8 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
 import { config } from "../config";
-
-const ai = new GoogleGenAI({ apiKey: config.geminiApiKey });
-const modelName = "gemini-2.5-flash";
 
 export interface AnalysisIssue {
   type: 'bug' | 'security' | 'suggestion' | 'performance';
@@ -12,7 +8,7 @@ export interface AnalysisIssue {
   line?: number;
 }
 
-export const analyzeCodeWithGemini = async (
+export const analyzeCodeWithOllama = async (
   repoName: string,
   fileName: string,
   language: string,
@@ -50,40 +46,31 @@ You MUST return a JSON array of objects with the following schema:
 
 Do not include any other text, markdown blocks are fine if they are inside the strings. Use "bug" for general issues, "security" for vulnerabilities, "performance" for optimizations, and "suggestion" for quality/readability improvements.`;
 
-  let text = "";
   try {
-    let result;
-    let retries = 3;
-    let delay = 2000; // start with 2 seconds
+    const response = await fetch("http://127.0.0.1:11434/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: config.ollamaModel,
+        prompt: prompt,
+        stream: false,
+        format: "json",
+      }),
+    });
 
-    while (retries > 0) {
-      try {
-        result = await ai.models.generateContent({
-          model: modelName,
-          contents: prompt
-        });
-        break; // Success, exit loop
-      } catch (apiError: any) {
-        const errString = String(apiError);
-        if (errString.includes('503') || errString.includes('UNAVAILABLE')) {
-          retries--;
-          if (retries === 0) throw apiError;
-          console.warn(`[Gemini] High demand (503). Retrying in ${delay}ms...`);
-          await new Promise(res => setTimeout(res, delay));
-          delay *= 2;
-        } else {
-          throw apiError; // Throw other errors immediately
-        }
-      }
-    }
-    
-    if (result && result.text) {
-      text = result.text.trim();
-    } else {
-      throw new Error("No text returned from Gemini API");
+    if (!response.ok) {
+      throw new Error(`Ollama API returned status ${response.status}`);
     }
 
-    
+    const data = await response.json();
+    let text = data.response || "";
+
+    if (!text) {
+      throw new Error("No text returned from Ollama API");
+    }
+
     // Clean up markdown block if present
     if (text.startsWith('```json')) {
       text = text.replace(/^```json/, '').replace(/```$/, '').trim();
@@ -91,8 +78,7 @@ Do not include any other text, markdown blocks are fine if they are inside the s
       text = text.replace(/^```/, '').replace(/```$/, '').trim();
     }
 
-    // Sanitize literal control characters (like raw newlines/tabs inside strings) that break JSON.parse
-    // Structural whitespace (like newlines) is safe to replace with spaces in JSON.
+    // Sanitize literal control characters
     text = text.replace(/[\u0000-\u001F]+/g, ' ');
 
     const jsonIssues = JSON.parse(text);
@@ -102,13 +88,12 @@ Do not include any other text, markdown blocks are fine if they are inside the s
     }));
     return issues;
   } catch (error) {
-    console.error("Gemini Analysis Error:", error);
-    // Fallback to a single detailed issue if parsing fails or error occurs
+    console.error("Ollama Analysis Error:", error);
     return [{
       type: 'suggestion',
       severity: 'medium',
-      message: 'AI analysis encountered an error or returned invalid format.',
-      suggestion: 'Please check your API quota or ensure the code snippet is valid.'
+      message: 'Ollama analysis encountered an error or returned invalid format.',
+      suggestion: 'Please ensure Ollama is running and the selected model is pulled on your machine.'
     }];
   }
 };
