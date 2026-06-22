@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Network, ShieldAlert, Code2, Loader2, Play, Database } from 'lucide-react';
+import { Network, ShieldAlert, Code2, Loader2, Play, Database, ChevronDown } from 'lucide-react';
 import { useAuth } from '@clerk/react';
 import { fetchConnectedRepos, Repository } from '../lib/dashboardService';
 import ReactMarkdown from 'react-markdown';
@@ -16,15 +16,14 @@ export const ArchitecturePage = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [mermaidCode, setMermaidCode] = useState<string | null>(null);
   const [threatModel, setThreatModel] = useState<string | null>(null);
-  const [isTableVisible, setIsTableVisible] = useState(true);
+  const [activeTab, setActiveTab] = useState<'diagram' | 'threat-model'>('diagram');
   const { theme } = useTheme();
   
   const mermaidRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     mermaid.initialize({ startOnLoad: false, theme: theme === 'dark' ? 'dark' : 'default', securityLevel: 'loose' });
-    // Force a re-render if the diagram is already present when theme toggles
-    if (mermaidCode && mermaidRef.current) {
+    if (mermaidCode && mermaidRef.current && activeTab === 'diagram') {
       mermaidRef.current.innerHTML = '';
       mermaid.render(`architecture-diagram-${theme}`, mermaidCode).then((result) => {
         if (mermaidRef.current) {
@@ -34,7 +33,7 @@ export const ArchitecturePage = () => {
         console.error("Mermaid Render Error", err);
       });
     }
-  }, [theme]);
+  }, [theme, activeTab, mermaidCode]);
 
   useEffect(() => {
     const loadRepos = async () => {
@@ -51,7 +50,6 @@ export const ArchitecturePage = () => {
     loadRepos();
   }, [getToken]);
 
-  // Fetch saved architecture when repo changes
   useEffect(() => {
     const fetchSaved = async () => {
       if (!selectedRepo) return;
@@ -75,22 +73,6 @@ export const ArchitecturePage = () => {
     fetchSaved();
   }, [selectedRepo, getToken]);
 
-  useEffect(() => {
-    if (mermaidCode && mermaidRef.current) {
-      mermaidRef.current.innerHTML = '';
-      mermaid.render(`architecture-diagram-${theme}-${Date.now()}`, mermaidCode).then((result) => {
-        if (mermaidRef.current) {
-          mermaidRef.current.innerHTML = result.svg;
-        }
-      }).catch(err => {
-        console.error("Mermaid Render Error", err);
-        if (mermaidRef.current) {
-          mermaidRef.current.innerHTML = `<div class="text-red-400 p-4">Failed to render diagram: ${err.message}</div>`;
-        }
-      });
-    }
-  }, [mermaidCode]);
-
   const handleAnalyze = async () => {
     if (!selectedRepo) return;
     setIsAnalyzing(true);
@@ -113,7 +95,6 @@ export const ArchitecturePage = () => {
 
       setMermaidCode(data.data.mermaid);
       setThreatModel(data.data.report);
-      setIsTableVisible(false);
       toast.success('Architecture modeled successfully!');
     } catch (error: any) {
       toast.error(error.message);
@@ -121,6 +102,8 @@ export const ArchitecturePage = () => {
       setIsAnalyzing(false);
     }
   };
+
+  const hasContent = mermaidCode || threatModel;
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -137,23 +120,34 @@ export const ArchitecturePage = () => {
               Visualize system components and identify macro-level security threats.
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            {!isTableVisible && (
-              <button
-                onClick={() => setIsTableVisible(true)}
-                className="px-4 py-2 bg-surface border border-white/10 text-on-surface rounded-md text-sm font-semibold flex items-center gap-2 hover:bg-surface-container transition-colors"
+          
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Repository Select Dropdown */}
+            <div className="relative">
+              <select
+                value={selectedRepo}
+                onChange={(e) => setSelectedRepo(e.target.value)}
+                className="appearance-none bg-surface border border-white/10 text-on-surface py-2 pl-10 pr-10 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-pointer min-w-[200px]"
               >
-                <Database className="w-4 h-4" /> Change Project
-              </button>
-            )}
+                {repositories.length === 0 && <option value="">No Repositories</option>}
+                {repositories.map((repo) => (
+                  <option key={repo.id} value={repo.url || ''}>
+                    {repo.name}
+                  </option>
+                ))}
+              </select>
+              <Database className="w-4 h-4 text-on-surface-variant absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-4 h-4 text-on-surface-variant absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+
             <button
               onClick={handleAnalyze}
               disabled={isAnalyzing || !selectedRepo}
-              className="px-4 py-2 bg-emerald-500 text-white rounded-md text-sm font-semibold flex items-center gap-2 hover:bg-emerald-600 transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-emerald-500 text-white rounded-md text-sm font-semibold flex items-center gap-2 hover:bg-emerald-600 transition-colors disabled:opacity-50 shadow-lg shadow-emerald-500/20"
             >
               {isAnalyzing ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Scanning...</>
-              ) : (mermaidCode || threatModel) ? (
+              ) : hasContent ? (
                 <><Play className="w-4 h-4 fill-current" /> Re-Analyze Architecture</>
               ) : (
                 <><Play className="w-4 h-4 fill-current" /> Analyze Architecture</>
@@ -162,132 +156,115 @@ export const ArchitecturePage = () => {
           </div>
         </div>
 
-        {/* Repositories Table */}
-        {isTableVisible && (
-          <div className="bg-surface border border-white/10 rounded-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4">
-            <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-surface-container-low border-b border-white/10 text-xs uppercase tracking-wider text-on-surface-variant">
-                <th className="p-4 font-semibold">Repository</th>
-                <th className="p-4 font-semibold text-center">Architecture Status</th>
-                <th className="p-4 font-semibold text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {repositories.map(repo => {
-                const isSelected = selectedRepo === repo.url;
-                return (
-                  <tr 
-                    key={repo.id} 
-                    className={cn(
-                      "transition-colors cursor-pointer",
-                      isSelected ? "bg-emerald-500/10" : "hover:bg-surface-container-high"
-                    )}
-                    onClick={() => {
-                      setSelectedRepo(repo.url || '');
-                      setIsTableVisible(false);
-                    }}
-                  >
-                    <td className="p-4 flex items-center gap-3">
-                      <Database className={cn("w-4 h-4", isSelected ? "text-emerald-400" : "text-on-surface-variant")} />
-                      <span className={cn("font-medium", isSelected ? "text-emerald-400" : "text-on-surface")}>
-                        {repo.name}
-                      </span>
-                    </td>
-                    <td className="p-4 text-center">
-                      {repo.has_architecture ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400">
-                          <Network className="w-3.5 h-3.5" /> Saved
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-white/5 text-on-surface-variant">
-                          Pending
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4 text-right">
-                      {isSelected ? (
-                        <span className="text-xs font-bold text-emerald-400 flex items-center justify-end gap-1">
-                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Active
-                        </span>
-                      ) : (
-                        <span className="text-xs font-medium text-primary hover:text-primary-light">
-                          Select
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-              {repositories.length === 0 && (
-                <tr>
-                  <td colSpan={3} className="p-8 text-center text-on-surface-variant text-sm">
-                    No connected repositories found. Connect a repository on the Dashboard first.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        )}
-
-        {/* Content */}
-        {!isTableVisible && isAnalyzing ? (
-          <div className="flex flex-col items-center justify-center py-32 bg-surface border border-white/10 rounded-xl">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-              <Network className="w-6 h-6 text-emerald-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        {/* Content Area */}
+        {isAnalyzing ? (
+          <div className="bg-surface/50 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden p-8 shadow-2xl">
+            <div className="animate-pulse flex flex-col items-center justify-center py-20">
+              <div className="relative w-24 h-24 mb-8">
+                <div className="absolute inset-0 border-4 border-emerald-500/20 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                <Network className="w-8 h-8 text-emerald-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+              </div>
+              <h3 className="text-xl font-semibold text-on-surface mb-2">Analyzing Infrastructure</h3>
+              <p className="text-on-surface-variant font-mono text-sm">Building dependency graph and threat models...</p>
+              
+              <div className="w-full max-w-md mt-12 space-y-3">
+                <div className="h-2 bg-white/10 rounded overflow-hidden">
+                  <div className="h-full bg-emerald-500/50 w-1/3 animate-pulse"></div>
+                </div>
+                <div className="h-2 bg-white/10 rounded overflow-hidden">
+                  <div className="h-full bg-emerald-500/30 w-2/3 animate-pulse delay-75"></div>
+                </div>
+                <div className="h-2 bg-white/10 rounded overflow-hidden">
+                  <div className="h-full bg-emerald-500/40 w-1/2 animate-pulse delay-150"></div>
+                </div>
+              </div>
             </div>
-            <h3 className="text-lg font-semibold text-on-surface mt-6 mb-2">Analyzing Infrastructure...</h3>
-            <p className="text-sm text-on-surface-variant font-mono">Parsing docker-compose, package.json, and entrypoints</p>
           </div>
-        ) : mermaidCode || threatModel ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        ) : hasContent ? (
+          <div className="bg-surface/80 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden flex flex-col min-h-[600px] shadow-2xl">
             
-            {/* Diagram Pane */}
-            <div className="bg-surface border border-white/10 rounded-xl overflow-hidden flex flex-col min-h-[500px]">
-              <div className="p-4 border-b border-white/10 flex items-center gap-2 bg-surface-container-low">
-                <Code2 className="w-4 h-4 text-emerald-400" />
-                <h3 className="font-semibold text-sm text-on-surface">System Diagram</h3>
-              </div>
-              <div 
+            {/* Tabs Header */}
+            <div className="flex items-center border-b border-white/10 bg-surface-container-low/50 px-4 backdrop-blur-md">
+              <button
+                onClick={() => setActiveTab('diagram')}
                 className={cn(
-                  "p-6 flex-1 overflow-auto [&>svg]:w-full [&>svg]:h-full [&>svg]:min-w-[600px] [&>svg]:min-h-[400px]",
-                  theme === 'dark' ? "bg-[#0a0a0a]" : "bg-white"
-                )} 
-                ref={mermaidRef}
+                  "flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-all duration-300",
+                  activeTab === 'diagram' 
+                    ? "border-emerald-500 text-emerald-400 bg-emerald-500/5" 
+                    : "border-transparent text-on-surface-variant hover:text-on-surface hover:bg-white/5"
+                )}
               >
-                {/* Mermaid renders here */}
-              </div>
+                <Code2 className="w-4 h-4" /> System Diagram
+              </button>
+              <button
+                onClick={() => setActiveTab('threat-model')}
+                className={cn(
+                  "flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-all duration-300",
+                  activeTab === 'threat-model' 
+                    ? "border-red-500 text-red-400 bg-red-500/5" 
+                    : "border-transparent text-on-surface-variant hover:text-on-surface hover:bg-white/5"
+                )}
+              >
+                <ShieldAlert className="w-4 h-4" /> Threat Model
+              </button>
             </div>
 
-            {/* Threat Model Pane */}
-            <div className="bg-surface border border-white/10 rounded-xl overflow-hidden flex flex-col min-h-[500px]">
-              <div className="p-4 border-b border-white/10 flex items-center gap-2 bg-red-500/10 text-red-400">
-                <ShieldAlert className="w-4 h-4" />
-                <h3 className="font-semibold text-sm">Threat Model Report</h3>
-              </div>
-              <div className="p-6 flex-1 overflow-y-auto prose prose-sm prose-invert max-w-none prose-tables:border prose-tables:border-white/10 prose-th:bg-white/5 prose-th:p-2 prose-td:p-2 prose-tr:border-b prose-tr:border-white/10">
-                {threatModel ? (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{threatModel}</ReactMarkdown>
+            {/* Tab Content */}
+            <div className="flex-1 relative bg-background/50">
+              
+              {/* Diagram Tab */}
+              <div className={cn(
+                "absolute inset-0 overflow-auto p-6 transition-opacity duration-300",
+                activeTab === 'diagram' ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none",
+                theme === 'dark' ? "bg-[#0a0a0a]" : "bg-white"
+              )}>
+                {activeTab === 'diagram' && mermaidCode ? (
+                  <div 
+                    ref={mermaidRef} 
+                    className="flex justify-center items-center min-h-full [&>svg]:max-w-full [&>svg]:h-auto"
+                  >
+                    {/* Mermaid renders here */}
+                  </div>
                 ) : (
-                  <p className="text-on-surface-variant italic">No threat model generated.</p>
+                  <div className="h-full flex items-center justify-center text-on-surface-variant">
+                    No diagram available.
+                  </div>
+                )}
+              </div>
+
+              {/* Threat Model Tab */}
+              <div className={cn(
+                "absolute inset-0 overflow-auto p-8 transition-opacity duration-300 bg-surface/50",
+                activeTab === 'threat-model' ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+              )}>
+                {activeTab === 'threat-model' && threatModel ? (
+                  <div className="prose prose-sm prose-invert max-w-4xl mx-auto prose-headings:text-on-surface prose-p:text-on-surface-variant prose-a:text-emerald-400 prose-tables:border prose-tables:border-white/10 prose-th:bg-white/5 prose-th:p-3 prose-td:p-3 prose-tr:border-b prose-tr:border-white/10 prose-li:text-on-surface-variant">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{threatModel}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-on-surface-variant">
+                    No threat model available.
+                  </div>
                 )}
               </div>
             </div>
-            
+
           </div>
-        ) : !isTableVisible ? (
-          <div className="py-24 text-center bg-surface border border-white/10 border-dashed rounded-xl animate-in fade-in zoom-in-95">
-            <Network className="w-12 h-12 text-on-surface-variant mx-auto mb-4 opacity-50" />
-            <h3 className="text-lg font-semibold text-on-surface mb-2">No Architecture Loaded</h3>
-            <p className="text-sm text-on-surface-variant max-w-md mx-auto">
-              Click Analyze Architecture to generate a system dependency graph and threat model.
+        ) : (
+          <div className="flex flex-col items-center justify-center py-32 bg-surface/30 border border-white/10 border-dashed rounded-xl animate-in fade-in zoom-in-95 backdrop-blur-sm">
+            <div className="w-20 h-20 bg-surface-container rounded-full flex items-center justify-center mb-6 border border-white/5 shadow-inner">
+              <Network className="w-10 h-10 text-on-surface-variant/50" />
+            </div>
+            <h3 className="text-xl font-semibold text-on-surface mb-3">No Architecture Loaded</h3>
+            <p className="text-sm text-on-surface-variant max-w-md mx-auto text-center leading-relaxed">
+              Select a repository from the dropdown above and click <strong className="text-on-surface">Analyze Architecture</strong> to generate an AI-driven system dependency graph and identify macro-level security threats.
             </p>
           </div>
-        ) : null}
+        )}
 
       </div>
     </div>
   );
 };
+
