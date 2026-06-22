@@ -82,7 +82,7 @@ export const HistoryPage = () => {
                 <span className="text-xs text-on-surface-variant font-medium">{stat.label}</span>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-semibold tracking-tight text-on-surface">{stat.value}</span>
-                  <span className={cn("text-[10px] font-mono", stat.colorClass.replace('bg-', 'text-').replace('error', 'red-400').replace('secondary', 'emerald-400'))}>{stat.subtext}</span>
+                  <span className={cn("text-[10px] font-mono", stat.colorClass.replace('bg-', 'text-').replace('error', 'red-400').replace('secondary', 'fuchsia-400'))}>{stat.subtext}</span>
                 </div>
               </div>
             ))
@@ -235,7 +235,7 @@ export const HistoryPage = () => {
                         </td>
                         <td className="px-6 py-3.5">
                           <div className="flex items-center gap-2">
-                            <div className={cn("w-1.5 h-1.5 rounded-full", dotClass.replace('bg-', 'bg-').replace('secondary', 'emerald-500').replace('tertiary', 'amber-500').replace('error', 'red-500'))}></div>
+                            <div className={cn("w-1.5 h-1.5 rounded-full", dotClass.replace('bg-', 'bg-').replace('secondary', 'fuchsia-500').replace('tertiary', 'amber-500').replace('error', 'red-500'))}></div>
                             <span className="text-xs font-mono text-on-surface-variant group-hover:text-on-surface transition-colors">
                               {row.status === 'completed' && isSuccess ? 'PASS' : row.status === 'completed' ? 'WARN' : row.status === 'failed' ? 'FAIL' : 'SYNC'}
                             </span>
@@ -301,7 +301,7 @@ export const HistoryPage = () => {
             <div className="bg-surface border border-white/10 p-6 rounded-xl h-full">
               <h4 className="text-xs font-semibold text-on-surface-variant mb-4 flex items-center justify-between">
                 <span>Integrations</span>
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-fuchsia-500"></div>
               </h4>
               <div className="space-y-2">
                 <div className="flex items-center justify-between p-2.5 bg-surface-container rounded-md border border-white/5">

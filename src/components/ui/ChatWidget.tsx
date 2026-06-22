@@ -93,7 +93,7 @@ export const ChatWidget = () => {
                 <div>
                   <h3 className="text-sm font-semibold text-on-surface">Ask Inspectra</h3>
                   <div className="flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse" />
                     <span className="text-[10px] text-on-surface-variant font-mono">ONLINE</span>
                   </div>
                 </div>

@@ -47,12 +47,42 @@ export const AnalysisPage = () => {
 
   const handleAutoFix = async (issueIdx: number) => {
     setFixingIssues(prev => ({ ...prev, [issueIdx]: true }));
-    // Simulate generation of patch and PR
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setFixingIssues(prev => ({ ...prev, [issueIdx]: false }));
-    toast.success('Auto-Fix Applied!', {
-      description: 'A pull request with the suggested fix has been generated and pushed to GitHub.'
-    });
+    try {
+      const issueToFix = filteredIssues.filter(i => !selectedFile || i.file_name === selectedFile)[issueIdx];
+      const token = await getToken();
+      
+      const res = await fetch('/api/autofix', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          repoUrl: `https://github.com/${analysis?.repo}`,
+          filePath: issueToFix.file_name,
+          issueDescription: `${issueToFix.message}\n\nSuggestion: ${issueToFix.suggestion}`
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to generate auto-fix PR');
+
+      toast.success('Auto-Fix PR Generated!', {
+        description: (
+          <div className="mt-2 flex flex-col gap-2">
+            <span>A pull request with the suggested fix has been pushed to GitHub.</span>
+            <a href={data.data.prUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-purple-400 hover:text-purple-300 font-medium">
+              <GitPullRequest className="w-4 h-4" /> View Pull Request
+            </a>
+          </div>
+        ),
+        duration: 8000
+      });
+    } catch (err: any) {
+      toast.error('Auto-Fix Failed', { description: err.message });
+    } finally {
+      setFixingIssues(prev => ({ ...prev, [issueIdx]: false }));
+    }
   };
 
   const handlePrint = useReactToPrint({
@@ -164,7 +194,7 @@ export const AnalysisPage = () => {
       case 'medium':
         return 'text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20';
       case 'low':
-        return 'text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20';
+        return 'text-fuchsia-400 bg-fuchsia-500/10 ring-1 ring-fuchsia-500/20';
       default:
         return 'text-on-surface-variant bg-surface-container ring-1 ring-outline-variant/30';
     }
@@ -191,8 +221,8 @@ export const AnalysisPage = () => {
               Analysis Console
             </h2>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span className="text-xs font-mono text-emerald-500 uppercase tracking-widest">Running</span>
+              <div className="w-2 h-2 rounded-full bg-fuchsia-500 animate-pulse"></div>
+              <span className="text-xs font-mono text-fuchsia-500 uppercase tracking-widest">Running</span>
             </div>
           </div>
 
@@ -343,7 +373,7 @@ export const AnalysisPage = () => {
             <AnimatePresence mode="popLayout">
               {filteredIssues.length === 0 ? (
                 <div className="py-20 flex flex-col items-center justify-center text-center bg-surface border border-white/10 rounded-xl border-dashed">
-                  <CheckCircle2 className="w-6 h-6 text-emerald-500 mb-4" />
+                  <CheckCircle2 className="w-6 h-6 text-fuchsia-500 mb-4" />
                   <h3 className="text-lg font-semibold text-on-surface mb-1">Clean Bill of Health</h3>
                   <p className="text-sm text-on-surface-variant">No issues found in this file.</p>
                 </div>

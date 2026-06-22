@@ -113,7 +113,7 @@ export const ArchitecturePage = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-on-surface flex items-center gap-3">
-              <Network className="w-6 h-6 text-emerald-400" />
+              <Network className="w-6 h-6 text-fuchsia-400" />
               Architecture Modeler
             </h1>
             <p className="text-on-surface-variant text-sm mt-1">
@@ -143,7 +143,7 @@ export const ArchitecturePage = () => {
             <button
               onClick={handleAnalyze}
               disabled={isAnalyzing || !selectedRepo}
-              className="px-4 py-2 bg-emerald-500 text-white rounded-md text-sm font-semibold flex items-center gap-2 hover:bg-emerald-600 transition-colors disabled:opacity-50 shadow-lg shadow-emerald-500/20"
+              className="px-4 py-2 bg-fuchsia-500 text-white rounded-md text-sm font-semibold flex items-center gap-2 hover:bg-fuchsia-600 transition-colors disabled:opacity-50"
             >
               {isAnalyzing ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Scanning...</>
@@ -156,38 +156,93 @@ export const ArchitecturePage = () => {
           </div>
         </div>
 
-        {/* Content Area */}
-        {isAnalyzing ? (
-          <div className="bg-surface/50 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden p-8 shadow-2xl">
-            <div className="animate-pulse flex flex-col items-center justify-center py-20">
-              <div className="relative w-24 h-24 mb-8">
-                <div className="absolute inset-0 border-4 border-emerald-500/20 rounded-full"></div>
-                <div className="absolute inset-0 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-                <Network className="w-8 h-8 text-emerald-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-              </div>
-              <h3 className="text-xl font-semibold text-on-surface mb-2">Analyzing Infrastructure</h3>
-              <p className="text-on-surface-variant font-mono text-sm">Building dependency graph and threat models...</p>
-              
-              <div className="w-full max-w-md mt-12 space-y-3">
-                <div className="h-2 bg-white/10 rounded overflow-hidden">
-                  <div className="h-full bg-emerald-500/50 w-1/3 animate-pulse"></div>
-                </div>
-                <div className="h-2 bg-white/10 rounded overflow-hidden">
-                  <div className="h-full bg-emerald-500/30 w-2/3 animate-pulse delay-75"></div>
-                </div>
-                <div className="h-2 bg-white/10 rounded overflow-hidden">
-                  <div className="h-full bg-emerald-500/40 w-1/2 animate-pulse delay-150"></div>
-                </div>
-              </div>
+        {/* Repositories Table */}
+        {isTableVisible && (
+          <div className="bg-surface border border-white/10 rounded-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4">
+            <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-surface-container-low border-b border-white/10 text-xs uppercase tracking-wider text-on-surface-variant">
+                <th className="p-4 font-semibold">Repository</th>
+                <th className="p-4 font-semibold text-center">Architecture Status</th>
+                <th className="p-4 font-semibold text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {repositories.map(repo => {
+                const isSelected = selectedRepo === repo.url;
+                return (
+                  <tr 
+                    key={repo.id} 
+                    className={cn(
+                      "transition-colors cursor-pointer",
+                      isSelected ? "bg-fuchsia-500/10" : "hover:bg-surface-container-high"
+                    )}
+                    onClick={() => {
+                      setSelectedRepo(repo.url || '');
+                      setIsTableVisible(false);
+                    }}
+                  >
+                    <td className="p-4 flex items-center gap-3">
+                      <Database className={cn("w-4 h-4", isSelected ? "text-fuchsia-400" : "text-on-surface-variant")} />
+                      <span className={cn("font-medium", isSelected ? "text-fuchsia-400" : "text-on-surface")}>
+                        {repo.name}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center">
+                      {repo.has_architecture ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-fuchsia-500/20 text-fuchsia-400">
+                          <Network className="w-3.5 h-3.5" /> Saved
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-white/5 text-on-surface-variant">
+                          Pending
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-4 text-right">
+                      {isSelected ? (
+                        <span className="text-xs font-bold text-fuchsia-400 flex items-center justify-end gap-1">
+                          <span className="w-2 h-2 rounded-full bg-fuchsia-400 animate-pulse" /> Active
+                        </span>
+                      ) : (
+                        <span className="text-xs font-medium text-primary hover:text-primary-light">
+                          Select
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+              {repositories.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="p-8 text-center text-on-surface-variant text-sm">
+                    No connected repositories found. Connect a repository on the Dashboard first.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        )}
+
+        {/* Content */}
+        {!isTableVisible && isAnalyzing ? (
+          <div className="flex flex-col items-center justify-center py-32 bg-surface border border-white/10 rounded-xl">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-fuchsia-500/20 border-t-fuchsia-500 rounded-full animate-spin"></div>
+              <Network className="w-6 h-6 text-fuchsia-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
             </div>
           </div>
         ) : hasContent ? (
           <div className="bg-surface/80 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden flex flex-col min-h-[600px] shadow-2xl">
             
-            {/* Tabs Header */}
-            <div className="flex items-center border-b border-white/10 bg-surface-container-low/50 px-4 backdrop-blur-md">
-              <button
-                onClick={() => setActiveTab('diagram')}
+            {/* Diagram Pane */}
+            <div className="bg-surface border border-white/10 rounded-xl overflow-hidden flex flex-col min-h-[500px]">
+              <div className="p-4 border-b border-white/10 flex items-center gap-2 bg-surface-container-low">
+                <Code2 className="w-4 h-4 text-fuchsia-400" />
+                <h3 className="font-semibold text-sm text-on-surface">System Diagram</h3>
+              </div>
+              <div 
                 className={cn(
                   "flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-all duration-300",
                   activeTab === 'diagram' 
