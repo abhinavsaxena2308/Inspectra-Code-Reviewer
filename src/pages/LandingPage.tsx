@@ -120,7 +120,7 @@ export function LandingPage() {
               className="text-5xl md:text-7xl font-bold tracking-tight mb-6 text-black dark:text-white leading-tight"
             >
               Code Review, <br className="hidden md:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 animate-text-shimmer glow-text">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-fuchsia-400 to-purple-400 animate-text-shimmer glow-text">
                 Automated by AI.
               </span>
             </motion.h1>
@@ -141,7 +141,7 @@ export function LandingPage() {
               transition={{ delay: 0.3 }}
               className="w-full max-w-2xl mx-auto flex flex-col items-center gap-4"
             >
-              <div className="relative w-full group flex flex-col sm:flex-row shadow-[0_0_40px_rgba(34,197,94,0.1)] rounded-2xl md:rounded-full bg-surface/40 border border-white/10 p-2 transition-all duration-500 hover:border-primary/50 focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/20 backdrop-blur-2xl glass-card">
+              <div className="relative w-full group flex flex-col sm:flex-row shadow-[0_0_40px_rgba(217, 70, 239,0.1)] rounded-2xl md:rounded-full bg-surface/40 border border-white/10 p-2 transition-all duration-500 hover:border-primary/50 focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/20 backdrop-blur-2xl glass-card">
                 <div className="relative flex-grow flex items-center">
                   <Terminal className="absolute left-4 w-5 h-5 text-black/40 dark:text-white/40" />
                   <input
@@ -217,7 +217,7 @@ export function LandingPage() {
                 whileHover={{ scale: 1.02, y: -5 }}
                 className="p-8 rounded-2xl glass-card border border-white/5 hover:border-primary/50 transition-all duration-500 group"
               >
-                <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 group-hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]">
+                <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 group-hover:shadow-[0_0_20px_rgba(217, 70, 239,0.4)]">
                   {feature.icon}
                 </div>
                 <h3 className="text-lg font-semibold text-on-surface mb-3 group-hover:text-primary transition-colors">{feature.title}</h3>
@@ -250,7 +250,7 @@ export function LandingPage() {
                     Acme Corp
                   </div>
                   <div className="text-2xl font-bold font-mono text-on-surface flex items-center justify-center gap-3">
-                    <div className="w-8 h-8 rounded-full border-2 border-primary shadow-[0_0_15px_rgba(34,197,94,0.5)]"></div>
+                    <div className="w-8 h-8 rounded-full border-2 border-primary shadow-[0_0_15px_rgba(217, 70, 239,0.5)]"></div>
                     GlobalTech
                   </div>
                   <div className="text-2xl font-bold font-sans text-on-surface flex items-center justify-center gap-2">

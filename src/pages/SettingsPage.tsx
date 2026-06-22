@@ -554,7 +554,7 @@ export const SettingsPage = () => {
                   <p className="text-[10px] text-on-surface-variant font-mono uppercase">
                     Status: <span className={
                       user?.externalAccounts?.some(acc => acc.provider === 'github') || (user as any)?.profile?.github_token || (user as any)?.metadata?.github_token 
-                      ? "text-emerald-500" 
+                      ? "text-fuchsia-500" 
                       : "text-amber-500"
                     }>
                       {user?.externalAccounts?.some(acc => acc.provider === 'github') 
@@ -672,7 +672,7 @@ export const SettingsPage = () => {
         <section className="lg:col-span-12 bg-surface border border-white/10 rounded-xl overflow-hidden mt-6">
           <div className="p-6 border-b border-white/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+              <div className="w-10 h-10 rounded-lg bg-fuchsia-500/10 flex items-center justify-center text-fuchsia-400 border border-fuchsia-500/20 shadow-[0_0_15px_rgba(217, 70, 239,0.1)]">
                 <Shield className="w-5 h-5" />
               </div>
               <div>
@@ -683,7 +683,7 @@ export const SettingsPage = () => {
             <button 
               onClick={handleSaveAiSettings} 
               disabled={isSavingAi} 
-              className="px-4 py-2 bg-emerald-500 text-white rounded-md text-sm font-semibold flex items-center gap-2 hover:bg-emerald-600 transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-fuchsia-500 text-white rounded-md text-sm font-semibold flex items-center gap-2 hover:bg-fuchsia-600 transition-colors disabled:opacity-50"
             >
               {isSavingAi ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               Save Rulesets
@@ -699,7 +699,7 @@ export const SettingsPage = () => {
                 <select 
                   value={aiSettings.strictness}
                   onChange={(e) => setAiSettings({...aiSettings, strictness: e.target.value})}
-                  className="w-full bg-surface-container border border-white/10 rounded-md px-4 py-2.5 text-sm text-on-surface outline-none focus:border-emerald-500/50"
+                  className="w-full bg-surface-container border border-white/10 rounded-md px-4 py-2.5 text-sm text-on-surface outline-none focus:border-fuchsia-500/50"
                 >
                   <option value="lenient">Lenient (Only critical bugs and security flaws)</option>
                   <option value="standard">Standard (Balanced review, default)</option>
@@ -715,7 +715,7 @@ export const SettingsPage = () => {
                 <select 
                   value={aiSettings.focusArea}
                   onChange={(e) => setAiSettings({...aiSettings, focusArea: e.target.value})}
-                  className="w-full bg-surface-container border border-white/10 rounded-md px-4 py-2.5 text-sm text-on-surface outline-none focus:border-emerald-500/50"
+                  className="w-full bg-surface-container border border-white/10 rounded-md px-4 py-2.5 text-sm text-on-surface outline-none focus:border-fuchsia-500/50"
                 >
                   <option value="general">General Code Quality</option>
                   <option value="security">Security First (OWASP Top 10 focus)</option>
@@ -735,7 +735,7 @@ export const SettingsPage = () => {
                 value={aiSettings.customInstructions}
                 onChange={(e) => setAiSettings({...aiSettings, customInstructions: e.target.value})}
                 placeholder="e.g., We use Tailwind CSS exclusively, flag any inline styles. Enforce strict typing in TypeScript, never allow 'any'. Prefer arrow functions over function declarations."
-                className="w-full h-32 bg-surface-container border border-white/10 rounded-md p-4 text-sm text-on-surface outline-none focus:border-emerald-500/50 resize-none font-mono"
+                className="w-full h-32 bg-surface-container border border-white/10 rounded-md p-4 text-sm text-on-surface outline-none focus:border-fuchsia-500/50 resize-none font-mono"
               />
             </div>
           </div>
@@ -747,7 +747,7 @@ export const SettingsPage = () => {
       <footer className="mt-8 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="text-[10px] font-mono text-on-surface-variant flex items-center gap-4">
           <span>SYSTEM_VERSION: v4.2.0-stable</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-500" />
           <span>STATUS: NOMINAL</span>
         </div>
         <p className="text-[10px] text-on-surface-variant uppercase font-mono">

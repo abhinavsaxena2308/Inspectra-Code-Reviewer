@@ -130,7 +130,7 @@ export const ArchitecturePage = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-on-surface flex items-center gap-3">
-              <Network className="w-6 h-6 text-emerald-400" />
+              <Network className="w-6 h-6 text-fuchsia-400" />
               Architecture Modeler
             </h1>
             <p className="text-on-surface-variant text-sm mt-1">
@@ -149,7 +149,7 @@ export const ArchitecturePage = () => {
             <button
               onClick={handleAnalyze}
               disabled={isAnalyzing || !selectedRepo}
-              className="px-4 py-2 bg-emerald-500 text-white rounded-md text-sm font-semibold flex items-center gap-2 hover:bg-emerald-600 transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-fuchsia-500 text-white rounded-md text-sm font-semibold flex items-center gap-2 hover:bg-fuchsia-600 transition-colors disabled:opacity-50"
             >
               {isAnalyzing ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Scanning...</>
@@ -181,7 +181,7 @@ export const ArchitecturePage = () => {
                     key={repo.id} 
                     className={cn(
                       "transition-colors cursor-pointer",
-                      isSelected ? "bg-emerald-500/10" : "hover:bg-surface-container-high"
+                      isSelected ? "bg-fuchsia-500/10" : "hover:bg-surface-container-high"
                     )}
                     onClick={() => {
                       setSelectedRepo(repo.url || '');
@@ -189,14 +189,14 @@ export const ArchitecturePage = () => {
                     }}
                   >
                     <td className="p-4 flex items-center gap-3">
-                      <Database className={cn("w-4 h-4", isSelected ? "text-emerald-400" : "text-on-surface-variant")} />
-                      <span className={cn("font-medium", isSelected ? "text-emerald-400" : "text-on-surface")}>
+                      <Database className={cn("w-4 h-4", isSelected ? "text-fuchsia-400" : "text-on-surface-variant")} />
+                      <span className={cn("font-medium", isSelected ? "text-fuchsia-400" : "text-on-surface")}>
                         {repo.name}
                       </span>
                     </td>
                     <td className="p-4 text-center">
                       {repo.has_architecture ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-fuchsia-500/20 text-fuchsia-400">
                           <Network className="w-3.5 h-3.5" /> Saved
                         </span>
                       ) : (
@@ -207,8 +207,8 @@ export const ArchitecturePage = () => {
                     </td>
                     <td className="p-4 text-right">
                       {isSelected ? (
-                        <span className="text-xs font-bold text-emerald-400 flex items-center justify-end gap-1">
-                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Active
+                        <span className="text-xs font-bold text-fuchsia-400 flex items-center justify-end gap-1">
+                          <span className="w-2 h-2 rounded-full bg-fuchsia-400 animate-pulse" /> Active
                         </span>
                       ) : (
                         <span className="text-xs font-medium text-primary hover:text-primary-light">
@@ -235,8 +235,8 @@ export const ArchitecturePage = () => {
         {!isTableVisible && isAnalyzing ? (
           <div className="flex flex-col items-center justify-center py-32 bg-surface border border-white/10 rounded-xl">
             <div className="relative">
-              <div className="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-              <Network className="w-6 h-6 text-emerald-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+              <div className="w-16 h-16 border-4 border-fuchsia-500/20 border-t-fuchsia-500 rounded-full animate-spin"></div>
+              <Network className="w-6 h-6 text-fuchsia-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
             </div>
             <h3 className="text-lg font-semibold text-on-surface mt-6 mb-2">Analyzing Infrastructure...</h3>
             <p className="text-sm text-on-surface-variant font-mono">Parsing docker-compose, package.json, and entrypoints</p>
@@ -247,7 +247,7 @@ export const ArchitecturePage = () => {
             {/* Diagram Pane */}
             <div className="bg-surface border border-white/10 rounded-xl overflow-hidden flex flex-col min-h-[500px]">
               <div className="p-4 border-b border-white/10 flex items-center gap-2 bg-surface-container-low">
-                <Code2 className="w-4 h-4 text-emerald-400" />
+                <Code2 className="w-4 h-4 text-fuchsia-400" />
                 <h3 className="font-semibold text-sm text-on-surface">System Diagram</h3>
               </div>
               <div 

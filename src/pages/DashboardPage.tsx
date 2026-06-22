@@ -160,7 +160,7 @@ export const DashboardPage = () => {
           <div className="flex items-center gap-3">
              <h1 className="text-xl font-semibold tracking-tight text-on-surface">Console</h1>
              <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-white/10 bg-surface-container text-[10px] font-medium text-on-surface-variant">
-               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+               <div className="w-1.5 h-1.5 rounded-full bg-fuchsia-500" />
                Active
              </span>
           </div>
@@ -407,7 +407,7 @@ export const DashboardPage = () => {
                 >
                   <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2 w-24 shrink-0">
-                      <div className={cn("w-1.5 h-1.5 rounded-full", activity.type === 'analysis-completed' ? "bg-emerald-500" : "bg-amber-500 animate-pulse")} />
+                      <div className={cn("w-1.5 h-1.5 rounded-full", activity.type === 'analysis-completed' ? "bg-fuchsia-500" : "bg-amber-500 animate-pulse")} />
                       <span className="text-xs text-on-surface-variant font-mono">
                         {activity.type === 'analysis-completed' ? 'PASS' : 'SYNC'}
                       </span>

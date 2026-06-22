@@ -194,7 +194,7 @@ export const AnalysisPage = () => {
       case 'medium':
         return 'text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20';
       case 'low':
-        return 'text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20';
+        return 'text-fuchsia-400 bg-fuchsia-500/10 ring-1 ring-fuchsia-500/20';
       default:
         return 'text-on-surface-variant bg-surface-container ring-1 ring-outline-variant/30';
     }
@@ -221,8 +221,8 @@ export const AnalysisPage = () => {
               Analysis Console
             </h2>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span className="text-xs font-mono text-emerald-500 uppercase tracking-widest">Running</span>
+              <div className="w-2 h-2 rounded-full bg-fuchsia-500 animate-pulse"></div>
+              <span className="text-xs font-mono text-fuchsia-500 uppercase tracking-widest">Running</span>
             </div>
           </div>
 
@@ -373,7 +373,7 @@ export const AnalysisPage = () => {
             <AnimatePresence mode="popLayout">
               {filteredIssues.length === 0 ? (
                 <div className="py-20 flex flex-col items-center justify-center text-center bg-surface border border-white/10 rounded-xl border-dashed">
-                  <CheckCircle2 className="w-6 h-6 text-emerald-500 mb-4" />
+                  <CheckCircle2 className="w-6 h-6 text-fuchsia-500 mb-4" />
                   <h3 className="text-lg font-semibold text-on-surface mb-1">Clean Bill of Health</h3>
                   <p className="text-sm text-on-surface-variant">No issues found in this file.</p>
                 </div>

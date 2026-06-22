@@ -178,7 +178,7 @@ export const RepositoriesPage = () => {
       {filteredRepos.length === 0 ? (
         /* Empty State */
         <div className="p-20 flex flex-col items-center justify-center text-center glass-card rounded-2xl border border-white/5">
-          <div className="w-16 h-16 bg-surface-container-high rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(34,197,94,0.1)]">
+          <div className="w-16 h-16 bg-surface-container-high rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(217, 70, 239,0.1)]">
             <Folder className="w-8 h-8 text-primary" />
           </div>
           <h3 className="text-xl font-bold font-heading text-on-surface mb-2 tracking-tight">No repositories found</h3>
@@ -222,7 +222,7 @@ export const RepositoriesPage = () => {
                     {repositories.map(repo => {
                        let bgColor = 'bg-surface-container-high border-outline-variant/30 hover:border-outline-variant';
                        if (repo.score != null) {
-                          if (repo.score >= 80) bgColor = 'bg-primary/80 border-primary/50 shadow-[0_0_8px_rgba(16,185,129,0.2)] hover:shadow-[0_0_12px_rgba(16,185,129,0.6)] hover:bg-primary z-10';
+                          if (repo.score >= 80) bgColor = 'bg-primary/80 border-primary/50 shadow-[0_0_8px_rgba(217, 70, 239,0.2)] hover:shadow-[0_0_12px_rgba(217, 70, 239,0.6)] hover:bg-primary z-10';
                           else if (repo.score >= 60) bgColor = 'bg-amber-500/80 border-amber-500/50 shadow-[0_0_8px_rgba(245,158,11,0.2)] hover:shadow-[0_0_12px_rgba(245,158,11,0.6)] hover:bg-amber-500 z-10';
                           else bgColor = 'bg-error/80 border-error/50 shadow-[0_0_8px_rgba(239,68,68,0.2)] hover:shadow-[0_0_12px_rgba(239,68,68,0.6)] hover:bg-error z-10';
                        }
@@ -439,7 +439,7 @@ export const RepositoriesPage = () => {
                 <button className="px-3 py-1.5 bg-surface-container border border-outline/30 rounded hover:bg-surface-container-high text-on-surface text-xs font-semibold transition-colors disabled:opacity-40" disabled>
                   Prev
                 </button>
-                <button className="px-3 py-1.5 bg-primary text-white shadow-[0_0_15px_rgba(34,197,94,0.3)] text-xs font-bold rounded transition-colors">
+                <button className="px-3 py-1.5 bg-primary text-white shadow-[0_0_15px_rgba(217, 70, 239,0.3)] text-xs font-bold rounded transition-colors">
                   1
                 </button>
                 <button className="px-3 py-1.5 bg-surface-container border border-outline/30 rounded hover:bg-surface-container-high text-on-surface text-xs font-semibold transition-colors disabled:opacity-40" disabled>

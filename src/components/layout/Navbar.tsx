@@ -13,9 +13,12 @@ export const Navbar = () => {
           {/* Logo/Brand for Dashboard */}
           <div className="flex items-center gap-2 cursor-pointer group" onClick={() => navigate('/')}>
             <div className="w-6 h-6 rounded-lg border border-white/10 flex items-center justify-center p-1 bg-white/5 shadow-2xl relative group-hover:border-cyan/30 transition-all duration-500 overflow-hidden">
-              <svg viewBox="0 0 24 24" className="w-full h-full relative z-10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L3.5 7V17L12 22L20.5 17V7L12 2Z" className="stroke-white/40 group-hover:stroke-white transition-colors duration-500" strokeWidth="1.5" strokeLinejoin="round"/>
-                <circle cx="12" cy="12" r="3" className="fill-cyan/40 group-hover:fill-cyan animate-pulse transition-colors duration-500"/>
+              <svg viewBox="0 0 24 24" className="w-full h-full relative z-10" xmlns="http://www.w3.org/2000/svg" fill="#b61693" stroke="#b61693">
+                <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+                <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path fill="none" stroke="#b80faa" strokeWidth="2" d="M5.5,21 C7.98528137,21 10,18.9852814 10,16.5 C10,14.0147186 7.98528137,12 5.5,12 C3.01471863,12 1,14.0147186 1,16.5 C1,18.9852814 3.01471863,21 5.5,21 Z M1,16 L1,7 L1,6.5 C1,4.01471863 3.01471863,2 5.5,2 L6,2 M23,16 L23,7 L23,6.5 C23,4.01471863 20.9852814,2 18.5,2 L18,2 M18.5,21 C20.9852814,21 23,18.9852814 23,16.5 C23,14.0147186 20.9852814,12 18.5,12 C16.0147186,12 14,14.0147186 14,16.5 C14,18.9852814 16.0147186,21 18.5,21 Z M10,17 C10,17 10,15 12,15 C14,15 14,17 14,17"></path>
+                </g>
               </svg>
             </div>
             <span className="text-[10px] font-bold tracking-widest uppercase text-white/60 group-hover:text-white transition-colors hidden sm:block">Inspectra</span>

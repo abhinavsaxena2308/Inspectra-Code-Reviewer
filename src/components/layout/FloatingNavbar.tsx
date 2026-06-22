@@ -24,10 +24,12 @@ export const FloatingNavbar = () => {
           
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
             <div className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center p-1.5 bg-gradient-to-br from-surface-container-high to-surface-container">
-              <svg viewBox="0 0 24 24" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L3.5 7V17L12 22L20.5 17V7L12 2Z" className="stroke-on-surface-variant/50" strokeWidth="1.5" strokeLinejoin="round"/>
-                <path d="M12 6V18" className="stroke-outline-variant" strokeWidth="1.5" strokeLinecap="round"/>
-                <circle cx="12" cy="12" r="3" className="fill-primary/50"/>
+              <svg viewBox="0 0 24 24" className="w-full h-full" xmlns="http://www.w3.org/2000/svg" fill="#b61693" stroke="#b61693">
+                <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+                <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path fill="none" stroke="#b80faa" strokeWidth="2" d="M5.5,21 C7.98528137,21 10,18.9852814 10,16.5 C10,14.0147186 7.98528137,12 5.5,12 C3.01471863,12 1,14.0147186 1,16.5 C1,18.9852814 3.01471863,21 5.5,21 Z M1,16 L1,7 L1,6.5 C1,4.01471863 3.01471863,2 5.5,2 L6,2 M23,16 L23,7 L23,6.5 C23,4.01471863 20.9852814,2 18.5,2 L18,2 M18.5,21 C20.9852814,21 23,18.9852814 23,16.5 C23,14.0147186 20.9852814,12 18.5,12 C16.0147186,12 14,14.0147186 14,16.5 C14,18.9852814 16.0147186,21 18.5,21 Z M10,17 C10,17 10,15 12,15 C14,15 14,17 14,17"></path>
+                </g>
               </svg>
             </div>
             <span className="text-sm font-bold tracking-widest uppercase text-on-surface hidden sm:block">

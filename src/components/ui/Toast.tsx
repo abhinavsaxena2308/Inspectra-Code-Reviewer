@@ -28,12 +28,12 @@ export const ToastContainer = ({ toasts, removeToast }: ToastContainerProps) => 
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
             className={cn(
               'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl min-w-[300px]',
-              toast.type === 'success' && 'bg-emerald-950/80 border-emerald-500/50 text-emerald-200',
+              toast.type === 'success' && 'bg-fuchsia-950/80 border-fuchsia-500/50 text-fuchsia-200',
               toast.type === 'error' && 'bg-rose-950/80 border-rose-500/50 text-rose-200',
               toast.type === 'info' && 'bg-indigo-950/80 border-indigo-500/50 text-indigo-200'
             )}
           >
-            {toast.type === 'success' && <CheckCircle className="w-5 h-5 text-emerald-400" />}
+            {toast.type === 'success' && <CheckCircle className="w-5 h-5 text-fuchsia-400" />}
             {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-400" />}
             {toast.type === 'info' && <Info className="w-5 h-5 text-indigo-400" />}
             
